@@ -1,3 +1,5 @@
+from __future__ import division
+
 import collections
 
 import numpy as np
@@ -18,7 +20,8 @@ from nengo.utils.compat import is_iterable, itervalues
 
 
 BuiltConnection = collections.namedtuple(
-    'BuiltConnection', ['eval_points', 'solver_info', 'weights'])
+    'BuiltConnection', ['eval_points', 'solver_info', 'weights',
+                        'error_estimate'])
 
 
 def get_eval_points(model, conn, rng):
@@ -77,6 +80,25 @@ def slice_signal(model, signal, sl):
         return sliced_signal
 
 
+def estimate_error(sigma, eval_points, activities, targets):
+    # Derivation of the math was done by Kwabena Boahen.
+
+    n_eval_points = len(eval_points)
+    n_neurons = activities.shape[1]
+
+    u, s, v = np.linalg.svd(activities)
+    proj_targets = np.dot(u.T, targets)
+    scaled_eigv = s * s / n_eval_points / sigma / sigma
+    neuron_eval_ratio = n_neurons / n_eval_points
+    limit = np.sqrt(neuron_eval_ratio)
+
+    uu = np.ones_like(proj_targets) * 0.25
+    uu[:len(s), :] = ((scaled_eigv ** 2 - neuron_eval_ratio) / (
+        scaled_eigv ** 2 + scaled_eigv))[:, np.newaxis]
+    uu[scaled_eigv < limit] = 0.25
+    return np.sum(2. * (1. - np.sqrt(uu)) * proj_targets ** 2) / n_eval_points
+
+
 @Builder.register(Connection)  # noqa: C901
 def build_connection(model, conn):
     # Create random number generator
@@ -104,6 +126,7 @@ def build_connection(model, conn):
     weights = None
     eval_points = None
     solver_info = None
+    error = None
     signal_size = conn.size_out
     post_slice = conn.post_slice
 
@@ -126,6 +149,16 @@ def build_connection(model, conn):
     elif isinstance(conn.pre_obj, Ensemble):  # Normal decoded connection
         eval_points, activities, targets = build_linear_system(
             model, conn, rng)
+
+        # TODO there should be a better way to obtain sigma
+        sigma = 0.
+        if hasattr(conn.solver, 'sigma'):
+            sigma = conn.solver.sigma
+        elif hasattr(conn.solver, 'noise'):
+            sigma = conn.solver.noise * activities.max()
+        elif hasattr(conn.solver, 'reg'):
+            sigma = conn.solver.reg * activities.max()
+        error = estimate_error(sigma, eval_points, activities, targets)
 
         # Use cached solver, if configured
         solver = model.decoder_cache.wrap_solver(conn.solver)
@@ -187,4 +220,5 @@ def build_connection(model, conn):
 
     model.params[conn] = BuiltConnection(eval_points=eval_points,
                                          solver_info=solver_info,
-                                         weights=weights)
+                                         weights=weights,
+                                         error_estimate=error)
