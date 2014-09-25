@@ -20,7 +20,7 @@ from nengo.utils.builder import full_transform
 
 BuiltConnection = collections.namedtuple(
     'BuiltConnection', ['decoders', 'eval_points', 'transform', 'solver_info',
-                        'error_estimate'])
+                        'distortion'])
 
 
 def build_linear_system(model, conn, rng):
@@ -53,23 +53,14 @@ def build_linear_system(model, conn, rng):
     return eval_points, activities, targets
 
 
-def estimate_error(sigma, eval_points, activities, targets):
-    # Derivation of the math was done by Kwabena Boahen.
-
-    n_eval_points = len(eval_points)
+def estimate_distortion(eval_points, activities, targets):
+    n_eval_points, dimensions = eval_points.shape
     n_neurons = activities.shape[1]
 
     u, s, v = np.linalg.svd(activities)
     proj_targets = np.dot(u.T, targets)
-    scaled_eigv = s * s / n_eval_points / sigma / sigma
-    neuron_eval_ratio = n_neurons / n_eval_points
-    limit = np.sqrt(neuron_eval_ratio)
 
-    uu = np.ones_like(proj_targets) * 0.25
-    uu[:len(s), :] = ((scaled_eigv ** 2 - neuron_eval_ratio) / (
-        scaled_eigv ** 2 + scaled_eigv))[:, np.newaxis]
-    uu[scaled_eigv < limit] = 0.25
-    return np.sum(2. * (1. - np.sqrt(uu)) * proj_targets ** 2) / n_eval_points
+    return np.sum(proj_targets[len(s):] ** 2) / n_eval_points / dimensions
 
 
 @Builder.register(Connection)  # noqa: C901
@@ -99,7 +90,7 @@ def build_connection(model, conn):
     decoders = None
     eval_points = None
     solver_info = None
-    error = None
+    distortion = None
     transform = full_transform(conn, slice_pre=False)
 
     # Figure out the signal going across this connection
@@ -127,16 +118,7 @@ def build_connection(model, conn):
         # Normal decoded connection
         eval_points, activities, targets = build_linear_system(
             model, conn, rng)
-
-        # TODO there should be a better way to obtain sigma
-        sigma = 0.
-        if hasattr(conn.solver, 'sigma'):
-            sigma = conn.solver.sigma
-        elif hasattr(conn.solver, 'noise'):
-            sigma = conn.solver.noise * activities.max()
-        elif hasattr(conn.solver, 'reg'):
-            sigma = conn.solver.reg * activities.max()
-        error = estimate_error(sigma, eval_points, activities, targets)
+        distortion = estimate_distortion(eval_points, activities, targets)
 
         # Use cached solver, if configured
         solver = model.decoder_cache.wrap_solver(conn.solver)
@@ -241,4 +223,4 @@ def build_connection(model, conn):
                                          eval_points=eval_points,
                                          transform=transform,
                                          solver_info=solver_info,
-                                         error_estimate=error)
+                                         distortion=distortion)
