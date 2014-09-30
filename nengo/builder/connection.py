@@ -81,14 +81,17 @@ def slice_signal(model, signal, sl):
         return sliced_signal
 
 
-def estimate_distortion(eval_points, activities, targets):
+def estimate_distortion(eval_points, activities, targets, sigma):
     n_eval_points, dimensions = eval_points.shape
-    n_neurons = activities.shape[1]
 
     u, s, v = np.linalg.svd(activities)
     proj_targets = np.dot(u.T, targets)
+    regularization = np.ones(len(proj_targets))
+    regularization[:len(s)] = 1. - s * s / (s * s + n_eval_points * sigma ** 2)
 
-    return np.sum(proj_targets[len(s):] ** 2) / n_eval_points / dimensions
+    return (np.sum(
+        (proj_targets * regularization[:, np.newaxis]) ** 2) /
+        n_eval_points / dimensions)
 
 
 @Builder.register(Connection)  # noqa: C901
@@ -141,7 +144,17 @@ def build_connection(model, conn):
     elif isinstance(conn.pre_obj, Ensemble):  # Normal decoded connection
         eval_points, activities, targets = build_linear_system(
             model, conn, rng)
-        distortion = estimate_distortion(eval_points, activities, targets)
+
+        # TODO there should be a better way to obtain sigma
+        sigma = 0.
+        if hasattr(conn.solver, 'sigma'):
+            sigma = conn.solver.sigma
+        elif hasattr(conn.solver, 'reg'):
+            sigma = conn.solver.reg * activities.max()
+        elif hasattr(conn.solver, 'noise'):
+            sigma = conn.solver.noise * activities.max()
+        distortion = estimate_distortion(
+            eval_points, activities, targets, sigma)
 
         # Use cached solver, if configured
         solver = model.decoder_cache.wrap_solver(conn.solver)
