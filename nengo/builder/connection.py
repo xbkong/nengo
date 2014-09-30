@@ -19,6 +19,7 @@ from nengo.node import Node
 from nengo.utils.compat import is_iterable, itervalues
 
 
+# TODO document distortion attribute
 BuiltConnection = collections.namedtuple(
     'BuiltConnection', ['eval_points', 'solver_info', 'weights',
                         'distortion'])
