@@ -18,6 +18,7 @@ from nengo.node import Node
 from nengo.utils.builder import full_transform
 
 
+# TODO document distortion attribute
 BuiltConnection = collections.namedtuple(
     'BuiltConnection', ['decoders', 'eval_points', 'transform', 'solver_info',
                         'distortion'])
