@@ -81,19 +81,6 @@ def slice_signal(model, signal, sl):
         return sliced_signal
 
 
-def estimate_distortion(eval_points, activities, targets, sigma):
-    n_eval_points, dimensions = eval_points.shape
-
-    u, s, v = np.linalg.svd(activities)
-    proj_targets = np.dot(u.T, targets)
-    regularization = np.ones(len(proj_targets))
-    regularization[:len(s)] = 1. - s * s / (s * s + n_eval_points * sigma ** 2)
-
-    return (np.sum(
-        (proj_targets * regularization[:, np.newaxis]) ** 2) /
-        n_eval_points / dimensions)
-
-
 @Builder.register(Connection)  # noqa: C901
 def build_connection(model, conn):
     # Create random number generator
@@ -145,17 +132,6 @@ def build_connection(model, conn):
         eval_points, activities, targets = build_linear_system(
             model, conn, rng)
 
-        # TODO there should be a better way to obtain sigma
-        sigma = 0.
-        if hasattr(conn.solver, 'sigma'):
-            sigma = conn.solver.sigma
-        elif hasattr(conn.solver, 'reg'):
-            sigma = conn.solver.reg * activities.max()
-        elif hasattr(conn.solver, 'noise'):
-            sigma = conn.solver.noise * activities.max()
-        distortion = estimate_distortion(
-            eval_points, activities, targets, sigma)
-
         # Use cached solver, if configured
         solver = model.decoder_cache.wrap_solver(conn.solver)
 
@@ -171,6 +147,9 @@ def build_connection(model, conn):
         else:
             decoders, solver_info = solver(activities, targets, rng=rng)
             weights = multiply(conn.transform, decoders.T)
+            distortion = np.mean(
+                np.square(targets - np.dot(activities, decoders)))
+            signal_size = conn.size_mid
     else:
         in_signal = slice_signal(model, in_signal, conn.pre_slice)
 
