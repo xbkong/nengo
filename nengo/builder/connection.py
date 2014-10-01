@@ -19,10 +19,8 @@ from nengo.node import Node
 from nengo.utils.compat import is_iterable, itervalues
 
 
-# TODO document distortion attribute
 BuiltConnection = collections.namedtuple(
-    'BuiltConnection', ['eval_points', 'solver_info', 'weights',
-                        'distortion'])
+    'BuiltConnection', ['eval_points', 'solver_info', 'weights'])
 
 
 def get_eval_points(model, conn, rng):
@@ -108,7 +106,6 @@ def build_connection(model, conn):
     weights = None
     eval_points = None
     solver_info = None
-    distortion = None
     signal_size = conn.size_out
     post_slice = conn.post_slice
 
@@ -147,8 +144,6 @@ def build_connection(model, conn):
         else:
             decoders, solver_info = solver(activities, targets, rng=rng)
             weights = multiply(conn.transform, decoders.T)
-            distortion = np.mean(
-                np.square(targets - np.dot(activities, decoders)))
             signal_size = conn.size_mid
     else:
         in_signal = slice_signal(model, in_signal, conn.pre_slice)
@@ -195,5 +190,4 @@ def build_connection(model, conn):
 
     model.params[conn] = BuiltConnection(eval_points=eval_points,
                                          solver_info=solver_info,
-                                         weights=weights,
-                                         distortion=distortion)
+                                         weights=weights)
