@@ -18,10 +18,8 @@ from nengo.node import Node
 from nengo.utils.builder import full_transform
 
 
-# TODO document distortion attribute
 BuiltConnection = collections.namedtuple(
-    'BuiltConnection', ['decoders', 'eval_points', 'transform', 'solver_info',
-                        'distortion'])
+    'BuiltConnection', ['decoders', 'eval_points', 'transform', 'solver_info'])
 
 
 def build_linear_system(model, conn, rng):
@@ -81,7 +79,6 @@ def build_connection(model, conn):
     decoders = None
     eval_points = None
     solver_info = None
-    distortion = None
     transform = full_transform(conn, slice_pre=False)
 
     # Figure out the signal going across this connection
@@ -124,8 +121,6 @@ def build_connection(model, conn):
             signal_size = model.sig[conn]['out'].size
         else:
             decoders, solver_info = solver(activities, targets, rng=rng)
-            distortion = np.mean(
-                np.square(targets - np.dot(activities, decoders)))
             signal_size = conn.size_mid
 
         # Add operator for decoders
@@ -214,5 +209,4 @@ def build_connection(model, conn):
     model.params[conn] = BuiltConnection(decoders=decoders,
                                          eval_points=eval_points,
                                          transform=transform,
-                                         solver_info=solver_info,
-                                         distortion=distortion)
+                                         solver_info=solver_info)
