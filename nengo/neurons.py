@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class NeuronType(object):
 
     probeable = []
+    vector_space = False
 
     def rates(self, x, gain, bias):
         raise NotImplementedError("Neurons must provide rates")
@@ -20,7 +21,12 @@ class NeuronType(object):
         raise NotImplementedError("Neurons must provide gain_bias")
 
 
-class Direct(NeuronType):
+class Population(NeuronType):
+    """Abstract base class for things that don't actually simulate neurons."""
+    vector_space = True
+
+
+class Direct(Population):
     """Direct mode. Functions are computed explicitly, instead of in neurons.
     """
 
@@ -29,6 +35,16 @@ class Direct(NeuronType):
 
     def gain_bias(self, max_rates, intercepts):
         return None, None
+
+
+class LIFPopulation(Population):
+
+    def __init__(self, tau_rc=0.02, tau_ref=0.002):
+        self.tau_rc = tau_rc
+        self.tau_ref = tau_ref
+
+    def step_math(self, dt, x, y):
+        pass
 
 
 # TODO: class BasisFunctions or Population or Express;

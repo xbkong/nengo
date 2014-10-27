@@ -1060,20 +1060,24 @@ def build_ensemble(ens, model, config):  # noqa: C901
                                   name="%s.signal" % ens)
     model.add_op(Reset(model.sig[ens]['in']))
 
-    # Set up encoders
-    if isinstance(ens.neuron_type, Direct):
-        encoders = np.identity(ens.dimensions)
-    elif isinstance(ens.encoders, Distribution):
-        encoders = ens.encoders.sample(ens.n_neurons, ens.dimensions, rng=rng)
-    else:
-        encoders = npext.array(ens.encoders, min_dims=2, dtype=np.float64)
-        encoders /= npext.norm(encoders, axis=1, keepdims=True)
+    if ens.neuron_type.vector_space:
+        # vector space neurons compute nothing in the ensemble
+        model.sig[ens.neurons]['in'] = model.sig[ens]['in']
+        model.sig[ens.neurons]['out'] = model.sig[ens.neurons]['in']
+        model.sig[ens]['out'] = model.sig[ens.neurons]['out']
+
+        model.params[ens] = BuiltEnsemble(
+            eval_points=None, encoders=None, intercepts=None, max_rates=None,
+            scaled_encoders=None, gain=None, bias=None)
+        return
+
+    # --- Neuron space
 
     # Determine max_rates and intercepts
     max_rates = sample(ens.max_rates, ens.n_neurons, rng=rng)
     intercepts = sample(ens.intercepts, ens.n_neurons, rng=rng)
 
-    # Build the neurons
+    # determine gain and bias
     if ens.gain is not None and ens.bias is not None:
         gain = sample(ens.gain, ens.n_neurons, rng=rng)
         bias = sample(ens.bias, ens.n_neurons, rng=rng)
@@ -1085,27 +1089,25 @@ def build_ensemble(ens, model, config):  # noqa: C901
     else:
         gain, bias = ens.neuron_type.gain_bias(max_rates, intercepts)
 
-    if isinstance(ens.neuron_type, Direct):
-        model.sig[ens.neurons]['in'] = Signal(
-            np.zeros(ens.dimensions), name='%s.neuron_in' % ens)
-        model.sig[ens.neurons]['out'] = model.sig[ens.neurons]['in']
-        model.add_op(Reset(model.sig[ens.neurons]['in']))
+    # Set up encoders
+    if isinstance(ens.encoders, Distribution):
+        encoders = ens.encoders.sample(ens.n_neurons, ens.dimensions, rng=rng)
     else:
-        model.sig[ens.neurons]['in'] = Signal(
-            np.zeros(ens.n_neurons), name="%s.neuron_in" % ens)
-        model.sig[ens.neurons]['out'] = Signal(
-            np.zeros(ens.n_neurons), name="%s.neuron_out" % ens)
-        model.add_op(Copy(src=Signal(bias, name="%s.bias" % ens),
-                          dst=model.sig[ens.neurons]['in']))
-        # This adds the neuron's operator and sets other signals
-        Builder.build(ens.neuron_type, ens.neurons, model=model, config=config)
+        encoders = npext.array(ens.encoders, min_dims=2, dtype=np.float64)
+        encoders /= npext.norm(encoders, axis=1, keepdims=True)
+
+    model.sig[ens.neurons]['in'] = Signal(
+        np.zeros(ens.n_neurons), name="%s.neuron_in" % ens)
+    model.sig[ens.neurons]['out'] = Signal(
+        np.zeros(ens.n_neurons), name="%s.neuron_out" % ens)
+    model.add_op(Copy(src=Signal(bias, name="%s.bias" % ens),
+                      dst=model.sig[ens.neurons]['in']))
+
+    # This adds the neuron's operator and sets other signals
+    Builder.build(ens.neuron_type, ens.neurons, model=model, config=config)
 
     # Scale the encoders
-    if isinstance(ens.neuron_type, Direct):
-        scaled_encoders = encoders
-    else:
-        scaled_encoders = encoders * (gain / ens.radius)[:, np.newaxis]
-
+    scaled_encoders = encoders * (gain / ens.radius)[:, np.newaxis]
     model.sig[ens]['encoders'] = Signal(
         scaled_encoders, name="%s.scaled_encoders" % ens)
 
@@ -1345,7 +1347,11 @@ def build_connection(conn, model, config):  # noqa: C901
     # Figure out the signal going across this connection
     if (isinstance(conn.pre_obj, Node) or
             (isinstance(conn.pre_obj, Ensemble) and
-             isinstance(conn.pre_obj.neuron_type, Direct))):
+             conn.pre_obj.neuron_type.vector_space)):
+
+
+        Builder.build()
+
         # Node or Decoded connection in directmode
         if (conn.function is None and isinstance(conn.pre_slice, slice) and
                 (conn.pre_slice.step is None or conn.pre_slice.step == 1)):
@@ -1470,6 +1476,13 @@ def build_connection(conn, model, config):  # noqa: C901
                                          solver_info=solver_info)
 
 Builder.register_builder(build_connection, Connection)
+
+
+# def build_lifpopulation(lifpopulation, neurons, model, config):
+
+def build_direct(direct, conn, model, config):
+
+
 
 
 def filtered_signal(owner, sig, synapse, model, config):
