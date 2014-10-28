@@ -124,6 +124,44 @@ class UniformHypersphere(Distribution):
 
         return samples
 
+    def pdf(self, x, d):
+        """An unnormalized PDF"""
+        r2 = 1 - x**2
+        if self.surface:
+            return r2**(0.5 * (d - 3))
+        else:
+            return r2**(0.5 * (d - 1))
+
+    def mean(self, d):
+        """Mean for any one dimension.
+
+        Numerically integrates x * (1 - x**2)**(0.5 * dd)
+            where dd = d - 3 if surface else d - 1
+
+        Analytically equal to 0 (prove it!)
+        """
+        x = np.linspace(-0.999, 0.999, 1001)
+        p = self.pdf(x, d)
+        p /= p.sum()
+        return (x * p).sum()
+
+    def variance(self, d):
+        """Variance for any one dimension.
+
+        Numerically integrates x**2 * (1 - x**2)**(0.5 * (d - 3))
+            where dd = d - 3 if surface else d - 1
+
+        Analytically equal to 1./d if surface else 1./(d+2)
+            TODO: prove the analytical solution
+        """
+        if self.surface and d == 1:
+            return 1  # special case
+
+        x = np.linspace(-0.999, 0.999, 1001)
+        p = self.pdf(x, d)
+        p /= p.sum()
+        return (x**2 * p).sum()
+
 
 class Choice(Distribution):
     """Discrete distribution across a set of possible values.

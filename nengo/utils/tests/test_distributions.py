@@ -59,6 +59,18 @@ def test_hypersphere_surface(dimensions, rng):
     assert np.allclose(np.mean(samples, axis=0), 0, atol=0.2 / dimensions)
 
 
+@pytest.mark.parametrize("dimensions", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+def test_hypersphere_mean_var(dimensions, rng):
+    n = 1000000
+    dist = dists.UniformHypersphere(surface=False)
+    samples = dist.sample(n, dimensions, rng=rng)
+
+    mean = samples.mean(axis=0)
+    var = samples.var(axis=0)
+
+    print 1./dimensions, 1./(dimensions + 2), dist.variance(dimensions), var
+
+
 @pytest.mark.parametrize("weights", [None, [5, 1, 2, 9], [3, 2, 1, 0]])
 def test_choice(weights, rng):
     n = 1000
