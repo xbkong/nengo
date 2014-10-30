@@ -271,6 +271,13 @@ class Config(object):
             "Type '%(name)s' is not set up for configuration. Call "
             "configure('%(name)s') first." % {'name': key.__class__.__name__})
 
+    def __str__(self):
+        lines = []
+        for key in self.params:
+            lines.append("--- Configuration for %s:" % key)
+            lines.append(str(self.params[key]))
+        return "\n".join(lines)
+
     def configures(self, cls):
         """Start configuring a particular class and its instances."""
         self.params[cls] = ClassParams(cls)
