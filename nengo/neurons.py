@@ -164,6 +164,14 @@ class AdaptiveLIF(LIF):
         LIF.step_math(self, dt, J - n, output, voltage, ref)
         n += (dt / self.tau_n) * ((self.inc_n / dt) * output - n)
 
+    def rates_from_current(self, J):
+        """ALIF steady-state firing rates in Hz for input current"""
+        rate = LIFRate.rates_from_current
+        r = rate(self, J)
+        for i in range(20):  # long enough for convergence
+            r += 0.1 * (rate(self, J - r * self.inc_n) - r)
+        return r
+
 
 class NeuronTypeParam(Parameter):
     def validate(self, instance, neurons):
