@@ -6,7 +6,7 @@ import numpy as np
 from scipy.special import beta, betainc
 
 import nengo
-from nengo.utils.distributions import SubvectorLength
+from nengo.dists import SubvectorLength
 
 
 class SubvectorRadiusOptimizer(object):
