@@ -28,26 +28,28 @@ class Compare(Module):
     def __init__(self, dimensions, vocab=None, neurons_per_multiply=200,
                  output_scaling=1.0, radius=1.0, direct=False):
         super(Compare, self).__init__()
-        if vocab is None:
-            # use the default vocab for this number of dimensions
-            vocab = dimensions
 
-        self.output_scaling = output_scaling
+        with self:
+            if vocab is None:
+                # use the default vocab for this number of dimensions
+                vocab = dimensions
 
-        self.compare = Product(
-            neurons_per_multiply, dimensions, radius=radius,
-            neuron_type=nengo.Direct() if direct else nengo.LIF(),
-            label='compare')
+            self.output_scaling = output_scaling
 
-        self.inputA = nengo.Node(size_in=dimensions, label='inputA')
-        self.inputB = nengo.Node(size_in=dimensions, label='inputB')
-        self.output = nengo.Node(size_in=dimensions, label='output')
+            self.compare = Product(
+                neurons_per_multiply, dimensions, radius=radius,
+                neuron_type=nengo.Direct() if direct else nengo.LIF(),
+                label='compare')
 
-        self.inputs = dict(A=(self.inputA, vocab), B=(self.inputB, vocab))
-        self.outputs = dict(default=(self.output, vocab))
+            self.inputA = nengo.Node(size_in=dimensions, label='inputA')
+            self.inputB = nengo.Node(size_in=dimensions, label='inputB')
+            self.output = nengo.Node(size_in=dimensions, label='output')
 
-        nengo.Connection(self.inputA, self.compare.A, synapse=None)
-        nengo.Connection(self.inputB, self.compare.B, synapse=None)
+            self.inputs = dict(A=(self.inputA, vocab), B=(self.inputB, vocab))
+            self.outputs = dict(default=(self.output, vocab))
+
+            nengo.Connection(self.inputA, self.compare.A, synapse=None)
+            nengo.Connection(self.inputB, self.compare.B, synapse=None)
 
     def on_add(self, spa):
         Module.on_add(self, spa)
