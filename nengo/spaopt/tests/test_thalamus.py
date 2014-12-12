@@ -3,37 +3,38 @@ import pytest
 import nengo
 from nengo import spaopt as spa
 
+import numpy as np
 
-def test_thalamus(Simulator):
-    class SPA(spa.SPA):
-        def __init__(self):
-            self.vision = spa.Buffer(dimensions=16, neurons_per_dimension=80)
-            self.vision2 = spa.Buffer(dimensions=16, neurons_per_dimension=80)
-            self.motor = spa.Buffer(dimensions=16, neurons_per_dimension=80)
-            self.motor2 = spa.Buffer(dimensions=32, neurons_per_dimension=80)
 
-            actions = spa.Actions(
-                'dot(vision, A) --> motor=A, motor2=vision*vision2',
-                'dot(vision, B) --> motor=vision, motor2=vision*A*~B',
-                'dot(vision, ~A) --> motor=~vision, motor2=~vision*vision2'
-            )
-            self.bg = spa.BasalGanglia(actions)
-            self.thalamus = spa.Thalamus(self.bg)
-
-            def input_f(t):
-                if t < 0.1:
-                    return 'A'
-                elif t < 0.3:
-                    return 'B'
-                elif t < 0.5:
-                    return '~A'
-                else:
-                    return '0'
-            self.input = spa.Input(vision=input_f, vision2='B*~A')
-
-    model = SPA(seed=30)
+@pytest.mark.optional  # Too slow
+def test_thalamus(Simulator, seed):
+    model = spa.SPA(seed=seed)
 
     with model:
+        model.vision = spa.Buffer(dimensions=16, neurons_per_dimension=80)
+        model.vision2 = spa.Buffer(dimensions=16, neurons_per_dimension=80)
+        model.motor = spa.Buffer(dimensions=16, neurons_per_dimension=80)
+        model.motor2 = spa.Buffer(dimensions=32, neurons_per_dimension=80)
+
+        actions = spa.Actions(
+            'dot(vision, A) --> motor=A, motor2=vision*vision2',
+            'dot(vision, B) --> motor=vision, motor2=vision*A*~B',
+            'dot(vision, ~A) --> motor=~vision, motor2=~vision*vision2'
+        )
+        model.bg = spa.BasalGanglia(actions)
+        model.thalamus = spa.Thalamus(model.bg)
+
+        def input_f(t):
+            if t < 0.1:
+                return 'A'
+            elif t < 0.3:
+                return 'B'
+            elif t < 0.5:
+                return '~A'
+            else:
+                return '0'
+        model.input = spa.Input(vision=input_f, vision2='B*~A')
+
         input, vocab = model.get_module_input('motor')
         input2, vocab2 = model.get_module_input('motor2')
         p = nengo.Probe(input, 'output', synapse=0.03)
@@ -45,7 +46,7 @@ def test_thalamus(Simulator):
     data = vocab.dot(sim.data[p].T)
     data2 = vocab2.dot(sim.data[p2].T)
 
-    assert 0.9 < data[0, 100] < 1.1  # Action 1
+    assert 0.8 < data[0, 100] < 1.1  # Action 1
     assert -0.2 < data2[0, 100] < 0.35
     assert -0.25 < data[1, 100] < 0.2
     assert 0.4 < data2[1, 100] < 0.6
@@ -59,25 +60,79 @@ def test_thalamus(Simulator):
     assert 0.4 < data2[1, 499] < 0.7
 
 
+def test_routing(Simulator, seed, plt):
+    D = 3
+    model = spa.SPA(seed=seed)
+    with model:
+        model.ctrl = spa.Buffer(16, label='ctrl')
+
+        def input_func(t):
+            if t < 0.2:
+                return 'A'
+            elif t < 0.4:
+                return 'B'
+            else:
+                return 'C'
+        model.input = spa.Input(ctrl=input_func)
+
+        model.buff1 = spa.Buffer(D, label='buff1')
+        model.buff2 = spa.Buffer(D, label='buff2')
+        model.buff3 = spa.Buffer(D, label='buff3')
+
+        node1 = nengo.Node([0, 1, 0])
+        node2 = nengo.Node([0, 0, 1])
+
+        nengo.Connection(node1, model.buff1.state.input)
+        nengo.Connection(node2, model.buff2.state.input)
+
+        actions = spa.Actions('dot(ctrl, A) --> buff3=buff1',
+                              'dot(ctrl, B) --> buff3=buff2',
+                              'dot(ctrl, C) --> buff3=buff1*buff2',
+                              )
+        model.bg = spa.BasalGanglia(actions)
+        model.thal = spa.Thalamus(model.bg)
+
+        buff3_probe = nengo.Probe(model.buff3.state.output, synapse=0.03)
+
+    sim = Simulator(model)
+    sim.run(0.6)
+
+    data = sim.data[buff3_probe]
+
+    plt.plot(sim.trange(), data)
+
+    valueA = np.mean(data[150:200], axis=0)  # should be [0, 1, 0]
+    valueB = np.mean(data[350:400], axis=0)  # should be [0, 0, 1]
+    valueC = np.mean(data[550:600], axis=0)  # should be [1, 0, 0]
+
+    assert valueA[0] < 0.2
+    assert valueA[1] > 0.8
+    assert valueA[2] < 0.2
+
+    assert valueB[0] < 0.2
+    assert valueB[1] < 0.2
+    assert valueB[2] > 0.8
+
+    assert valueC[0] > 0.8
+    assert valueC[1] < 0.2
+    assert valueC[2] < 0.2
+
+
 def test_errors():
-    class SPA(spa.SPA):
-        def __init__(self):
-            self.vision = spa.Buffer(dimensions=16)
-            actions = spa.Actions('0.5 --> motor=A')
-            self.bg = spa.BasalGanglia(actions)
-
+    # motor does not exist
     with pytest.raises(NameError):
-        SPA()  # motor does not exist
+        with spa.SPA() as model:
+            model.vision = spa.Buffer(dimensions=16)
+            actions = spa.Actions('0.5 --> motor=A')
+            model.bg = spa.BasalGanglia(actions)
 
-    class SPA(spa.SPA):
-        def __init__(self):
-            self.scalar = spa.Buffer(dimensions=16, subdimensions=1)
-            actions = spa.Actions('0.5 --> scalar=dot(scalar, FOO)')
-            self.bg = spa.BasalGanglia(actions)
-            self.thalamus = spa.Thalamus(self.bg)
-
+    # dot products not implemented
     with pytest.raises(NotImplementedError):
-        SPA()  # dot products not implemented
+        with spa.SPA() as model:
+            model.scalar = spa.Buffer(dimensions=16, subdimensions=1)
+            actions = spa.Actions('0.5 --> scalar=dot(scalar, FOO)')
+            model.bg = spa.BasalGanglia(actions)
+            model.thalamus = spa.Thalamus(model.bg)
 
 
 if __name__ == '__main__':

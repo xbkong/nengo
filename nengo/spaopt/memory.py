@@ -25,10 +25,11 @@ class Memory(Buffer):
             vocab=vocab,
             direct=direct)
 
-        if tau is None:
-            transform = 1.0
-        else:
-            transform = 1.0 - synapse / tau
+        with self:
+            if tau is None:
+                transform = 1.0
+            else:
+                transform = 1.0 - synapse / tau
 
-        nengo.Connection(self.state.output, self.state.input,
-                         transform=transform, synapse=synapse)
+            nengo.Connection(self.state.output, self.state.input,
+                             transform=transform, synapse=synapse)
