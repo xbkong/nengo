@@ -16,29 +16,29 @@ Ensemble Array
 Basal Ganglia
 =============
 
-.. autoclass:: nengo.networks.BasalGanglia
+.. autofunction:: nengo.networks.BasalGanglia
    :members:
 
 Product
 =======
 
-.. autoclass:: nengo.networks.Product
+.. autofunction:: nengo.networks.Product
    :members:
 
 Circular Convolution
 ====================
 
-.. autoclass:: nengo.networks.CircularConvolution
+.. autofunction:: nengo.networks.CircularConvolution
    :members:
 
 Integrator
 ==========
 
-.. autoclass:: nengo.networks.Integrator
+.. autofunction:: nengo.networks.Integrator
    :members:
 
 Oscillator
 ==========
 
-.. autoclass:: nengo.networks.Oscillator
+.. autofunction:: nengo.networks.Oscillator
    :members:
