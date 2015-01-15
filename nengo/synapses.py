@@ -42,12 +42,18 @@ class Lowpass(Synapse):
     ----------
     tau : float
         The time constant of the filter in seconds.
+    delay : float, optional
+        The absolute delay in seconds preceeding the filter. Behaviour for
+        non-multiples of the simulator `dt` will depend on the backend.
+        This is in addition to any implementation-specific delays.
+        Default of None will use backend's minimal delay.
     """
-    def __init__(self, tau):
+    def __init__(self, tau, delay=None):
         self.tau = tau
+        self.delay = delay
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.tau)
+        return "%s(%s, %s)" % (self.__class__.__name__, self.tau, self.delay)
 
 
 class Alpha(Synapse):
@@ -63,17 +69,23 @@ class Alpha(Synapse):
     ----------
     tau : float
         The time constant of the filter in seconds.
+    delay : float, optional
+        The absolute delay in seconds preceeding the filter. Behaviour for
+        non-multiples of the simulator `dt` will depend on the backend.
+        This is in addition to any implementation-specific delays.
+        Default of None will use backend's minimal delay.
 
     References
     ----------
     .. [1] Mainen, Z.F. and Sejnowski, T.J. (1995). Reliability of spike timing
        in neocortical neurons. Science (New York, NY), 268(5216):1503-6.
     """
-    def __init__(self, tau):
+    def __init__(self, tau, delay=None):
         self.tau = tau
+        self.delay = delay
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.tau)
+        return "%s(%s, %s)" % (self.__class__.__name__, self.tau, self.delay)
 
 
 class SynapseParam(Parameter):

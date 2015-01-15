@@ -8,6 +8,8 @@ from nengo.builder.operator import Operator
 from nengo.synapses import Alpha, LinearFilter, Lowpass, Synapse
 from nengo.utils.compat import is_number
 from nengo.utils.filter_design import cont2discrete
+from nengo.utils.numpy import (
+    lowpass_transfer_fn, alpha_transfer_fn, discrete_delay)
 
 
 class SimFilterSynapse(Operator):
@@ -83,6 +85,16 @@ def build_discrete_filter(model, synapse, owner, input_signal, num, den):
                                   num=num, den=den))
 
 
+def build_discrete_filter_delay(model, synapse, owner, input_signal, num, den):
+    if synapse.delay is not None:
+        delay = int(synapse.delay / model.dt) - 1
+        if delay < 0:
+            raise ValueError("Synapse delay %f must be >= %f" % (
+                synapse.delay, model.dt))
+        num, den = discrete_delay((num, den), delay)
+    build_discrete_filter(model, synapse, owner, input_signal, num, den)
+
+
 @Builder.register(LinearFilter)
 def build_filter(model, synapse, owner, input_signal):
     num, den, _ = cont2discrete(
@@ -95,22 +107,11 @@ def build_filter(model, synapse, owner, input_signal):
 
 @Builder.register(Lowpass)
 def build_lowpass(model, synapse, owner, input_signal):
-    if synapse.tau > 0.03 * model.dt:
-        d = -np.expm1(-model.dt / synapse.tau)
-        num, den = [d], [d - 1]
-    else:
-        num, den = [1.], []
-
-    build_discrete_filter(model, synapse, owner, input_signal, num, den)
+    num, den = lowpass_transfer_fn(synapse.tau, model.dt)
+    build_discrete_filter_delay(model, synapse, owner, input_signal, num, den)
 
 
 @Builder.register(Alpha)
 def build_alpha(model, synapse, owner, input_signal):
-    if synapse.tau > 0.03 * model.dt:
-        a = model.dt / synapse.tau
-        ea = np.exp(-a)
-        num, den = [-a*ea + (1 - ea), ea*(a + ea - 1)], [-2 * ea, ea**2]
-    else:
-        num, den = [1.], []  # just copy the input
-
-    build_discrete_filter(model, synapse, owner, input_signal, num, den)
+    num, den = alpha_transfer_fn(synapse.tau, model.dt)
+    build_discrete_filter_delay(model, synapse, owner, input_signal, num, den)

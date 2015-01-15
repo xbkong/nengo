@@ -7,6 +7,8 @@ import collections
 
 import numpy as np
 
+from nengo.utils.magic import memoize
+
 maxint = np.iinfo(np.int32).max
 
 
@@ -120,7 +122,33 @@ def filtfilt(x, tau, axis=0, copy=True):
     return x
 
 
-def lti(signals, transfer_fn, axis=0):
+def lowpass_transfer_fn(tau, dt):
+    """Returns the transfer function description of a low pass synapse."""
+    if tau > 0.03 * dt:
+        d = -np.expm1(-dt / tau)
+        num, den = [d], [d - 1]
+    else:
+        num, den = [1.], []  # just copy the input
+    return num, den
+
+
+def alpha_transfer_fn(tau, dt):
+    """Returns the transfer function description of an alpha synapse."""
+    if tau > 0.03 * dt:
+        a = dt / tau
+        ea = np.exp(-a)
+        num, den = [-a*ea + (1 - ea), ea*(a + ea - 1)], [-2 * ea, ea**2]
+    else:
+        num, den = [1.], []  # just copy the input
+    return num, den
+
+
+def discrete_delay(tf, steps):
+    num, den = tf
+    return [0]*steps + num, den
+
+
+def lti(signals, transfer_fn, axis=0, normalize=True):
     """Linear time-invariant (LTI) system simulation.
 
     Uses the transfer function description of an LTI system
@@ -145,11 +173,11 @@ def lti(signals, transfer_fn, axis=0):
     a = np.asarray(a).flatten()
     b = np.asarray(b).flatten()
 
-    if b[0] != 1.:
-        a = a / b[0]
-        b = b / b[0]
-
-    b = b[1:]  # drop first element (equal to 1)
+    if normalize:
+        if b[0] != 1.:
+            a = a / b[0]
+            b = b / b[0]
+        b = b[1:]  # drop first element (equal to 1)
 
     x = collections.deque(maxlen=len(a))
     y = collections.deque(maxlen=len(b))
@@ -221,3 +249,59 @@ def rmse(x, y, axis=None, keepdims=False):
         newer versions of Numpy (>= 1.7).
     """
     return rms(x - y, axis=axis, keepdims=keepdims)
+
+
+def generate_signal(n, upper, lower=0, norm=0.5, dt=0.001):
+    """Returns a power-normalized signal between given frequencies
+
+    Parameters
+    ----------
+    n : scalar
+        The number of frequencies to generate. These will range from `0` to
+        `(n-1)/(2*dt*n)` in increments of `dt`. Thus, the returned signal will
+        have `2*n - 1` points in increments of `dt`.
+    norm : float, optional
+        The root-mean squared power (i.e. length) of the resulting signal.
+        Defaults to 1.0.
+    upper : float
+        The largest frequency (Hz) to be contained in the signal. Any amount
+        greater than or equal to `1/(2*dt)` will result in the highest possible
+        frequency.
+    lower : float, optional
+        The smallest frequency (Hz) to be contained in the signal.
+        Defaults to 0.
+    dt : float, optional
+        The time interval between points in the signal. Defaults to 1ms.
+    """
+    hertz = np.arange(n)/(2*dt*n)
+    freqs = np.random.normal(size=n) + 1j*np.random.normal(size=n)
+    freqs[(hertz < lower) | (hertz > upper)] = 0
+
+    coeffs = np.append(freqs, np.conjugate(freqs[:0:-1]))
+    x = np.fft.ifft(coeffs).real
+    return norm * (x / rms(x))
+
+
+@memoize
+def dft_transform(n, mode='half'):
+    """Returns the complex linear transform for an n-dimensional vector
+
+    Parameters
+    ----------
+    n : int
+        Dimensionality of input vector (number of columns in transform)
+    mode : str, optional
+        If 'half' (default), then the output dimension will be `n // 2 + 1`
+        since the other half is the complex conjugate for real inputs.
+        If 'full', then the output dimension will match the input.
+    """
+    if mode == 'full':
+        m = n
+    elif mode == 'half':
+        m = (n // 2 + 1)
+    else:
+        raise ValueError("'mode' must be one of 'full' or 'half', got %s" %
+                           mode)
+    x = np.arange(n)
+    w = np.arange(m)
+    return np.exp((-2.j * np.pi / n) * (w[:, None] * x[None, :]))

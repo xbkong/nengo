@@ -164,3 +164,11 @@ def whitenoise(step, high, rms=0.5, seed=None, dimensions=None):
         return np.dot(np.sin(f * t[..., np.newaxis] + p), a)
 
     return whitenoise_function
+
+
+def cycle_array(data, dt=0.001):
+    """Returns a function that cycles through the elements of data"""
+    def func(t):
+          # time starts at dt, and add an epsilon to avoid int(*.9999) errors
+        return data[int((t-dt) / dt + .1) % len(data)]
+    return func

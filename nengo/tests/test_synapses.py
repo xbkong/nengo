@@ -5,7 +5,7 @@ import pytest
 import nengo
 from nengo.synapses import SynapseParam
 from nengo.utils.functions import whitenoise
-from nengo.utils.numpy import filt, lti
+from nengo.utils.numpy import filt, lti, alpha_transfer_fn
 from nengo.utils.testing import allclose
 
 logger = logging.getLogger(__name__)
@@ -45,17 +45,10 @@ def test_lowpass(Simulator, plt):
 def test_alpha(Simulator, plt):
     dt = 1e-3
     tau = 0.03
-    b, a = [0.00054336, 0.00053142], [1, -1.9344322, 0.93550699]
-    # ^^^ these coefficients found for tau=0.03 and dt=1e-3
-    #   scipy.signal.cont2discrete(([1], [tau**2, 2*tau, 1]), dt)
-
-    # b = [0.00054336283526056767, 0.00053142123234546667]
-    # a = [1, -1.9344322009640118, 0.93550698503161778]
-    # ^^^ these coefficients found by the exact algorithm used in Builder
 
     t, x, yhat = run_synapse(Simulator, nengo.synapses.Alpha(tau), dt=dt)
-    y = lti(x, (b, a))
 
+    y = lti(x, alpha_transfer_fn(tau, dt), normalize=False)
     assert allclose(t, y, yhat, delay=dt, atol=5e-6, plt=plt)
 
 
