@@ -1,9 +1,11 @@
+import copy
+
 import numpy as np
 
 from nengo.builder.builder import Builder
 from nengo.builder.signal import Signal
 from nengo.builder.operator import DotInc, Operator, Reset
-from nengo.node import Node
+from nengo.node import Node, NodeOutput
 
 
 class SimPyFunc(Operator):
@@ -79,8 +81,12 @@ def build_node(model, node):
     elif not callable(node.output):
         model.sig[node]['out'] = Signal(node.output, name=str(node))
     else:
+        fn = node.output
+        if isinstance(fn, NodeOutput):
+            fn = copy.deepcopy(fn)
+            fn.build(sim=None, model=None, node=node, rng=None)
         sig_in, sig_out = build_pyfunc(model=model,
-                                       fn=node.output,
+                                       fn=fn,
                                        t_in=True,
                                        n_in=node.size_in,
                                        n_out=node.size_out,

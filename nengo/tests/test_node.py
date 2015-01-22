@@ -331,6 +331,40 @@ def test_args(Simulator, plt):
     sim = Simulator(model)
     sim.run(0.01)
 
+def test_node_output(Simulator):
+    from nengo.node import NodeOutput
+
+    class Delay(NodeOutput):
+        def __init__(self, timesteps):
+            self.timesteps = timesteps
+        def build(self, sim, model, node, rng):
+            self.history = np.zeros((self.timesteps + 1, node.size_out))
+        def __call__(self, t, x):
+            self.history[:] = np.roll(self.history, -1)
+            self.history[-1] = x
+            return self.history[0]
+
+    model = nengo.Network()
+    with model:
+        stim = nengo.Node(lambda t: np.sin(np.pi*2*t))
+        delay = Delay(50)
+        a = nengo.Node(delay, size_in=1, size_out=1)
+        b = nengo.Node(delay, size_in=1, size_out=1)
+        c = nengo.Node(delay, size_in=1, size_out=1)
+        nengo.Connection(stim, a, synapse=None)
+        nengo.Connection(a, b, synapse=None)
+        nengo.Connection(b, c, synapse=None)
+        probe_stim = nengo.Probe(stim, synapse=None)
+        probe = nengo.Probe(c, synapse=None)
+    sim = Simulator(model)
+    sim.run(1)
+    assert np.allclose(sim.data[probe_stim][:-50*3], sim.data[probe][50*3:])
+    assert np.allclose(sim.data[probe][:50*3], np.zeros((50 * 3, 1)))
+
+    sim = Simulator(model)
+    sim.run(1)
+    assert np.allclose(sim.data[probe_stim][:-50*3], sim.data[probe][50*3:])
+    assert np.allclose(sim.data[probe][:50*3], np.zeros((50 * 3, 1)))
 
 if __name__ == "__main__":
     nengo.log(debug=True)
