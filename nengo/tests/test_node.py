@@ -335,10 +335,11 @@ def test_node_output(Simulator):
     from nengo.node import NodeOutput
 
     class Delay(NodeOutput):
-        def __init__(self, timesteps):
-            self.timesteps = timesteps
-        def build(self, sim, model, node, rng):
-            self.history = np.zeros((self.timesteps + 1, node.size_out))
+        def __init__(self, time):
+            self.time = time
+        def build(self, model, node, rng):
+            timesteps = int(self.time / model.dt)
+            self.history = np.zeros((timesteps + 1, node.size_out))
         def __call__(self, t, x):
             self.history[:] = np.roll(self.history, -1)
             self.history[-1] = x
@@ -347,7 +348,7 @@ def test_node_output(Simulator):
     model = nengo.Network()
     with model:
         stim = nengo.Node(lambda t: np.sin(np.pi*2*t))
-        delay = Delay(50)
+        delay = Delay(0.05)
         a = nengo.Node(delay, size_in=1, size_out=1)
         b = nengo.Node(delay, size_in=1, size_out=1)
         c = nengo.Node(delay, size_in=1, size_out=1)

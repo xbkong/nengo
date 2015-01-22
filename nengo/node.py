@@ -9,7 +9,7 @@ from nengo.utils.stdlib import checked_call
 
 
 class NodeOutput(object):
-    def build(self, sim, model, node, rng):
+    def build(self, model, node, rng):
         raise NotImplementedError()
 
 

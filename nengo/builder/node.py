@@ -84,7 +84,8 @@ def build_node(model, node):
         fn = node.output
         if isinstance(fn, NodeOutput):
             fn = copy.deepcopy(fn)
-            fn.build(sim=None, model=None, node=node, rng=None)
+            rng = np.random.RandomState(model.seeds[node])
+            fn.build(model=model, node=node, rng=rng)
         sig_in, sig_out = build_pyfunc(model=model,
                                        fn=fn,
                                        t_in=True,
