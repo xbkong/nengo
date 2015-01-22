@@ -133,3 +133,17 @@ class Node(NengoObject):
 
     def __len__(self):
         return self.size_out
+
+
+def has_state(cls):
+    class _NodeOutput(NodeOutput):
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+        def build(self, model, node, rng):
+            self.inst = cls(*self.args, **self.kwargs)
+
+        def __call__(self, t, x):
+            return self.inst(t, x)
+    return _NodeOutput
