@@ -62,7 +62,7 @@ def build_pyfunc(model, node, t_in, n_in, n_out, label):
         sig_out = None
 
     if isinstance(fn, NodeOutput):
-        fn_copy = copy.deepcopy(fn)
+        fn_copy = copy.copy(fn)
         rng = np.random.RandomState(model.seeds[node])
         fn_copy.build(model=model, node=node, rng=rng)
         op = SimPyFunc(output=sig_out, fn=fn_copy, t_in=t_in, x=sig_in)
