@@ -367,6 +367,15 @@ def test_node_output(Simulator):
     assert np.allclose(sim.data[probe_stim][:-50*3], sim.data[probe][50*3:])
     assert np.allclose(sim.data[probe][:50*3], np.zeros((50 * 3, 1)))
 
+    sim.reset()
+    sim.run(1)
+    import pylab as plt
+    plt.plot(sim.data[probe])
+    plt.show()
+    assert np.allclose(sim.data[probe_stim][:-50*3], sim.data[probe][50*3:])
+    assert np.allclose(sim.data[probe][:50*3], np.zeros((50 * 3, 1)))
+
+
 if __name__ == "__main__":
     nengo.log(debug=True)
     pytest.main([__file__, '-v'])

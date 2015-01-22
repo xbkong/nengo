@@ -26,6 +26,7 @@ class Model(object):
         self.seeds = {}
         self.probes = []
         self.sig = collections.defaultdict(dict)
+        self.node_outputs = {}
 
     def __str__(self):
         return "Model: %s" % self.label

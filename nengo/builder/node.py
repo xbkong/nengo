@@ -27,7 +27,6 @@ class SimPyFunc(Operator):
 
     def make_step(self, signals, dt, rng):
         output = signals[self.output] if self.output is not None else None
-        fn = self.fn
         t_in = self.t_in
         t_sig = signals['__time__']
 
@@ -38,17 +37,19 @@ class SimPyFunc(Operator):
             args += [x_sig]
 
         def step():
-            y = fn(t_sig.item(), *args) if t_in else fn(*args)
+            y = self.fn(t_sig.item(), *args) if t_in else self.fn(*args)
             if output is not None:
                 if y is None:
                     raise ValueError(
-                        "Function '%s' returned invalid value" % fn.__name__)
+                        "Function '%s' returned invalid value" % self.fn.__name__)
                 output[...] = y
 
         return step
 
 
-def build_pyfunc(model, fn, t_in, n_in, n_out, label):
+def build_pyfunc(model, node, t_in, n_in, n_out, label):
+    fn = node.output
+
     if n_in:
         sig_in = Signal(np.zeros(n_in), name="%s.input" % label)
         model.add_op(Reset(sig_in))
@@ -60,7 +61,15 @@ def build_pyfunc(model, fn, t_in, n_in, n_out, label):
     else:
         sig_out = None
 
-    model.add_op(SimPyFunc(output=sig_out, fn=fn, t_in=t_in, x=sig_in))
+    if isinstance(fn, NodeOutput):
+        fn_copy = copy.deepcopy(fn)
+        rng = np.random.RandomState(model.seeds[node])
+        fn_copy.build(model=model, node=node, rng=rng)
+        op = SimPyFunc(output=sig_out, fn=fn_copy, t_in=t_in, x=sig_in)
+        model.node_outputs[op] = node, fn
+        model.add_op(op)
+    else:
+        model.add_op(SimPyFunc(output=sig_out, fn=fn, t_in=t_in, x=sig_in))
 
     return sig_in, sig_out
 
@@ -81,13 +90,8 @@ def build_node(model, node):
     elif not callable(node.output):
         model.sig[node]['out'] = Signal(node.output, name=str(node))
     else:
-        fn = node.output
-        if isinstance(fn, NodeOutput):
-            fn = copy.deepcopy(fn)
-            rng = np.random.RandomState(model.seeds[node])
-            fn.build(model=model, node=node, rng=rng)
         sig_in, sig_out = build_pyfunc(model=model,
-                                       fn=fn,
+                                       node=node,
                                        t_in=True,
                                        n_in=node.size_in,
                                        n_out=node.size_out,
