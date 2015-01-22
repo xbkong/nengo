@@ -40,8 +40,8 @@ class SimPyFunc(Operator):
             y = self.fn(t_sig.item(), *args) if t_in else self.fn(*args)
             if output is not None:
                 if y is None:
-                    raise ValueError(
-                        "Function '%s' returned invalid value" % self.fn.__name__)
+                    raise ValueError("Function '%s' returned invalid value" %
+                                     self.fn.__name__)
                 output[...] = y
 
         return step

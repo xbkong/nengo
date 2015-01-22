@@ -331,15 +331,18 @@ def test_args(Simulator, plt):
     sim = Simulator(model)
     sim.run(0.01)
 
+
 def test_node_output(Simulator):
     from nengo.node import NodeOutput
 
     class Delay(NodeOutput):
         def __init__(self, time):
             self.time = time
+
         def build(self, model, node, rng):
             timesteps = int(self.time / model.dt)
             self.history = np.zeros((timesteps + 1, node.size_out))
+
         def __call__(self, t, x):
             self.history[:] = np.roll(self.history, -1)
             self.history[-1] = x
@@ -357,6 +360,7 @@ def test_node_output(Simulator):
         nengo.Connection(b, c, synapse=None)
         probe_stim = nengo.Probe(stim, synapse=None)
         probe = nengo.Probe(c, synapse=None)
+
     sim = Simulator(model)
     sim.run(1)
     assert np.allclose(sim.data[probe_stim][:-50*3], sim.data[probe][50*3:])
