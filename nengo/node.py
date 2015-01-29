@@ -16,7 +16,6 @@ class OutputParam(Parameter):
     def __set__(self, node, output):
         super(OutputParam, self).validate(node, output)
 
-        print node.size_in, node.size_out
         # allow output parameter to set size_in and size_out
         if node.size_out is None and hasattr(output, 'size_out'):
             node.size_out = output.size_out
