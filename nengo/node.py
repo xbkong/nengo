@@ -8,11 +8,6 @@ from nengo.params import Default, IntParam, ListParam, Parameter, StringParam
 from nengo.utils.stdlib import checked_call
 
 
-class NodeOutput(object):
-    def build(self, dt, size_in, size_out, rng):
-        raise NotImplementedError()
-
-
 class OutputParam(Parameter):
     def __init__(self, default, optional=True, readonly=False):
         assert optional  # None has meaning (passthrough node)

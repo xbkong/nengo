@@ -364,9 +364,7 @@ def test_node_output_size(Simulator):
 
 
 def test_node_output(Simulator):
-    from nengo.node import NodeOutput
-
-    class Delay(NodeOutput):
+    class Delay(object):
         def __init__(self, time):
             self.time = time
 

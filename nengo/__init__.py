@@ -19,7 +19,7 @@ import logging
 from .config import Config
 from .connection import Connection
 from .ensemble import Ensemble
-from .node import Node, NodeOutput
+from .node import Node
 from .neurons import (AdaptiveLIF, AdaptiveLIFRate, Direct, Izhikevich, LIF,
                       LIFRate, RectifiedLinear, Sigmoid)
 from .network import Network

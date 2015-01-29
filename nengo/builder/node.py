@@ -5,7 +5,7 @@ import numpy as np
 from nengo.builder.builder import Builder
 from nengo.builder.signal import Signal
 from nengo.builder.operator import DotInc, Operator, Reset
-from nengo.node import Node, NodeOutput
+from nengo.node import Node
 
 
 class SimPyFunc(Operator):
@@ -62,7 +62,7 @@ def build_pyfunc(model, t_in, n_in, n_out, label, fn=None, node=None):
     else:
         sig_out = None
 
-    if isinstance(fn, NodeOutput):
+    if hasattr(fn, 'build'):
         fn_copy = copy.copy(fn)
         rng = np.random.RandomState(model.seeds[node])
         fn_copy.build(model.dt, node.size_in, node.size_out, rng)
