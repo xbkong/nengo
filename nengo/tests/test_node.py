@@ -339,9 +339,9 @@ def test_node_output(Simulator):
         def __init__(self, time):
             self.time = time
 
-        def build(self, model, node, rng):
-            timesteps = int(self.time / model.dt)
-            self.history = np.zeros((timesteps + 1, node.size_out))
+        def build(self, dt, size_in, size_out, rng):
+            timesteps = int(self.time / dt)
+            self.history = np.zeros((timesteps + 1, size_out))
 
         def __call__(self, t, x):
             self.history[:] = np.roll(self.history, -1)
@@ -373,9 +373,6 @@ def test_node_output(Simulator):
 
     sim.reset()
     sim.run(1)
-    import pylab as plt
-    plt.plot(sim.data[probe])
-    plt.show()
     assert np.allclose(sim.data[probe_stim][:-50*3], sim.data[probe][50*3:])
     assert np.allclose(sim.data[probe][:50*3], np.zeros((50 * 3, 1)))
 

@@ -256,5 +256,5 @@ class Simulator(object):
         for op, (node, node_output) in self.model.node_outputs.items():
             fn_copy = copy.deepcopy(node_output)
             rng = np.random.RandomState(self.model.seeds[node])
-            fn_copy.build(model=self.model, node=node, rng=rng)
+            fn_copy.build(self.model.dt, node.size_in, node.size_out, rng)
             op.fn = fn_copy
