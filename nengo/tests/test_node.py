@@ -337,6 +337,7 @@ def test_node_output_size(Simulator):
         def __init__(self, size_in, size_out):
             self.size_in = size_in
             self.size_out = size_out
+
         def __call__(self, t, *x):
             if self.size_out is None:
                 return
