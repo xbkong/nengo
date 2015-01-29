@@ -21,6 +21,16 @@ class OutputParam(Parameter):
     def __set__(self, node, output):
         super(OutputParam, self).validate(node, output)
 
+        print node.size_in, node.size_out
+        # allow output parameter to set size_in and size_out
+        if node.size_out is None and hasattr(output, 'size_out'):
+            node.size_out = output.size_out
+        if node.size_in is None:
+            if hasattr(output, 'size_in') and output.size_in is not None:
+                node.size_in = output.size_in
+            else:
+                node.size_in = 0
+
         # --- Validate and set the new size_out
         if output is None:
             if node.size_out is not None:
@@ -115,7 +125,7 @@ class Node(NengoObject):
     """
 
     output = OutputParam(default=None)
-    size_in = IntParam(default=0, low=0)
+    size_in = IntParam(default=None, low=0, optional=True)
     size_out = IntParam(default=None, low=0, optional=True)
     label = StringParam(default=None, optional=True)
     probeable = ListParam(default=['output'])

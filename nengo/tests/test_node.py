@@ -332,6 +332,37 @@ def test_args(Simulator, plt):
     sim.run(0.01)
 
 
+def test_node_output_size(Simulator):
+    class Dummy(object):
+        def __init__(self, size_in, size_out):
+            self.size_in = size_in
+            self.size_out = size_out
+        def __call__(self, t, *x):
+            if self.size_out is None:
+                return
+            else:
+                return [0] * self.size_out
+
+    with nengo.Network() as model:
+        a = nengo.Node(Dummy(size_in=None, size_out=None))
+        assert a.size_in == 0
+        assert a.size_out == 0
+
+        b = nengo.Node(Dummy(size_in=None, size_out=3))
+        assert b.size_in == 0
+        assert b.size_out == 3
+
+        c = nengo.Node(Dummy(size_in=2, size_out=None))
+        assert c.size_in == 2
+        assert c.size_out == 0
+
+        d = nengo.Node(Dummy(size_in=2, size_out=3))
+        assert d.size_in == 2
+        assert d.size_out == 3
+    sim = Simulator(model)
+    sim.run(0.01)
+
+
 def test_node_output(Simulator):
     from nengo.node import NodeOutput
 
