@@ -47,8 +47,9 @@ class SimPyFunc(Operator):
         return step
 
 
-def build_pyfunc(model, node, t_in, n_in, n_out, label):
-    fn = node.output
+def build_pyfunc(model, t_in, n_in, n_out, label, fn=None, node=None):
+    if fn is None:
+        fn = node.output
 
     if n_in:
         sig_in = Signal(np.zeros(n_in), name="%s.input" % label)
