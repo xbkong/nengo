@@ -237,6 +237,7 @@ def test_len():
 
 
 def test_set_output(Simulator):
+    dtype = nengo.rc.get('precision', 'dtype')
     counter = []
 
     def accumulate(t):
@@ -267,11 +268,11 @@ def test_set_output(Simulator):
         # scalar gets promoted to float vector
         scalar = nengo.Node(2)
         assert scalar.output.shape == (1,)
-        assert str(scalar.output.dtype) == 'float64'
+        assert str(scalar.output.dtype) == dtype
         # vector stays 1D
         vector = nengo.Node(np.arange(3))
         assert vector.output.shape == (3,)
-        assert str(vector.output.dtype) == 'float64'
+        assert str(vector.output.dtype) == dtype
 
         # if output is callable...
         # if size_in is 0, should only take in t
