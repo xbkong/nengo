@@ -149,10 +149,10 @@ def pytest_generate_tests(metafunc):
 def pytest_addoption(parser):
     parser.addoption(
         '--plots', nargs='?', default=False, const=True,
-        help='Save plots (optional with directory to save them in).')
+        help='Save plots (can optionally specify a directory for plots).')
     parser.addoption(
         '--analytics', nargs='?', default=False, const=True,
-        help='Save analytics (optional with directory to save the data in).')
+        help='Save analytics (can optionally specify a directory for data).')
     parser.addoption('--noexamples', action='store_false', default=True,
                      help='Do not run examples')
     parser.addoption(
