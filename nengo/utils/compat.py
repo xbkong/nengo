@@ -39,6 +39,11 @@ if PY2:
         assert isinstance(s, bytes)
         return s
 
+    def open_for_csv(path, mode='wb'):
+        if 'b' not in mode:
+            mode += 'b'
+        return open(path, mode)
+
 else:
     import pickle
     import configparser
@@ -59,6 +64,9 @@ else:
             s = s.encode('utf-8')
         assert isinstance(s, bytes)
         return s
+
+    def open_for_csv(path, mode='w'):
+        return open(path, mode, newline='')
 
 
 assert configparser

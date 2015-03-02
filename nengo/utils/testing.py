@@ -13,7 +13,7 @@ import warnings
 import numpy as np
 import pytest
 
-from .compat import is_string
+from .compat import is_string, open_for_csv
 
 
 class Recorder(object):
@@ -137,11 +137,10 @@ class Analytics(Recorder):
             npz_data.update({self.DESC_KEY: self.desc})
             np.savez(self.get_filepath(ext='npz'), **npz_data)
 
-            summary_path = self.get_filepath('csv')
+            summary_path = self.get_filepath(ext='csv')
             write_header = not os.path.exists(summary_path)
             timestamp = time.time()
-            write_header = not os.path.exists(summary_path)
-            with open(summary_path, 'ab') as f:
+            with open_for_csv(summary_path, 'a') as f:
                 writer = csv.writer(f)
                 if write_header:
                     writer.writerow(
