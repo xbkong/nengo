@@ -101,7 +101,7 @@ class Plotter(Recorder):
             if len(self.plt.gcf().get_axes()) > 0:
                 # tight_layout errors if no axes are present
                 self.plt.tight_layout()
-            self.plt.savefig(self.get_filepath(ext='pdf'))
+            self.plt.savefig(os.path.join(self.dirname, self.filename))
             self.plt.close('all')
 
 
