@@ -15,24 +15,36 @@ from .compat import is_string
 
 
 class Recorder(object):
-    def __init__(self, dirname, module_name, function_name, record=True):
+    def __init__(self, dirname, module_name, function_name):
         self.dirname = dirname
         self.module_name = module_name
         self.function_name = function_name
-        self.record = record
 
-        if record:
-            if not os.path.exists(self.dirname):
-                os.makedirs(self.dirname)
+        if self.record and not os.path.exists(self.dirname):
+            os.makedirs(self.dirname)
+
+    @property
+    def record(self):
+        return self.dirname is not None
+
+    @property
+    def dirname(self):
+        return self._dirname
+
+    @dirname.setter
+    def dirname(self, _dirname):
+        if _dirname is not None and not os.path.exists(_dirname):
+            os.makedirs(_dirname)
+
+        self._dirname = _dirname
 
     def get_filename(self, ext=''):
-        modparts = self.module_name.split('.')
-        modparts = modparts[1:]
+        modparts = self.module_name.split('.')[1:]
         modparts.remove('tests')
         return "%s.%s.%s" % ('.'.join(modparts), self.function_name, ext)
 
     def get_filepath(self, ext=''):
-        return os.path.join(self.dirname, self.get_filename(ext))
+        return os.path.join(self.dirname, self.get_filename(ext=ext))
 
     def __enter__(self):
         raise NotImplementedError()
@@ -63,11 +75,6 @@ class Plotter(Recorder):
             else:
                 return Plotter.Mock()
 
-    def __init__(self, dirname, module_name, function_name, record=True):
-        super(Plotter, self).__init__(
-            dirname, module_name, function_name, record)
-        self.filename = self.get_filename('pdf')
-
     def __enter__(self):
         if self.record:
             import matplotlib.pyplot as plt
@@ -82,23 +89,25 @@ class Plotter(Recorder):
                 del self.plt.saveas
                 self.plt.close('all')
                 return
-            elif hasattr(self.plt, 'saveas'):
+
+            if hasattr(self.plt, 'saveas'):
                 self.filename = self.plt.saveas
                 del self.plt.saveas
+            else:
+                self.filename = self.get_filename(ext='pdf')
 
             if len(self.plt.gcf().get_axes()) > 0:
                 # tight_layout errors if no axes are present
                 self.plt.tight_layout()
-            self.plt.savefig(self.get_filepath('pdf'))
+            self.plt.savefig(self.get_filepath(ext='pdf'))
             self.plt.close('all')
 
 
 class Analytics(Recorder):
     DESC_KEY = 'descriptions'
 
-    def __init__(self, dirname, module_name, function_name, record=True):
-        super(Analytics, self).__init__(
-            dirname, module_name, function_name, record)
+    def __init__(self, dirname, module_name, function_name):
+        super(Analytics, self).__init__(dirname, module_name, function_name)
 
         self.raw_data = {}
         self.desc = {}
@@ -119,7 +128,7 @@ class Analytics(Recorder):
         if self.record:
             npz_data = dict(self.raw_data)
             npz_data.update({self.DESC_KEY: self.desc})
-            np.savez(self.get_filepath('npz'), **npz_data)
+            np.savez(self.get_filepath(ext='npz'), **npz_data)
 
 
 class Timer(object):

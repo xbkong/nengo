@@ -9,7 +9,7 @@ import nengo.utils.numpy as npext
 from nengo.neurons import Direct, LIF, LIFRate, RectifiedLinear, Sigmoid
 from nengo.rc import rc
 from nengo.simulator import Simulator as ReferenceSimulator
-from nengo.utils.compat import ensure_bytes
+from nengo.utils.compat import ensure_bytes, is_string
 from nengo.utils.testing import Analytics, Plotter
 
 test_seed = 0  # changing this will change seeds for all tests
@@ -41,7 +41,13 @@ def RefSimulator(request):
     return ReferenceSimulator
 
 
-def construct_recorder_dirname(request, name):
+def recorder_dirname(request, name):
+    record = request.config.getvalue(name)
+    if is_string(record):
+        return record
+    elif not record:
+        return None
+
     simulator, nl = ReferenceSimulator, None
     if 'Simulator' in request.funcargnames:
         simulator = request.getfuncargvalue('Simulator')
@@ -54,21 +60,6 @@ def construct_recorder_dirname(request, name):
     if nl is not None:
         dirname = os.path.join(dirname, nl.__name__)
     return dirname
-
-
-def activate_recorder(cls, request, name):
-    record = request.config.getvalue(name)
-    if record is not True and record is not False:
-        dirname = record
-        record = True
-    else:
-        dirname = construct_recorder_dirname(request, name)
-
-    recorder = cls(
-        dirname, request.module.__name__, request.function.__name__,
-        record=record)
-    request.addfinalizer(lambda: recorder.__exit__(None, None, None))
-    return recorder.__enter__()
 
 
 @pytest.fixture
@@ -84,12 +75,31 @@ def plt(request):
     If you need to override the default filename, set `plt.saveas` to
     the desired filename.
     """
-    return activate_recorder(Plotter, request, 'plots')
+    dirname = recorder_dirname(request, 'plots')
+    plotter = Plotter(
+        dirname, request.module.__name__, request.function.__name__)
+    request.addfinalizer(lambda: plotter.__exit__(None, None, None))
+    return plotter.__enter__()
 
 
 @pytest.fixture
 def analytics(request):
-    return activate_recorder(Analytics, request, 'benchmarks')
+    """an object to store data for analytics.
+
+    Please use this if you're concerned that accuracy or speed may regress.
+
+    This will keep saved data organized in a simulator-specific folder,
+    with an automatically generated name. Raw data (for later processing)
+    can be saved with ``analytics.add_raw_data``; these will be saved in
+    separate compressed ``.npz`` files. Summary data can be saved with
+    ``analytics.add_summary_data``; these will be saved
+    in a single ``.csv`` file.
+    """
+    dirname = recorder_dirname(request, 'benchmarks')
+    analytics = Analytics(
+        dirname, request.module.__name__, request.function.__name__)
+    request.addfinalizer(lambda: analytics.__exit__(None, None, None))
+    return analytics.__enter__()
 
 
 def function_seed(function, mod=0):
