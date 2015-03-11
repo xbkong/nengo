@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import codecs
 import collections
 import sys
 
@@ -16,6 +17,7 @@ if PY2:
     string_types = (str, unicode)
     int_types = (int, long)
     range = xrange
+    open = codecs.open
 
     # No iterkeys; use ``for key in dict:`` instead
     iteritems = lambda d: d.iteritems()
@@ -58,6 +60,7 @@ else:
     int_types = (int,)
     range = range
     ResourceWarning = ResourceWarning
+    open = open
 
     # No iterkeys; use ``for key in dict:`` instead
     iteritems = lambda d: iter(d.items())

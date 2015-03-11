@@ -1,33 +1,4 @@
-"""Functions for easy interactions with IPython and IPython notebooks.
-
-NotebookRunner is modified from runipy.
-This modified code is included under the terms of its license:
-
-Copyright (c) 2013, Paul Butler
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
+"""Functions for easy interactions with IPython and IPython notebooks."""
 
 from __future__ import absolute_import
 
@@ -39,6 +10,8 @@ import uuid
 
 import numpy as np
 
+from nengo.utils.compat import open
+
 try:
     import IPython
     from IPython import get_ipython
@@ -46,10 +19,11 @@ try:
 
     if IPython.version_info[0] <= 3:
         from IPython.config import Config
-        from IPython.nbconvert import HTMLExporter, PythonExporter
+        from IPython.nbconvert import (
+            HTMLExporter, NotebookExporter, PythonExporter)
     else:
         from traitlets.config import Config
-        from nbconvert import HTMLExporter, PythonExporter
+        from nbconvert import HTMLExporter, NotebookExporter, PythonExporter
 
     # nbformat.current deprecated in IPython 3.0
     if IPython.version_info[0] <= 2:
@@ -254,13 +228,22 @@ def export_evaluated(nb, dest_path=None, skip_exceptions=False):
 
     Optionally saves the notebook to dest_path.
     """
-    nb_runner = NotebookRunner(nb)
-    nb_runner.run_notebook(skip_exceptions=skip_exceptions)
+    if IPython.version_info[0] <= 2:
+        nb_runner = NotebookRunner(nb)
+        nb_runner.run_notebook(skip_exceptions=skip_exceptions)
+        out_nb = nb_runner.nb
+    else:
+        # Timeout in seconds (using 10 minutes for now)
+        c = Config({'ExecutePreprocessor':
+                    {'enabled': True, 'timeout': 600}})
+        exporter = NotebookExporter(config=c)
+        output, resources = exporter.from_notebook_node(nb)
+        out_nb = nbformat.reads(output, nbformat.NO_CONVERT)
 
     if dest_path is not None:
-        with open(dest_path, 'w') as f:
-            write_nb(nb_runner.nb, f)
-    return nb_runner.nb
+        with open(dest_path, 'w', encoding='utf-8') as f:
+            write_nb(out_nb, f)  # also pass in 'ipynb' ?
+    return out_nb
 
 
 class NotebookRunner(object):
@@ -340,7 +323,8 @@ class NotebookRunner(object):
                 cell['prompt_number'] = content['execution_count']
                 out.prompt_number = content['execution_count']
 
-            if msg_type in ('status', 'pyin', 'execute_input'):
+            if msg_type in ('status', 'pyin', 'execute_input',
+                            'comm_open', 'comm_msg'):
                 continue
             elif msg_type == 'stream':
                 out.stream = content['name']
@@ -352,6 +336,8 @@ class NotebookRunner(object):
                     except KeyError:
                         raise NotImplementedError(
                             'unhandled mime type: %s' % mime)
+                    if "widgets/js/widget" in data:
+                        continue
                     setattr(out, attr, data)
             elif msg_type == 'pyerr':
                 out.ename = content['ename']
