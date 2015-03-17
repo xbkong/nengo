@@ -86,6 +86,10 @@ class SignalView(object):
         return np.dtype(self.base.dtype)
 
     @property
+    def readonly(self):
+        return self.base.readonly
+
+    @property
     def ndim(self):
         return len(self.shape)
 
@@ -301,13 +305,15 @@ class Signal(SignalView):
     # up in a model.
     assert_named_signals = False
 
-    def __init__(self, value, name=None):
+    def __init__(self, value, name=None, readonly=False):
         # Make sure we use a C-contiguous array
-        self._value = np.array(value, copy=False, order='C', dtype=np.float64)
+        self._value = npext.array(
+            value, copy=False, readonly=True, order='C', dtype=np.float64)
         if name is not None:
             self._name = name
         if Signal.assert_named_signals:
             assert name
+        self._readonly = readonly
 
     def __str__(self):
         try:
@@ -322,6 +328,14 @@ class Signal(SignalView):
     @property
     def dtype(self):
         return self.value.dtype
+
+    @property
+    def readonly(self):
+        return self._readonly
+
+    @readonly.setter
+    def readonly(self, value):
+        self._readonly = readonly
 
     @property
     def shape(self):
@@ -408,9 +422,12 @@ class SignalDict(dict):
 
     def init(self, signal):
         """Set up a permanent mapping from signal -> ndarray."""
-        # Make a copy of base.value to start
-        val = npext.array(signal.base.value, readonly=signal.readonly)
-        dict.__setitem__(self, signal.base, val)
+        if signal.base in self:
+            return  # signal has already been added
+
+        base = signal.base
+        value = base.value if base.readonly else np.array(base.value)
+        dict.__setitem__(self, base, value)
 
     def reset(self, signal):
         """Reset ndarray to the base value of the signal that maps to it"""

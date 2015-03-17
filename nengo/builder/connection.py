@@ -125,7 +125,7 @@ def build_connection(model, conn):
         decoders = decoders.T
 
         model.sig[conn]['decoders'] = Signal(
-            decoders, name="%s.decoders" % conn)
+            decoders, readonly=True, name="%s.decoders" % conn)
         signal = Signal(np.zeros(signal_size), name=str(conn))
         model.add_op(Reset(signal))
         model.add_op(DotInc(model.sig[conn]['decoders'],
@@ -167,8 +167,8 @@ def build_connection(model, conn):
         else:
             transform *= gain[:, np.newaxis]
 
-    model.sig[conn]['transform'] = Signal(transform,
-                                          name="%s.transform" % conn)
+    model.sig[conn]['transform'] = Signal(
+        transform, readonly=True, name="%s.transform" % conn)
     if transform.ndim < 2:
         model.add_op(ElementwiseInc(model.sig[conn]['transform'],
                                     signal,
@@ -203,8 +203,10 @@ def build_connection(model, conn):
                                type(conn.post_obj).__name__))
 
         model.add_op(PreserveValue(modified_signal))
+        modified_signal.readonly = False
 
-    model.params[conn] = BuiltConnection(decoders=decoders,
-                                         eval_points=eval_points,
-                                         transform=transform,
-                                         solver_info=solver_info)
+    model.params[conn] = BuiltConnection(
+        decoders=model.sig[conn]['decoders'].value,
+        eval_points=eval_points,
+        transform=model.sig[conn]['transform'].value,
+        solver_info=solver_info)
