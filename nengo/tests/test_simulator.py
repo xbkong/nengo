@@ -132,3 +132,23 @@ def test_noise(RefSimulator, seed):
     z = 1./np.sqrt(2 * np.pi * std**2) * np.exp(-0.5 * (x - mean)**2 / std**2)
     y = h / float(h.sum()) / dx
     assert np.allclose(y, z, atol=0.02)
+
+
+def test_memory(Simulator, seed):
+
+    n = 5000
+    d = 128**2
+
+    with nengo.Network(seed=seed) as model:
+        a = nengo.Ensemble(n, d, n_eval_points=n)
+        ap = nengo.Probe(a)
+
+    sim = Simulator(model)
+
+    memory = 0
+    for name, array in sim.signals.items():
+        if array.base is None:
+            # print("%s: %0.3f" % (name, array.nbytes / 1024.**2))
+            memory += array.nbytes
+
+    print("Signals: %0.3f" % (memory / 1024.**2))
