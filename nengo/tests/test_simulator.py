@@ -134,7 +134,7 @@ def test_noise(RefSimulator, seed):
     assert np.allclose(y, z, atol=0.02)
 
 
-def test_memory(Simulator, seed):
+def test_memory(Simulator, seed, logger):
 
     n = 5000
     d = 128**2
@@ -151,4 +151,4 @@ def test_memory(Simulator, seed):
             # print("%s: %0.3f" % (name, array.nbytes / 1024.**2))
             memory += array.nbytes
 
-    print("Signals: %0.3f" % (memory / 1024.**2))
+    logger.info("Signals: %0.3f" % (memory / 1024.**2))
