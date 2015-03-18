@@ -103,12 +103,16 @@ def test_signal():
 
 def test_signal_values():
     """Make sure Signal.value and SignalView.value work."""
-    two_d = Signal([[1], [1]])
+    two_d = Signal([[1.], [1.]])
     assert np.allclose(two_d.value, np.array([[1], [1]]))
     two_d_view = two_d[0, :]
     assert np.allclose(two_d_view.value, np.array([1]))
-    two_d.value[...] = np.array([[0.5], [-0.5]])
-    assert np.allclose(two_d_view.value, np.array([0.5]))
+
+    # cannot change signal value after creation
+    with pytest.raises(RuntimeError):
+        two_d.value = np.array([[0.5], [-0.5]])
+    with pytest.raises((ValueError, RuntimeError)):
+        two_d.value[...] = np.array([[0.5], [-0.5]])
 
 
 def test_signal_init_values(RefSimulator):
@@ -139,7 +143,7 @@ def test_signaldict():
     """Tests SignalDict's dict overrides."""
     signaldict = SignalDict()
 
-    scalar = Signal(1)
+    scalar = Signal(1.)
 
     # Both __getitem__ and __setitem__ raise KeyError
     with pytest.raises(KeyError):
@@ -152,18 +156,19 @@ def test_signaldict():
     # __getitem__ handles scalars
     assert signaldict[scalar].shape == ()
 
-    one_d = Signal([1])
+    one_d = Signal([1.])
     signaldict.init(one_d)
     assert np.allclose(signaldict[one_d], np.array([1.]))
     assert signaldict[one_d].shape == (1,)
 
-    two_d = Signal([[1], [1]])
+    two_d = Signal([[1.], [1.]])
     signaldict.init(two_d)
     assert np.allclose(signaldict[two_d], np.array([[1.], [1.]]))
     assert signaldict[two_d].shape == (2, 1)
 
     # __getitem__ handles views
     two_d_view = two_d[0, :]
+    signaldict.init(two_d_view)
     assert np.allclose(signaldict[two_d_view], np.array([1.]))
     assert signaldict[two_d_view].shape == (1,)
 
@@ -192,10 +197,12 @@ def test_signaldict():
 def test_signaldict_reset():
     """Tests SignalDict's reset function."""
     signaldict = SignalDict()
-    two_d = Signal([[1], [1]])
+    two_d = Signal([[1.], [1.]])
     signaldict.init(two_d)
 
     two_d_view = two_d[0, :]
+    signaldict.init(two_d_view)
+
     signaldict[two_d_view] = -0.5
     assert np.allclose(signaldict[two_d], np.array([[-0.5], [1]]))
 
