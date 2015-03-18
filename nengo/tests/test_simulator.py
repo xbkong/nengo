@@ -136,7 +136,7 @@ def test_noise(RefSimulator, seed):
 
 def test_memory(Simulator, seed, logger):
 
-    n = 5000
+    n = 500
     d = 128**2
 
     with nengo.Network(seed=seed) as model:

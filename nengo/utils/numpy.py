@@ -25,6 +25,10 @@ def array(x, dims=None, min_dims=0, readonly=False, **kwargs):
     y = np.array(x, **kwargs)
     dims = max(min_dims, y.ndim) if dims is None else dims
 
+    # always make a view (so setting shape, etc., leaves original unchanged)
+    if y is x:
+        y = x.view()
+
     if y.ndim < dims:
         shape = np.ones(dims, dtype='int')
         shape[:y.ndim] = y.shape

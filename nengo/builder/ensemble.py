@@ -50,8 +50,8 @@ def build_ensemble(model, ens):
     eval_points = gen_eval_points(ens, ens.eval_points, rng=rng)
 
     # Set up signal
-    model.sig[ens]['in'] = Signal(np.zeros(ens.dimensions),
-                                  name="%s.signal" % ens)
+    model.sig[ens]['in'] = Signal(
+        np.zeros(ens.dimensions), name="%s.signal" % ens)
     model.add_op(Reset(model.sig[ens]['in']))
 
     # Set up encoders
@@ -102,7 +102,7 @@ def build_ensemble(model, ens):
         scaled_encoders = encoders * (gain / ens.radius)[:, np.newaxis]
 
     model.sig[ens]['encoders'] = Signal(
-        scaled_encoders, name="%s.scaled_encoders" % ens)
+        scaled_encoders, readonly=True, name="%s.scaled_encoders" % ens)
 
     # Inject noise if specified
     if ens.noise is not None:
@@ -118,10 +118,11 @@ def build_ensemble(model, ens):
     # Output is neural output
     model.sig[ens]['out'] = model.sig[ens.neurons]['out']
 
-    model.params[ens] = BuiltEnsemble(eval_points=eval_points,
-                                      encoders=encoders,
-                                      intercepts=intercepts,
-                                      max_rates=max_rates,
-                                      scaled_encoders=scaled_encoders,
-                                      gain=gain,
-                                      bias=bias)
+    model.params[ens] = BuiltEnsemble(
+        eval_points=eval_points,
+        encoders=encoders,
+        intercepts=intercepts,
+        max_rates=max_rates,
+        scaled_encoders=model.sig[ens]['encoders'].value,
+        gain=gain,
+        bias=bias)

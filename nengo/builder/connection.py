@@ -206,7 +206,7 @@ def build_connection(model, conn):
         modified_signal.readonly = False
 
     model.params[conn] = BuiltConnection(
-        decoders=model.sig[conn]['decoders'].value,
+        decoders=model.sig[conn]['decoders'].value if decoders is not None else None,
         eval_points=eval_points,
         transform=model.sig[conn]['transform'].value,
         solver_info=solver_info)
