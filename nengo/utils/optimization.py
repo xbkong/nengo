@@ -67,7 +67,8 @@ class SubvectorRadiusOptimizer(object):
         import scipy.optimize
         res = scipy.optimize.minimize(
             lambda x: self.sp_subvector_error(
-                x, sp_dimensions, sp_subdimensions), 0.1, bounds=[(0., 1.)])
+                x, sp_dimensions, sp_subdimensions),
+            0.1, bounds=[(0., 1.)], method='L-BFGS-B')
         return np.asscalar(res.x)
 
     def sp_subvector_error(self, radius, sp_dimensions, sp_subdimensions=1):
