@@ -170,5 +170,5 @@ def cycle_array(data, dt=0.001):
     """Returns a function that cycles through the elements of data"""
     def func(t):
           # time starts at dt, and add an epsilon to avoid int(*.9999) errors
-        return data[int((t-dt) / dt + .1) % len(data)]
+        return data[int((t-dt) / dt + 1e-6) % len(data)]
     return func

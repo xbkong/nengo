@@ -261,8 +261,8 @@ def generate_signal(n, upper, lower=0, norm=0.5, dt=0.001):
         `(n-1)/(2*dt*n)` in increments of `dt`. Thus, the returned signal will
         have `2*n - 1` points in increments of `dt`.
     norm : float, optional
-        The root-mean squared power (i.e. length) of the resulting signal.
-        Defaults to 1.0.
+        The root-mean squared power of the resulting signal.
+        Defaults to 0.5.
     upper : float
         The largest frequency (Hz) to be contained in the signal. Any amount
         greater than or equal to `1/(2*dt)` will result in the highest possible
