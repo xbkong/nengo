@@ -19,6 +19,9 @@ Release History
    - Bugfixes
    - Documentation
 
+- Fix for SPA actions that route to a module with multiple inputs.
+  (`#714 <https://github.com/nengo/nengo/pull/714>`_)
+
 2.0.1 (January 27, 2015)
 ========================
 
