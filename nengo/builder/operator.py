@@ -32,6 +32,8 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import copy
+
 import numpy as np
 
 import nengo.utils.numpy as npext
@@ -314,11 +316,12 @@ class DotInc(Operator):
 class SimPyFunc(Operator):
     """Set signal `output` by some Python function of x, possibly t."""
 
-    def __init__(self, output, fn, t_in, x):
+    def __init__(self, output, fn, t_in, x, node=None):
         self.output = output
         self.fn = fn
         self.t_in = t_in
         self.x = x
+        self.node = node
 
         self.sets = [] if output is None else [output]
         self.incs = []
@@ -331,6 +334,13 @@ class SimPyFunc(Operator):
     def make_step(self, signals, dt, rng):
         output = signals[self.output] if self.output is not None else None
         fn = self.fn
+        if hasattr(fn, 'build'):
+            if callable(fn):
+                fn = copy.copy(fn)
+                fn.build(self.node, dt, rng)
+            else:
+                fn = fn.build(self.node, dt, rng)
+
         t_in = self.t_in
         t_sig = signals['__time__']
 
