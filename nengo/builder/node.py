@@ -23,7 +23,7 @@ def build_node(model, node):
     elif isinstance(node.output, Process):
         sig_out = Signal(np.zeros(node.size_out), name="%s.out" % node)
         model.build(node.output, sig_in, sig_out)
-    elif callable(node.output):
+    elif callable(node.output) or hasattr(node.output, 'build'):
         sig_out = (Signal(np.zeros(node.size_out), name="%s.out" % node)
                    if node.size_out > 0 else None)
         model.add_op(SimPyFunc(

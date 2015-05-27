@@ -32,6 +32,9 @@ class OutputParam(Parameter):
             if node.size_out is None:
                 result = self.validate_callable(node, output)
                 node.size_out = 0 if result is None else result.size
+        elif hasattr(output, 'build'):
+            # TODO: have this test something
+            pass
         else:
             # Make into correctly shaped numpy array before validation
             output = npext.array(
