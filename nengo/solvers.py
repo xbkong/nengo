@@ -248,9 +248,7 @@ class Solver(with_metaclass(DocstringInheritor)):
         for k, v in items:
             if isinstance(v, np.ndarray):
                 if v.size < 1e5:
-                    a = v[:]
-                    a.setflags(write=False)
-                    hashes.append(hash(a))
+                    hashes.append(npext.array_hash(v))
                 else:
                     raise ValueError("array is too large to hash")
             elif isinstance(v, collections.Iterable):

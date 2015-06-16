@@ -5,6 +5,8 @@ from __future__ import absolute_import
 
 import numpy as np
 
+from nengo.utils.compat import PY2
+
 maxint = np.iinfo(np.int32).max
 
 
@@ -37,6 +39,13 @@ def array(x, dims=None, min_dims=0, readonly=False, **kwargs):
         y.flags.writeable = False
 
     return y
+
+
+def array_hash(a):
+    """Hash an array"""
+    view = a.view()
+    view.setflags(write=False)
+    return hash(view.data) if PY2 else hash(view.data.tobytes())
 
 
 def expm(A, n_factors=None, normalize=False):
