@@ -88,14 +88,14 @@ class Node(NengoObject):
 
     Parameters
     ----------
-    output : callable or array_like
-        Function that transforms the Node inputs into outputs, or
-        a constant output value.
+    output : callable, array_like, or None
+        Function that transforms the Node inputs into outputs, or a constant
+        output value. If ``None``, then the input will be returned unchanged.
     size_in : int, optional
-        The number of dimensions of the input data parameter.
+        The number of dimensions of the input data parameter. Default: 0.
     size_out : int, optional
         The size of the output signal.
-        Optional; if not specified, it will be determined based on
+        If not specified, it will be determined based on
         the values of ``output`` and ``size_in``.
     label : str, optional
         A name for the node. Used for debugging and visualization.
