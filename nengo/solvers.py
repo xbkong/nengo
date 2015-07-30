@@ -8,6 +8,7 @@ remove the `E` parameter or make it manditory as they see fit.
 """
 import collections
 import logging
+import time
 
 import numpy as np
 
@@ -282,12 +283,14 @@ class Lstsq(Solver):
         self.weights = weights
 
     def __call__(self, A, Y, rng=None, E=None):
+        tstart = time.time()
         Y = self.mul_encoders(Y, E)
         X, residuals2, rank, s = np.linalg.lstsq(A, Y, rcond=self.rcond)
         return X, {'rmses': npext.rms(Y - np.dot(A, X), axis=0),
                    'residuals': np.sqrt(residuals2),
                    'rank': rank,
-                   'singular_values': s}
+                   'singular_values': s,
+                   'time': time.time() - tstart}
 
 
 class _LstsqNoiseSolver(Solver):
@@ -314,10 +317,12 @@ class LstsqNoise(_LstsqNoiseSolver):
     """Least-squares with additive Gaussian white noise."""
 
     def __call__(self, A, Y, rng=None, E=None):
+        tstart = time.time()
         rng = np.random if rng is None else rng
         sigma = self.noise * A.max()
         A = A + rng.normal(scale=sigma, size=A.shape)
         X, info = self.solver(A, Y, 0, **self.kwargs)
+        info['time'] = time.time() - tstart
         return self.mul_encoders(X, E), info
 
 
@@ -325,9 +330,11 @@ class LstsqMultNoise(_LstsqNoiseSolver):
     """Least-squares with multiplicative white noise."""
 
     def __call__(self, A, Y, rng=None, E=None):
+        tstart = time.time()
         rng = np.random if rng is None else rng
         A = A + rng.normal(scale=self.noise, size=A.shape) * A
         X, info = self.solver(A, Y, 0, **self.kwargs)
+        info['time'] = time.time() - tstart
         return self.mul_encoders(X, E), info
 
 
@@ -355,8 +362,10 @@ class LstsqL2(_LstsqL2Solver):
     """Least-squares with L2 regularization."""
 
     def __call__(self, A, Y, rng=None, E=None):
+        tstart = time.time()
         sigma = self.reg * A.max()
         X, info = self.solver(A, Y, sigma, **self.kwargs)
+        info['time'] = time.time() - tstart
         return self.mul_encoders(X, E), info
 
 
@@ -364,6 +373,7 @@ class LstsqL2nz(_LstsqL2Solver):
     """Least-squares with L2 regularization on non-zero components."""
 
     def __call__(self, A, Y, rng=None, E=None):
+        tstart = time.time()
         # Compute the equivalent noise standard deviation. This equals the
         # base amplitude (noise_amp times the overall max activation) times
         # the square-root of the fraction of non-zero components.
@@ -374,6 +384,7 @@ class LstsqL2nz(_LstsqL2Solver):
         sigma[sigma == 0] = sigma.max()
 
         X, info = self.solver(A, Y, sigma, **self.kwargs)
+        info['time'] = time.time() - tstart
         return self.mul_encoders(X, E), info
 
 
@@ -399,6 +410,7 @@ class LstsqL1(Solver):
 
     def __call__(self, A, Y, rng=None, E=None):
         import sklearn.linear_model
+        tstart = time.time()
         Y = self.mul_encoders(Y, E)
 
         # TODO: play around with regularization constants (I just guessed).
@@ -417,7 +429,8 @@ class LstsqL1(Solver):
         model.fit(A, Y)
         X = model.coef_.T
         X.shape = (A.shape[1], Y.shape[1]) if Y.ndim > 1 else (A.shape[1],)
-        infos = {'rmses': npext.rms(Y - np.dot(A, X), axis=0)}
+        infos = {'rmses': npext.rms(Y - np.dot(A, X), axis=0),
+                 'time': time.time() - tstart}
         return X, infos
 
 
@@ -446,6 +459,7 @@ class LstsqDrop(Solver):
         self.solver2 = solver2
 
     def __call__(self, A, Y, rng=None, E=None):
+        tstart = time.time()
         Y, m, n, d, matrix_in = _format_system(A, Y)
 
         # solve for coefficients using standard solver
@@ -466,7 +480,8 @@ class LstsqDrop(Solver):
                     A[:, nonzero], Y[:, i], rng=rng)
 
         info = {'rmses': npext.rms(Y - np.dot(A, X), axis=0),
-                'info0': info0, 'info1': info1}
+                'info0': info0, 'info1': info1,
+                'time': time.time() - tstart}
         return X if matrix_in else X.flatten(), info
 
 
@@ -486,7 +501,7 @@ class Nnls(Solver):
 
     def __call__(self, A, Y, rng=None, E=None):
         import scipy.optimize
-
+        tstart = time.time()
         Y, m, n, d, matrix_in = _format_system(A, Y)
         Y = self.mul_encoders(Y, E)
 
@@ -496,7 +511,8 @@ class Nnls(Solver):
             X[:, i], residuals[i] = scipy.optimize.nnls(A, Y[:, i])
 
         info = {'rmses': npext.rms(Y - np.dot(A, X), axis=0),
-                'residuals': residuals}
+                'residuals': residuals,
+                'time': time.time() - tstart}
         return X if matrix_in else X.flatten(), info
 
 
@@ -516,12 +532,15 @@ class NnlsL2(Nnls):
         self.reg = reg
 
     def __call__(self, A, Y, rng=None, E=None):
+        tstart = time.time()
         # form Gram matrix so we can add regularization
         sigma = self.reg * A.max()
         G = np.dot(A.T, A)
         Y = np.dot(A.T, Y)
         np.fill_diagonal(G, G.diagonal() + sigma)
-        return super(NnlsL2, self).__call__(G, Y, rng=rng, E=E)
+        X, info = super(NnlsL2, self).__call__(G, Y, rng=rng, E=E)
+        info['time'] = time.time() - tstart
+        return X, info
 
 
 class NnlsL2nz(Nnls):
@@ -540,6 +559,7 @@ class NnlsL2nz(Nnls):
         self.reg = reg
 
     def __call__(self, A, Y, rng=None, E=None):
+        tstart = time.time()
         sigma = (self.reg * A.max()) * np.sqrt((A > 0).mean(axis=0))
         sigma[sigma == 0] = 1
 
@@ -547,7 +567,9 @@ class NnlsL2nz(Nnls):
         G = np.dot(A.T, A)
         Y = np.dot(A.T, Y)
         np.fill_diagonal(G, G.diagonal() + sigma)
-        return super(NnlsL2nz, self).__call__(G, Y, rng=rng, E=E)
+        X, info = super(NnlsL2nz, self).__call__(G, Y, rng=rng, E=E)
+        info['time'] = time.time() - tstart
+        return X, info
 
 
 class SolverParam(Parameter):
