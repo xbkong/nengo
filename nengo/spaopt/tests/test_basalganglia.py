@@ -57,12 +57,19 @@ def test_errors():
             actions = spa.Actions('dot(vision, motor) --> motor=A')
             model.bg = spa.BasalGanglia(actions)
 
-    # inversion of sources not implemented
+    # inversion of sources not implemented both ways
     with pytest.raises(NotImplementedError):
         with spa.SPA() as model:
             model.vision = spa.Buffer(dimensions=16)
             model.motor = spa.Buffer(dimensions=16)
             actions = spa.Actions('dot(~vision, FOO) --> motor=A')
+            model.bg = spa.BasalGanglia(actions)
+
+    with pytest.raises(NotImplementedError):
+        with spa.SPA() as model:
+            model.vision = spa.Buffer(dimensions=16)
+            model.motor = spa.Buffer(dimensions=16)
+            actions = spa.Actions('dot(FOO, ~vision) --> motor=A')
             model.bg = spa.BasalGanglia(actions)
 
     # convolution not implemented
@@ -79,8 +86,3 @@ def test_errors():
             model.motor = spa.Buffer(dimensions=16)
             actions = spa.Actions('scalar --> motor=A')
             model.bg = spa.BasalGanglia(actions)
-
-
-if __name__ == '__main__':
-    nengo.log(debug=True)
-    pytest.main([__file__, '-v'])
