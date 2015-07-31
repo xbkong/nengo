@@ -1,5 +1,3 @@
-from __future__ import division
-
 import collections
 
 import numpy as np
@@ -144,7 +142,6 @@ def build_connection(model, conn):
         else:
             decoders, solver_info = solver(activities, targets, rng=rng)
             weights = multiply(conn.transform, decoders.T)
-            signal_size = conn.size_mid
     else:
         in_signal = slice_signal(model, in_signal, conn.pre_slice)
 

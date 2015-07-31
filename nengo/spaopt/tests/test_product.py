@@ -10,7 +10,7 @@ def _normalize(x):
 
 @pytest.mark.optional  # Skip test per default, it is too slow
 @pytest.mark.parametrize('d', [4, 32])
-def test_dotproduct(Simulator, d):
+def test_dotproduct(Simulator, d, plt):
     np.random.seed(324)
     v1 = _normalize(np.random.randn(d))
     v2 = _normalize(np.random.randn(d))
@@ -45,6 +45,9 @@ def test_dotproduct(Simulator, d):
 
     sim = Simulator(model)
     sim.run(2 * np.pi)
+
+    plt.plot(sim.trange(), sim.data[probe])
+    plt.plot(sim.trange(), sim.data[dprobe])
 
     assert np.max(np.abs(sim.data[probe] - sim.data[dprobe])) < 0.11
 

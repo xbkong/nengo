@@ -9,8 +9,8 @@ def test_basal_ganglia(Simulator, seed, plt):
     model = spa.SPA(seed=seed)
 
     with model:
-        model.vision = spa.Buffer(dimensions=16)
-        model.motor = spa.Buffer(dimensions=16)
+        model.vision = spa.Buffer(dimensions=32)
+        model.motor = spa.Buffer(dimensions=32)
 
         actions = spa.Actions(
             '0.5 --> motor=A',
@@ -39,6 +39,7 @@ def test_basal_ganglia(Simulator, seed, plt):
 
     plt.plot(t, sim.data[p])
     plt.title('Basal Ganglia output')
+
 
     assert 0.6 > sim.data[p][t == 0.1, 0] > 0.4
     assert sim.data[p][t == 0.2, 1] > 0.8
