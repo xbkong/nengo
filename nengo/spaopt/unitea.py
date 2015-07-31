@@ -16,10 +16,13 @@ class UnitEA(EnsembleArray):
             raise ValueError(
                 "'dimensions' has to be divisible by 'n_ensembles'.")
 
-        optimizer = SubvectorRadiusOptimizer(
-            n_neurons, ens_dimensions, ens_kwargs=ens_kwargs)
-        scaled_r = radius * optimizer.find_optimal_radius(
-            dimensions, dimensions // n_ensembles)
+        if n_ensembles > 1:
+            optimizer = SubvectorRadiusOptimizer(
+                n_neurons, ens_dimensions, ens_kwargs=ens_kwargs)
+            scaled_r = radius * optimizer.find_optimal_radius(
+                dimensions, dimensions // n_ensembles)
+        else:
+            scaled_r = 1.
 
         super(UnitEA, self).__init__(
             n_neurons, n_ensembles, ens_dimensions, label=label,

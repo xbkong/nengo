@@ -32,11 +32,9 @@ class Product(nengo.Network):
                 n_neurons, 2, ens_kwargs=ens_kwargs)
             scaled_r = radius * optimizer.find_optimal_radius(dimensions, 1)
 
-            # FIXME use square evaluation points
-
             self.product = EnsembleArray(
                 n_neurons, n_ensembles=dimensions, ens_dimensions=2,
-                radius=scaled_r, encoders=encoders, **ens_kwargs)
+                radius=np.sqrt(2) * scaled_r, encoders=encoders, **ens_kwargs)
 
             nengo.Connection(
                 self.A, self.product.input[::2], synapse=None)
