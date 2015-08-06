@@ -189,6 +189,53 @@ def block_conjgrad(A, Y, sigma, rng=None, X0=None, tol=1e-2):
     return X if matrix_in else X.flatten(), info
 
 
+def opium(A, Y, sigma, rng=None):
+    from hunse_tools.timing import tic, toc
+
+    Y, m, n, d, matrix_in = _format_system(A, Y)
+    if m <= n:
+        return cholesky(A, Y, sigma)
+
+    # m_per_iter = 1000
+    # iters = int(np.ceil(float(m) / m_per_iter))
+
+    # X = np.zeros((n, d))
+    m0 = 5
+    X, cholesky_info = cholesky(A[:m0], Y[:m0], sigma)
+    rmses0 = npext.rms(Y - np.dot(A, X), axis=0)
+
+    theta = np.eye(n) / n
+
+    # for i in range(iters):
+    for k in range(n, m):
+        # TODO: incorporate sigma
+        ak = A[k]
+        yk = Y[k]
+
+        tak = np.dot(theta, ak)
+        bk = tak / (1 + np.dot(ak, tak))
+
+        tic('error')
+        ek = yk - np.dot(ak, X)
+        toc()
+        tic('update')
+        X += np.outer(bk, ek)
+        toc()
+
+        theta -= np.dot(tak, bk)
+        # TODO: theta with forgetting for non-stationary
+
+    info = {'rmses': npext.rms(Y - np.dot(A, X), axis=0),
+            'rmses0': rmses0,
+            'cholesky_info': cholesky_info}
+    return X if matrix_in else X.flatten(), info
+
+
+# def online_sequential(A, Y, sigma):
+
+#     m0 = d
+
+
 def svd(A, Y, sigma, rng=None):
     """Solve the least-squares system using a full SVD."""
     Y, m, _, _, matrix_in = _format_system(A, Y)
