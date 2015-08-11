@@ -14,35 +14,24 @@ class Product(nengo.Network):
     Requires Scipy.
     """
 
-    def __init__(
-            self, n_neurons, dimensions, radius=1.0,
-            encoders=nengo.Default, **ens_kwargs):
+    def __init__(self, n_neurons, dimensions, radius=1.0):
         super(Product, self).__init__(self)
 
         with self:
-            self.config[nengo.Ensemble].update(ens_kwargs)
             self.A = nengo.Node(size_in=dimensions, label="A")
             self.B = nengo.Node(size_in=dimensions, label="B")
             self.dimensions = dimensions
 
-            if encoders is nengo.Default:
-                encoders = Choice([[1, 1], [1, -1], [-1, 1], [-1, -1]])
-
-            optimizer = SubvectorRadiusOptimizer(
-                n_neurons, 2, ens_kwargs=ens_kwargs)
+            optimizer = SubvectorRadiusOptimizer(n_neurons, 2)
             scaled_r = radius * optimizer.find_optimal_radius(dimensions, 1)
 
-            self.product = EnsembleArray(
-                n_neurons, n_ensembles=dimensions, ens_dimensions=2,
-                radius=scaled_r, encoders=encoders, **ens_kwargs)
+            self.product = nengo.networks.Product(
+                n_neurons, dimensions, input_magnitude=scaled_r / np.sqrt(2.))
 
-            nengo.Connection(
-                self.A, self.product.input[::2], synapse=None)
-            nengo.Connection(
-                self.B, self.product.input[1::2], synapse=None)
+            nengo.Connection(self.A, self.product.A, synapse=None)
+            nengo.Connection(self.B, self.product.B, synapse=None)
 
-            self.output = self.product.add_output(
-                'product', lambda x: x[0] * x[1])
+            self.output = self.product.output
 
     def dot_product_transform(self, scale=1.0):
         """Returns a transform for output to compute the scaled dot product."""
