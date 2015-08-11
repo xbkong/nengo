@@ -85,9 +85,7 @@ class CircularConvolution(nengo.Network):
             self.B = nengo.Node(size_in=dimensions, label="B")
             self.product = Product(n_neurons,
                                    self.transform_out.shape[1],
-                                   radius=radius,
-                                   label="conv",
-                                   **ens_kwargs)
+                                   radius=radius)
             self.output = nengo.Node(size_in=dimensions, label="output")
 
             nengo.Connection(self.A, self.product.A,
