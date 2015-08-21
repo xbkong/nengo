@@ -136,7 +136,7 @@ def generate_graphviz(objs, connections):
     return '\n'.join(text)
 
 
-def _create_replacement_connection(c_in, c_out):
+def _create_replacement_connection(c_in, c_out, allow_merge=False):
     """Generate a new Connection to replace two through a passthrough Node"""
     assert c_in.post_obj is c_out.pre_obj
     assert c_in.post_obj.output is None
@@ -147,10 +147,17 @@ def _create_replacement_connection(c_in, c_out):
     elif c_out.synapse is None:
         synapse = c_in.synapse
     else:
-        raise NotImplementedError('Cannot merge two filters')
-        # Note: the algorithm below is in the right ballpark,
-        #  but isn't exactly the same as two low-pass filters
-        # filter = c_out.filter + c_in.filter
+        if (allow_merge and
+            isinstance(c_in.synapse, nengo.Lowpass) and
+            isinstance(c_out.synapse, nengo.Lowpass)):
+                # Note: the algorithm below is in the right ballpark,
+                #  but isn't exactly the same as two low-pass filters
+                synapse = nengo.Lowpass(c_in.synapse.tau + c_out.synapse.tau)
+        else:
+            print('Cannot merge two filters: %s, %s' %
+                          (c_in.synapse, c_out.synapse))
+            raise NotImplementedError('Cannot merge two filters: %s, %s' %
+                          (c_in.synapse, c_out.synapse))
 
     function = c_in.function
     if c_out.function is not None:
