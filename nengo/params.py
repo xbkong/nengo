@@ -3,7 +3,8 @@ import inspect
 
 import numpy as np
 
-from nengo.utils.compat import is_array, is_integer, is_number, is_string
+from nengo.utils.compat import (
+    is_array, is_integer, is_number, is_string, itervalues)
 from nengo.utils.numpy import array_hash, compare
 from nengo.utils.stdlib import WeakKeyIDDictionary, checked_call
 
@@ -314,11 +315,16 @@ class FunctionParam(Parameter):
 
 class FrozenObject(object):
     def __init__(self):
-        self._params = tuple(v for _, v in inspect.getmembers(self.__class__)
-                             if isinstance(v, Parameter))
+        self._paramdict = dict(
+            (k, v) for k, v in inspect.getmembers(self.__class__)
+            if isinstance(v, Parameter))
         if not all(p.readonly for p in self._params):
             raise ValueError(
                 "All parameters of a FrozenObject must be readonly")
+
+    @property
+    def _params(self):
+        return itervalues(self._paramdict)
 
     def __eq__(self, other):
         if self is other:  # quick check for speed
@@ -329,3 +335,17 @@ class FrozenObject(object):
     def __hash__(self):
         return hash((self.__class__, tuple(
             p.hashvalue(self) for p in self._params)))
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d.pop('_paramdict')  # do not pickle the param dict itself
+        for k in self._paramdict:
+            d[k] = getattr(self, k)
+
+        return d
+
+    def __setstate__(self, state):
+        FrozenObject.__init__(self)  # set up the param dict
+        for k in self._paramdict:
+            setattr(self, k, state.pop(k))
+        self.__dict__.update(state)
