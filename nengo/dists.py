@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import numpy as np
 
-from nengo.params import (BoolParam, NdarrayParam, NumberParam,
+from nengo.params import (BoolParam, IntParam, NdarrayParam, NumberParam,
                           Parameter, Unconfigurable, FrozenObject)
 import nengo.utils.numpy as npext
 
@@ -258,6 +258,9 @@ class SqrtBeta(Distribution):
     --------
     SubvectorLength
     """
+    n = IntParam(low=0)
+    m = IntParam(low=0)
+
     def __init__(self, n, m=1):
         super(SqrtBeta, self).__init__()
         self.n = n
