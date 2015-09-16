@@ -315,3 +315,24 @@ def test_learningrule_attr(seed):
         assert set(c3.learning_rule) == set(r3)  # assert same keys
         for key in r3:
             check_rule(c3.learning_rule[key], c3, r3[key])
+
+
+def test_frozen():
+    """Test attributes inherited from FrozenObject"""
+    a = PES(2e-3, 4e-3)
+    b = PES(2e-3, 4e-3)
+    c = PES(2e-3, 5e-3)
+
+    assert hash(a) == hash(a)
+    assert hash(b) == hash(b)
+    assert hash(c) == hash(c)
+
+    assert a == b
+    assert hash(a) == hash(b)
+    assert a != c
+    assert hash(a) != hash(c)  # not guaranteed, but highly likely
+    assert b != c
+    assert hash(b) != hash(c)  # not guaranteed, but highly likely
+
+    with pytest.raises((ValueError, RuntimeError)):
+        a.learning_rate = 1e-1
