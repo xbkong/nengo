@@ -251,3 +251,13 @@ class Simulator(object):
 
         for probe in self.model.probes:
             self._probe_outputs[probe] = []
+
+    def memory(self):
+        memory_dict = {}
+        for obj, sigdict in model.sig.items():
+            for name, signal in sigdict:
+                base = signal.value.base
+                if base not in memory_dict:
+                    memory_dict[base] = base.nbytes
+
+        return sum(memory_dict.values()) / 1024.**2
