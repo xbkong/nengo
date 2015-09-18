@@ -383,17 +383,24 @@ class LearningRule(object):
         return self._connection()
 
     @property
+    def error_type(self):
+        return self.learning_rule_type.error_type.lower()
+
+    @property
+    def modifies(self):
+        return self.learning_rule_type.modifies
+
+    @property
     def probeable(self):
         return self.learning_rule_type.probeable
 
     @property
     def size_in(self):  # size of error signal
-        error_type = self.learning_rule_type.error_type.lower()
-        if error_type == 'none':
+        if self.error_type == 'none':
             return 0
-        elif error_type == 'scalar':
+        elif self.error_type == 'scalar':
             return 1
-        elif error_type == 'decoder':
+        elif self.error_type == 'decoder':
             if isinstance(self.connection.pre_obj, Neurons):
                 return self.connection.pre_obj.ensemble.dimensions
             elif isinstance(self.connection.pre_obj, Ensemble):
@@ -401,11 +408,11 @@ class LearningRule(object):
             else:
                 raise ValueError("Cannot learn on '%s' type" % (
                     self.connection.pre_obj.__class__.__name__))
-        elif error_type == 'neuron':
+        elif self.error_type == 'neuron':
             raise NotImplementedError()
         else:
-            raise ValueError("Unrecognized error type '%s'" % (
-                self.learning_rule_type.error_type))
+            raise ValueError("Unrecognized error type '%s'"
+                             % (self.error_type))
 
     @property
     def size_out(self):
