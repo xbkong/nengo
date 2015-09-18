@@ -263,7 +263,7 @@ class LearningRuleTypeParam(Parameter):
         if not isinstance(rule, LearningRuleType):
             raise ValueError("'%s' must be a learning rule type or a dict or "
                              "list of such types." % rule)
-        if not rule.error_type in ('none', 'scalar', 'decoded', 'neuron'):
+        if rule.error_type not in ('none', 'scalar', 'decoded', 'neuron'):
             raise ValueError("Unrecognized error type %r" % rule.error_type)
-        if not rule.modifies in ('encoders', 'decoders', 'weights'):
+        if rule.modifies not in ('encoders', 'decoders', 'weights'):
             raise ValueError("Unrecognized target %r" % rule.modifies)
