@@ -226,7 +226,7 @@ class Voja(LearningRuleType):
     Parameters
     ----------
     learning_rate : float, optional
-        A scalar indicating the rate at which decoders will be adjusted.
+        A scalar indicating the rate at which encoders will be adjusted.
         Defaults to 1e-2.
     post_tau : float, optional
         Filter constant on activities of neurons in post population.

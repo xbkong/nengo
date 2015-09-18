@@ -86,36 +86,18 @@ class SimOja(Operator):
 class SimVoja(Operator):
     """Simulates a simplified version of Oja's rule in the vector space.
 
-    Moves the active encoders towards the decoded value. This is an analog to
-    Oja's rule in the vector space, making it suitable for memory.
-
-    Let:
-        `y` be the post-synpatic activity
-        `a` be the pre-synaptic activity
-        `s` be the normalization factor
-        `W` be the connection weight matrix
-        `x` be the decoded pre-synaptic activity
-        `e` be the encoders
-
-    Then Oja's rule is normally:
-        `W += outer(y, a) - s y^2 W`
-
-    Substituting `W -> e`, `a -> x`, gives:
-        `e += outer(y, x) - s y^2 e`
-
-    So when `s = 1/y`, then for each neuron `i`,
-        `e_i += y_i (x - e_i)`
+    See `examples/learning/learn_associations.ipynb` for details.
 
     Parameters
     ----------
     pre_decoded : Signal
         Decoded activity from pre-synaptic ensemble, `np.dot(d, a)`.
     post_filtered : Signal
-        Filtered post-synaptic activity signal (`y`).
+        Filtered post-synaptic activity signal.
     scaled_encoders : Signal
         2d array of encoders, multiplied by `scale`.
     delta : Signal
-        The change to the decoders. Updated by the rule.
+        The change to the encoders. Updated by the rule.
     scale : np.ndarray
         The length of each encoder.
     learning_signal : Signal
