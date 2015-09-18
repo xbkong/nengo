@@ -28,39 +28,34 @@ class ConnectionLearningRuleTypeParam(LearningRuleTypeParam):
     def validate_rule(self, conn, rule):
         super(ConnectionLearningRuleTypeParam, self).validate_rule(conn, rule)
 
-        assert rule.modifies in ('transform', 'weights', 'encoders')
-
-        # If the rule modifies 'transform', then it must have weights.
-        if rule.modifies == 'transform':
-            if conn.is_factored:
-                raise ValueError(
-                    "Learning rule '%s' can not be applied to factored "
-                    "weight matrices. Try setting solver.weights to True or "
-                    "connecting between two Neurons objects." % rule)
-
-        # If the rule modifies 'weights', then it can be either transform-based
-        # or decoder-based, so we don't need to check.
-
-        # If the rule modifies 'encoders', then it needs to connect to an
-        # Ensemble. Else the rule modifies 'weights' or 'transform', so it
-        # can't be from a Node or to a Probe.
-        if rule.modifies == 'encoders':
-            if not isinstance(conn.post_obj, Ensemble):
-                raise ValueError("'post' must be of type 'Ensemble' for "
-                                 "learning rule '%s' (got type '%s')" % (
-                                     rule, conn.pre_obj.__class__.__name__))
-        else:
+        # --- Check pre object
+        if rule.modifies in ('decoders', 'weights'):
+            # pre object must be neural
             if not isinstance(conn.pre_obj, (Ensemble, Neurons)):
                 raise ValueError(
                     "'pre' must be of type 'Ensemble' or 'Neurons' for "
                     "learning rule '%s' (got type '%s')" % (
                         rule, conn.pre_obj.__class__.__name__))
 
+        # --- Check post object
+        if rule.modifies == 'encoders':
+            if not isinstance(conn.post_obj, Ensemble):
+                raise ValueError("'post' must be of type 'Ensemble' (got %r) "
+                                 "for learning rule '%s'"
+                                 % (conn.pre_obj.__class__.__name__, rule))
+        else:
             if not isinstance(conn.post_obj, (Ensemble, Neurons, Node)):
                 raise ValueError(
                     "'post' must be of type 'Ensemble', 'Neurons' or 'Node' "
-                    "for learning rule '%s' (got type '%s')" % (
-                        rule, conn.post_obj.__class__.__name__))
+                    "(got %r) for learning rule '%s'"
+                    % (conn.post_obj.__class__.__name__, rule))
+
+        # If the rule modifies 'weights', then it must have full weights
+        if rule.modifies == 'weights' and conn.is_factored:
+            raise ValueError(
+                "Learning rule '%s' can not be applied to factored "
+                "weight matrices. Try setting solver.weights to True or "
+                "connecting between two Neurons objects." % rule)
 
 
 class ConnectionSolverParam(SolverParam):
@@ -400,7 +395,7 @@ class LearningRule(object):
             return 0
         elif self.error_type == 'scalar':
             return 1
-        elif self.error_type == 'decoder':
+        elif self.error_type == 'decoded':
             if isinstance(self.connection.pre_obj, Neurons):
                 return self.connection.pre_obj.ensemble.dimensions
             elif isinstance(self.connection.pre_obj, Ensemble):

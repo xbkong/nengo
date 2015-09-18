@@ -181,7 +181,7 @@ def build_learning_rule(model, rule):
         tag = "encoders += delta"
         delta = Signal(
             np.zeros((post.n_neurons, post.dimensions)), name='Delta')
-    elif rule.modifies == 'weights':
+    elif rule.modifies in ('decoders', 'weights'):
         pre = get_pre_ens(conn)
         target = model.sig[conn]['weights']
         tag = "weights += delta"

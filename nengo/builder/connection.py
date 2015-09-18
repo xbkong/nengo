@@ -219,10 +219,9 @@ def build_connection(model, conn):
 
         if 'encoders' in targets:
             model.add_op(PreserveValue(model.sig[conn.post_obj]['encoders']))
-        if 'weights' in targets:
+        if 'decoders' in targets or 'weights' in targets:
             if weights.ndim < 2:
-                raise ValueError(
-                    "Learning connection must have full transform matrix")
+                raise ValueError("'transform' must be a matrix for learning")
             model.add_op(PreserveValue(model.sig[conn]['weights']))
 
     model.params[conn] = BuiltConnection(eval_points=eval_points,
