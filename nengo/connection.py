@@ -384,7 +384,7 @@ class LearningRule(object):
 
     @property
     def error_type(self):
-        return self.learning_rule_type.error_type.lower()
+        return self.learning_rule_type.error_type
 
     @property
     def modifies(self):
