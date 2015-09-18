@@ -173,13 +173,10 @@ def build_learning_rule(model, rule):
 
     # --- Set up delta signal
     if rule.modifies == 'encoders':
-        post = get_post_ens(conn)
         if not conn.is_factored:
             ValueError(
                 "Cannot perform encoder learning on an unfactored connection")
-        if not isinstance(post, Ensemble):
-            ValueError("Can only perform encoder learning if `post` is an "
-                       "Ensemble (got %r)" % post.__class__.__name__)
+        post = get_post_ens(conn)
         target = model.sig[post]['encoders']
         tag = "encoders += delta"
         delta = Signal(
