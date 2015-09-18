@@ -108,14 +108,16 @@ class SimVoja(Operator):
 
     Parameters
     ----------
+    pre_decoded : Signal
+        Decoded activity from pre-synaptic ensemble, `np.dot(d, a)`.
     post_filtered : Signal
         Filtered post-synaptic activity signal (`y`).
     scaled_encoders : Signal
-        2d array of encoders, multiplied by `scale`. Updated by the rule.
+        2d array of encoders, multiplied by `scale`.
+    delta : Signal
+        The change to the decoders. Updated by the rule.
     scale : np.ndarray
         The length of each encoder.
-    x : Signal
-        Decoded activity from pre-synaptic ensemble, `np.dot(d, a)`.
     learning_signal : Signal
         Scalar signal to be multiplied by the learning_rate. Expected to range
         between 0 and 1 to turn learning off or on, respectively.
