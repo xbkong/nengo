@@ -202,8 +202,7 @@ def build_learning_rule(model, rule):
     model.add_op(
         ElementwiseInc(model.sig['common'][1], delta, target, tag=tag))
     model.sig[rule]['delta'] = delta
-
-    model.build(rule.learning_rule_type, rule)
+    model.build(rule.learning_rule_type, rule)  # updates delta
 
 
 @Builder.register(BCM)
@@ -306,7 +305,6 @@ def build_pes(model, pes, rule):
 
     # Compute the correction, i.e. the scaled negative error
     correction = Signal(np.zeros(error.shape), name="PES:correction")
-    local_error = correction.column()
     model.add_op(Reset(correction))
 
     # correction = -learning_rate * (dt / n_neurons) * error
@@ -325,15 +323,18 @@ def build_pes(model, pes, rule):
         encoded = Signal(np.zeros(weights.shape[0]), name="PES:encoded")
         model.add_op(Reset(encoded))
         model.add_op(DotInc(encoders, correction, encoded, tag="PES:encode"))
-        local_error = encoded.column()
-    elif not isinstance(conn.pre_obj, (Ensemble, Neurons)):
+        local_error = encoded
+    elif isinstance(conn.pre_obj, (Ensemble, Neurons)):
+        local_error = correction
+    else:
         raise ValueError("'pre' object '%s' not suitable for PES learning"
                          % (conn.pre_obj))
 
     # delta = local_error * activities
     model.add_op(Reset(model.sig[rule]['delta']))
     model.add_op(ElementwiseInc(
-        local_error, acts_view, model.sig[rule]['delta'], tag="PES:Inc Delta"))
+        local_error.column(), acts.row(), model.sig[rule]['delta'],
+        tag="PES:Inc Delta"))
 
     # expose these for probes
     model.sig[rule]['error'] = error
