@@ -13,9 +13,9 @@ import numpy as np
 
 import nengo.utils.numpy as npext
 from nengo.builder import Model
-from nengo.builder.signal import SignalDict
+from nengo.builder.signal import Signal, SignalDict
 from nengo.cache import get_default_decoder_cache
-from nengo.utils.compat import range
+from nengo.utils.compat import is_iterable, itervalues, range
 from nengo.utils.graphs import toposort
 from nengo.utils.progress import ProgressTracker
 from nengo.utils.simulator import operator_depencency_graph
@@ -265,3 +265,41 @@ class Simulator(object):
         # clear probe data
         for probe in self.model.probes:
             self._probe_outputs[probe] = []
+
+    def memory_use(self):  # noqa: C901
+        """Estimate the amount of memory used by the simulator."""
+        def collect_type(typ, obj, result=None):
+            if result is None:
+                result = []
+
+            if isinstance(obj, typ):
+                result.append(obj)
+            elif isinstance(obj, dict):
+                for obj2 in itervalues(obj):
+                    collect_type(typ, obj2, result=result)
+            elif is_iterable(obj):
+                for obj2 in obj:
+                    collect_type(typ, obj2, result=result)
+
+            return result
+
+        # collect builder arrays
+        arrays = [sig.value for sig in collect_type(Signal, self.model.sig)]
+
+        # collect simulator arrays
+        arrays.extend(ary for ary in itervalues(self.signals))
+
+        # collect probe arrays
+        arrays.extend(collect_type(np.ndarray, self._probe_outputs))
+
+        # compute total memory useage
+        memory_dict = {}
+        for ary in arrays:
+            if ary.base is not None:
+                ary = ary.base
+
+            if id(ary) not in memory_dict:
+                memory_dict[id(ary)] = ary.nbytes
+
+        total_bytes = sum(itervalues(memory_dict))
+        return total_bytes
