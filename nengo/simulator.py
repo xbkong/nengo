@@ -283,23 +283,67 @@ class Simulator(object):
 
             return result
 
+        def base_memory(arrays):
+            memory_dict = {}
+            for ary in arrays:
+                if ary.base is not None:
+                    ary = ary.base
+
+                if id(ary) not in memory_dict:
+                    memory_dict[id(ary)] = ary.nbytes
+
+            return memory_dict
+
+        from collections import defaultdict
+        builder = defaultdict(int)
+        for obj in self.model.sig:
+            for k in self.model.sig[obj]:
+                key = "%s.%s" % (type(obj).__name__, k)
+                builder[key] += self.model.sig[obj][k].value.nbytes
+
+        for k in sorted(builder):
+            print("%s: %0.1f" % (k, builder[k] / 1024.))
+
+        probes = defaultdict(int)
+        for obj, value in self._probe_outputs.items():
+            if isinstance(value, tuple) and hasattr(value, '_fields'):
+                for i, field in enumerate(value._fields):
+                    if not isinstance(value[i], np.ndarray):
+                        continue
+                    key = "%s.%s" % (type(obj).__name__, field)
+                    probes[key] += value[i].nbytes
+
+        print()
+        for k in sorted(probes):
+            print("%s: %0.1f" % (k, probes[k] / 1024.))
+
         # collect builder arrays
         arrays = [sig.value for sig in collect_type(Signal, self.model.sig)]
+        builder_memory = base_memory(arrays)
 
         # collect simulator arrays
-        arrays.extend(ary for ary in itervalues(self.signals))
+        arrays = [ary for ary in itervalues(self.signals)]
+        simulator_memory = base_memory(arrays)
+        # arrays.extend(ary for ary in itervalues(self.signals))
 
         # collect probe arrays
-        arrays.extend(collect_type(np.ndarray, self._probe_outputs))
+        arrays = collect_type(np.ndarray, self._probe_outputs)
+        probe_memory = base_memory(arrays)
 
-        # compute total memory useage
-        memory_dict = {}
-        for ary in arrays:
-            if ary.base is not None:
-                ary = ary.base
+        kb = lambda d: sum(itervalues(d)) / 1024.
 
-            if id(ary) not in memory_dict:
-                memory_dict[id(ary)] = ary.nbytes
+        total_memory = dict(builder_memory)
+        total_memory.update(simulator_memory)
+        print("build/sim: %0.1f" % kb(total_memory))
 
-        total_bytes = sum(itervalues(memory_dict))
-        return total_bytes
+        total_memory.update(probe_memory)
+        print("build/sim/probe: %0.1f" % kb(total_memory))
+
+        builder_kb = kb(builder_memory)
+        sim_kb = kb(simulator_memory)
+        probe_kb = kb(probe_memory)
+        sum_kb = builder_kb + sim_kb + probe_kb
+        total_kb = kb(total_memory)
+
+        print("builder: %0.1f, sim: %0.1f, probe: %0.1f, sum: %0.1f, total: %0.1f (KB)" % (
+            builder_kb, sim_kb, probe_kb, sum_kb, total_kb))
