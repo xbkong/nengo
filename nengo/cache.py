@@ -281,12 +281,12 @@ class DecoderCache(object):
 
         # rng format doc:
         # noqa <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.RandomState.get_state.html#numpy.random.RandomState.get_state>
-        state = rng.get_state()
-        h.update(state[0].encode())  # string 'MT19937'
-        h.update(state[1].data)  # 1-D array of 624 unsigned integer keys
-        h.update(struct.pack('q', state[2]))  # integer pos
-        h.update(struct.pack('q', state[3]))  # integer has_gauss
-        h.update(struct.pack('d', state[4]))  # float cached_gaussian
+        #state = rng.get_state()
+        #h.update(state[0].encode())  # string 'MT19937'
+        #h.update(state[1].data)  # 1-D array of 624 unsigned integer keys
+        #h.update(struct.pack('q', state[2]))  # integer pos
+        #h.update(struct.pack('q', state[3]))  # integer has_gauss
+        #h.update(struct.pack('d', state[4]))  # float cached_gaussian
 
         if E is not None:
             h.update(np.ascontiguousarray(E).data)
