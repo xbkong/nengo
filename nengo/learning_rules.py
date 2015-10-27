@@ -92,7 +92,7 @@ class BCM(LearningRuleType):
     ----------
     learning_rate : float, optional
         A scalar indicating the rate at which decoders will be adjusted.
-        Defaults to 1e-5.
+        Defaults to 1e-10.
     theta_tau : float, optional
         A scalar indicating the time constant for theta integration.
     pre_tau : float, optional
@@ -120,7 +120,7 @@ class BCM(LearningRuleType):
     probeable = ['theta', 'pre_filtered', 'post_filtered', 'delta']
 
     def __init__(self, pre_tau=0.005, post_tau=None, theta_tau=1.0,
-                 learning_rate=1e-9):
+                 learning_rate=1e-10):
         self.theta_tau = theta_tau
         self.pre_tau = pre_tau
         self.post_tau = post_tau if post_tau is not None else pre_tau
