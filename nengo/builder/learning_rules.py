@@ -108,7 +108,7 @@ class SimVoja(Operator):
     """
 
     def __init__(self, pre_decoded, post_filtered, scaled_encoders, delta,
-                 scale, learning_signal, learning_rate):
+                 scale, learning_signal, learning_rate, neuron_mask, post_activity):
         self.pre_decoded = pre_decoded
         self.post_filtered = post_filtered
         self.scaled_encoders = scaled_encoders
@@ -117,9 +117,13 @@ class SimVoja(Operator):
         self.learning_signal = learning_signal
         self.learning_rate = learning_rate
 
+        self.neuron_mask = neuron_mask
+        self.post_activity = post_activity
+
         self.reads = [
-            pre_decoded, post_filtered, scaled_encoders, learning_signal]
-        self.updates = [delta]
+            pre_decoded, post_filtered, scaled_encoders, 
+            learning_signal]
+        self.updates = [delta, neuron_mask]
         self.sets = []
         self.incs = []
 
@@ -131,10 +135,21 @@ class SimVoja(Operator):
         learning_signal = signals[self.learning_signal]
         alpha = self.learning_rate * dt
         scale = self.scale[:, np.newaxis]
+        neuron_mask = signals[self.neuron_mask]
+        post_activity = signals[self.post_activity]
 
         def step_simvoja():
+            # If post neuron has fired, apply full mask
+            neuron_mask[post_activity > 0.0] = 0.0
+            # print 'post_filtered ', post_filtered > 0.0
+            mask = 1.0 / (1.0 + np.exp(-.5 * (neuron_mask - 50)))
+            # print neuron_mask
+            if np.sum(post_activity > 0):
+                print post_activity
+            # print neuron_mask[post_filtered > 0.0]
+            # TODO: make sure this is being multiplied the right way
             delta[...] = alpha * learning_signal * (
-                scale * np.outer(post_filtered, pre_decoded) -
+                mask * scale * np.outer(post_filtered, pre_decoded) -
                 post_filtered[:, np.newaxis] * scaled_encoders)
         return step_simvoja
 
@@ -255,6 +270,18 @@ def build_voja(model, voja, rule):
     encoder_scale = model.params[post].gain / post.radius
     assert post_filtered.shape == encoder_scale.shape
 
+    # Set mask to initially block encoder learning learning
+    # neuron_mask = Signal(np.zeros(scaled_encoders.shape), name="VOja:neuron_mask")
+    neuron_mask = Signal(np.zeros((scaled_encoders.shape[0], 1)), 
+        name="Voja:neuron_mask")
+    model.sig[rule]['Voja:neuron_mask'] = neuron_mask
+    ones = Signal(np.ones((scaled_encoders.shape[0], 1)))
+    # Every timestep increase neuron_mask (which slowly activates learning)
+    model.add_op(ElementwiseInc(
+        ones, model.sig['common'][1],
+        model.sig[rule]['Voja:neuron_mask'],
+        tag="Voja:Inc neuron_mask"))
+
     model.operators.append(
         SimVoja(pre_decoded=model.sig[conn]['out'],
                 post_filtered=post_filtered,
@@ -262,10 +289,13 @@ def build_voja(model, voja, rule):
                 delta=model.sig[rule]['delta'],
                 scale=encoder_scale,
                 learning_signal=learning,
-                learning_rate=voja.learning_rate))
+                learning_rate=voja.learning_rate, 
+                neuron_mask=neuron_mask, 
+                post_activity=model.sig[post]['out']))
 
     model.sig[rule]['scaled_encoders'] = scaled_encoders
     model.sig[rule]['post_filtered'] = post_filtered
+    model.sig[rule]['neuron_mask'] = neuron_mask
 
     model.params[rule] = None  # no build-time info to return
 
