@@ -5,7 +5,7 @@ from nengo.builder.operator import DotInc, ElementwiseInc, Operator, Reset
 from nengo.builder.signal import Signal
 from nengo.connection import LearningRule
 from nengo.ensemble import Ensemble, Neurons
-from nengo.learning_rules import BCM, Oja, PES, Voja
+from nengo.learning_rules import BCM, Oja, PES, Voja, DynBias
 from nengo.node import Node
 from nengo.synapses import Lowpass
 
@@ -108,7 +108,7 @@ class SimVoja(Operator):
     """
 
     def __init__(self, pre_decoded, post_filtered, scaled_encoders, delta,
-                 scale, learning_signal, learning_rate, neuron_mask, post_activity):
+                 scale, learning_signal, learning_rate):
         self.pre_decoded = pre_decoded
         self.post_filtered = post_filtered
         self.scaled_encoders = scaled_encoders
@@ -117,13 +117,9 @@ class SimVoja(Operator):
         self.learning_signal = learning_signal
         self.learning_rate = learning_rate
 
-        self.neuron_mask = neuron_mask
-        self.post_activity = post_activity
-
         self.reads = [
-            pre_decoded, post_filtered, scaled_encoders, 
-            learning_signal]
-        self.updates = [delta, neuron_mask]
+            pre_decoded, post_filtered, scaled_encoders, learning_signal]
+        self.updates = [delta]
         self.sets = []
         self.incs = []
 
@@ -135,23 +131,62 @@ class SimVoja(Operator):
         learning_signal = signals[self.learning_signal]
         alpha = self.learning_rate * dt
         scale = self.scale[:, np.newaxis]
-        neuron_mask = signals[self.neuron_mask]
-        post_activity = signals[self.post_activity]
 
         def step_simvoja():
-            # If post neuron has fired, apply full mask
-            neuron_mask[post_activity > 0.0] = 0.0
-            # print 'post_filtered ', post_filtered > 0.0
-            mask = 1.0 / (1.0 + np.exp(-.5 * (neuron_mask - 50)))
-            # print neuron_mask
-            if np.sum(post_activity > 0):
-                print post_activity
-            # print neuron_mask[post_filtered > 0.0]
-            # TODO: make sure this is being multiplied the right way
             delta[...] = alpha * learning_signal * (
-                mask * scale * np.outer(post_filtered, pre_decoded) -
+                scale * np.outer(post_filtered, pre_decoded) -
                 post_filtered[:, np.newaxis] * scaled_encoders)
         return step_simvoja
+
+
+class SimDynBias(Operator):
+    """Simulates a dynamic bias shifting based on activation.
+    When a neuron has not fired recently, increase the bias input to
+    make it more sensitive. When it spikes, decrease the bias. 
+
+    Parameters
+    ----------
+    post_filtered : Signal
+        Filtered post-synaptic activity signal.
+    delta : Signal
+        The change to the encoders. Updated by the rule.
+    learning_signal : Signal
+        Scalar signal to be multiplied by the learning_rate. Expected to range
+        between 0 and 1 to turn learning off or on, respectively.
+    learning_rate : float
+        Scalar applied to the delta.
+    """
+
+    def __init__(self, post_activity, post_filtered, delta, learning_signal, 
+                 learning_rate):
+        self.post_activity = post_activity
+        self.post_filtered = post_filtered
+        self.delta = delta
+        self.learning_signal = learning_signal
+        self.learning_rate = learning_rate
+
+        self.reads = [post_filtered, learning_signal]
+        self.updates = [delta]
+        self.sets = []
+        self.incs = []
+
+    def make_step(self, signals, dt, rng):
+        post_activity = signals[self.post_activity]
+        post_filtered = signals[self.post_filtered]
+        delta = signals[self.delta]
+        learning_signal = signals[self.learning_signal]
+        alpha = self.learning_rate * dt
+
+        def step_simdynbias():
+            # TODO: account for encoders?
+            eps = 1e-5
+            # # if neuron spikes, decrease bias 
+            delta[post_activity >= 1e-5] += -alpha * learning_signal 
+            # delta[post_filtered >= 1e-5] += -alpha * learning_signal 
+            # if it hasn't fired for a while, increase bias 
+            delta[post_filtered < 1e-5] += alpha * learning_signal #* 10000
+            # delta[...] += bias_delta 
+        return step_simdynbias
 
 
 def get_pre_ens(conn):
@@ -189,6 +224,12 @@ def build_learning_rule(model, rule):
         else:
             delta = Signal(
                 np.zeros((rule.size_in, pre.n_neurons)), name='Delta')
+    elif rule.modifies == 'bias':
+        post = get_post_ens(conn)
+        target = model.sig[post.neurons]['in']
+        tag = "bias += delta"
+        delta = Signal (
+            np.zeros((post.n_neurons,)), name='Delta')
     else:
         raise ValueError("Unknown target %r" % rule.modifies)
 
@@ -270,18 +311,6 @@ def build_voja(model, voja, rule):
     encoder_scale = model.params[post].gain / post.radius
     assert post_filtered.shape == encoder_scale.shape
 
-    # Set mask to initially block encoder learning learning
-    # neuron_mask = Signal(np.zeros(scaled_encoders.shape), name="VOja:neuron_mask")
-    neuron_mask = Signal(np.zeros((scaled_encoders.shape[0], 1)), 
-        name="Voja:neuron_mask")
-    model.sig[rule]['Voja:neuron_mask'] = neuron_mask
-    ones = Signal(np.ones((scaled_encoders.shape[0], 1)))
-    # Every timestep increase neuron_mask (which slowly activates learning)
-    model.add_op(ElementwiseInc(
-        ones, model.sig['common'][1],
-        model.sig[rule]['Voja:neuron_mask'],
-        tag="Voja:Inc neuron_mask"))
-
     model.operators.append(
         SimVoja(pre_decoded=model.sig[conn]['out'],
                 post_filtered=post_filtered,
@@ -289,13 +318,45 @@ def build_voja(model, voja, rule):
                 delta=model.sig[rule]['delta'],
                 scale=encoder_scale,
                 learning_signal=learning,
-                learning_rate=voja.learning_rate, 
-                neuron_mask=neuron_mask, 
-                post_activity=model.sig[post]['out']))
+                learning_rate=voja.learning_rate))
 
     model.sig[rule]['scaled_encoders'] = scaled_encoders
     model.sig[rule]['post_filtered'] = post_filtered
-    model.sig[rule]['neuron_mask'] = neuron_mask
+
+    model.params[rule] = None  # no build-time info to return
+
+@Builder.register(DynBias)
+def build_dynbias(model, dynbias, rule):
+    conn = rule.connection
+
+    # Filtered post activity
+    post = conn.post_obj
+    if dynbias.post_tau is not None:
+        post_filtered = model.build(
+            Lowpass(dynbias.post_tau), model.sig[post]['out'])
+    else:
+        post_filtered = model.sig[post]['out']
+
+    # Learning signal, defaults to 1 in case no connection is made
+    # and multiplied by the learning_rate * dt
+    learning = Signal(np.zeros(rule.size_in), name="DynBias:learning")
+    assert rule.size_in == 1
+    model.add_op(Reset(learning, value=1.0))
+    model.sig[rule]['in'] = learning  # optional connection will attach here
+
+    # model.add_op(ElementwiseInc(
+    #     model.sig[rule]['delta'], 
+    #     model.sig['common'][1], 
+    #     model.sig[post.neurons]['in']))
+
+    model.operators.append(
+        SimDynBias(post_activity=model.sig[post]['out'],
+                   post_filtered=post_filtered,
+                   delta=model.sig[rule]['delta'],
+                   learning_signal=learning,
+                   learning_rate=dynbias.learning_rate))
+
+    model.sig[rule]['post_filtered'] = post_filtered
 
     model.params[rule] = None  # no build-time info to return
 

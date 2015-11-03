@@ -250,6 +250,37 @@ class Voja(LearningRuleType):
         super(Voja, self).__init__(learning_rate)
 
 
+class DynBias(LearningRuleType):
+    """
+
+    Parameters
+    ----------
+    learning_rate : float, optional
+        A scalar indicating the rate at which encoders will be adjusted.
+        Defaults to 1e-2.
+    post_tau : float, optional
+        Filter constant on activities of neurons in post population.
+
+    Attributes
+    ----------
+    learning_rate : float
+        The given learning rate.
+    post_tau : float
+        Filter constant on activities of neurons in post population.
+    """
+
+    post_tau = NumberParam(low=0, low_open=True, optional=True)
+
+    error_type = 'scalar'
+    modifies = 'bias'
+    probeable = ['post_filtered', 'delta']
+            
+
+    def __init__(self, post_tau=0.5, learning_rate=1e-2):
+        self.post_tau = post_tau
+        super(DynBias, self).__init__(learning_rate)
+
+
 class LearningRuleTypeParam(Parameter):
     def validate(self, instance, rule):
         if is_iterable(rule):
@@ -265,5 +296,5 @@ class LearningRuleTypeParam(Parameter):
                              "list of such types." % rule)
         if rule.error_type not in ('none', 'scalar', 'decoded', 'neuron'):
             raise ValueError("Unrecognized error type %r" % rule.error_type)
-        if rule.modifies not in ('encoders', 'decoders', 'weights'):
+        if rule.modifies not in ('encoders', 'decoders', 'weights', 'bias'):
             raise ValueError("Unrecognized target %r" % rule.modifies)

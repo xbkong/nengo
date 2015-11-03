@@ -219,8 +219,6 @@ def build_connection(model, conn):
 
         if 'encoders' in targets:
             model.add_op(PreserveValue(model.sig[conn.post_obj]['encoders']))
-            # for r in itervalues(rule) if isinstance(rule, dict) else rule:
-            #     model.add_op(PreserveValue(model.sig[r]['Voja:neuron_mask']))
         if 'decoders' in targets or 'weights' in targets:
             if weights.ndim < 2:
                 raise ValueError("'transform' must be a matrix for learning")
