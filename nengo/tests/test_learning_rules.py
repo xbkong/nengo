@@ -183,6 +183,11 @@ def test_unsupervised(Simulator, learning_rule_type, seed, rng, plt):
 
 def learning_net(learning_rule, net, rng):
     with net:
+        if learning_rule is nengo.PES:
+            learning_rule_type = learning_rule(learning_rate=1e-5)
+        else:
+            learning_rule_type = learning_rule()
+
         u = nengo.Node(output=1.0)
         pre = nengo.Ensemble(10, dimensions=1)
         post = nengo.Ensemble(10, dimensions=1)
@@ -190,9 +195,8 @@ def learning_net(learning_rule, net, rng):
                                       size=(pre.n_neurons, post.n_neurons))
         conn = nengo.Connection(pre.neurons, post.neurons,
                                 transform=initial_weights,
-                                learning_rule_type=learning_rule())
+                                learning_rule_type=learning_rule_type)
         if learning_rule is nengo.PES:
-            learning_rule.learning_rate = 1e-5
             err = nengo.Ensemble(10, dimensions=1)
             nengo.Connection(u, err)
             nengo.Connection(err, conn.learning_rule)
@@ -311,3 +315,24 @@ def test_learningrule_attr(seed):
         assert set(c3.learning_rule) == set(r3)  # assert same keys
         for key in r3:
             check_rule(c3.learning_rule[key], c3, r3[key])
+
+
+def test_frozen():
+    """Test attributes inherited from FrozenObject"""
+    a = PES(2e-3, 4e-3)
+    b = PES(2e-3, 4e-3)
+    c = PES(2e-3, 5e-3)
+
+    assert hash(a) == hash(a)
+    assert hash(b) == hash(b)
+    assert hash(c) == hash(c)
+
+    assert a == b
+    assert hash(a) == hash(b)
+    assert a != c
+    assert hash(a) != hash(c)  # not guaranteed, but highly likely
+    assert b != c
+    assert hash(b) != hash(c)  # not guaranteed, but highly likely
+
+    with pytest.raises((ValueError, RuntimeError)):
+        a.learning_rate = 1e-1

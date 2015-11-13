@@ -2,12 +2,14 @@ import collections
 
 import numpy as np
 
-from nengo.params import Parameter, Unconfigurable
+from nengo.params import (
+    FrozenObject, BoolParam, NdarrayParam, NumberParam, Parameter,
+    Unconfigurable)
 from nengo.utils.compat import is_number
 from nengo.utils.filter_design import cont2discrete
 
 
-class Synapse(object):
+class Synapse(FrozenObject):
     """Abstract base class for synapse objects"""
 
     def make_step(self, dt, output):
@@ -33,13 +35,19 @@ class LinearFilter(Synapse):
     .. [1] http://en.wikipedia.org/wiki/Filter_%28signal_processing%29
     """
 
+    num = NdarrayParam(shape='*')
+    den = NdarrayParam(shape='*')
+    analog = BoolParam()
+
     def __init__(self, num, den, analog=True):
+        super(LinearFilter, self).__init__()
         self.num = num
         self.den = den
         self.analog = analog
 
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__class__.__name__, self.num, self.den)
+        return "%s(%s, %s, analog=%r)" % (
+            self.__class__.__name__, self.num, self.den, self.analog)
 
     def make_step(self, dt, output, method='zoh'):
         num, den = self.num, self.den
@@ -136,12 +144,14 @@ class Lowpass(LinearFilter):
     tau : float
         The time constant of the filter in seconds.
     """
+    tau = NumberParam(low=0)
+
     def __init__(self, tau):
-        self.tau = tau
         super(Lowpass, self).__init__([1], [tau, 1])
+        self.tau = tau
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.tau)
+        return "%s(%r)" % (self.__class__.__name__, self.tau)
 
     def make_step(self, dt, output):
         # if tau < 0.03 * dt, exp(-dt / tau) < 1e-14, so just make it zero
@@ -169,12 +179,14 @@ class Alpha(LinearFilter):
     .. [1] Mainen, Z.F. and Sejnowski, T.J. (1995). Reliability of spike timing
        in neocortical neurons. Science (New York, NY), 268(5216):1503-6.
     """
+    tau = NumberParam(low=0)
+
     def __init__(self, tau):
-        self.tau = tau
         super(Alpha, self).__init__([1], [tau**2, 2*tau, 1])
+        self.tau = tau
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.tau)
+        return "%s(%r)" % (self.__class__.__name__, self.tau)
 
     def make_step(self, dt, output):
         # if tau < 0.03 * dt, exp(-dt / tau) < 1e-14, so just make it zero
@@ -190,11 +202,14 @@ class Triangle(Synapse):
     the triangle is `t` seconds, thus the digital filter will have `t / dt + 1`
     taps.
     """
+    t = NumberParam(low=0)
+
     def __init__(self, t):
+        super(Triangle, self).__init__()
         self.t = t
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.t)
+        return "%s(%r)" % (self.__class__.__name__, self.t)
 
     def make_step(self, dt, output):
         n_taps = int(np.round(self.t / float(dt))) + 1
@@ -301,7 +316,9 @@ def filtfilt(signal, synapse, dt, axis=0, copy=True):
 
 
 class SynapseParam(Parameter):
-    def __init__(self, default=Unconfigurable, optional=True, readonly=False):
+    equatable = True
+
+    def __init__(self, default=Unconfigurable, optional=True, readonly=None):
         super(SynapseParam, self).__init__(default, optional, readonly)
 
     def __set__(self, instance, synapse):

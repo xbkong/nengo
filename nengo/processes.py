@@ -4,12 +4,13 @@ import numpy as np
 
 import nengo.utils.numpy as npext
 from nengo.dists import DistributionParam, Gaussian
-from nengo.params import BoolParam, IntParam, NumberParam, Parameter
+from nengo.params import (
+    BoolParam, IntParam, NumberParam, Parameter, FrozenObject)
 from nengo.synapses import LinearFilter, LinearFilterParam, Lowpass
 from nengo.utils.compat import range
 
 
-class Process(object):
+class Process(FrozenObject):
     """A general system with input, output, and state.
 
     Attributes
@@ -25,6 +26,7 @@ class Process(object):
     default_dt = NumberParam(low=0, low_open=True)
 
     def __init__(self):
+        super(Process, self).__init__()
         self.default_size_out = 1
         self.default_dt = 0.001
 
@@ -80,10 +82,14 @@ class WhiteNoise(Process):
     dist = DistributionParam()
     scale = BoolParam()
 
-    def __init__(self, dist=None, scale=True):
+    def __init__(self, dist=Gaussian(mean=0, std=1), scale=True):
         super(WhiteNoise, self).__init__()
-        self.dist = Gaussian(mean=0, std=1) if dist is None else dist
+        self.dist = dist
         self.scale = scale
+
+    def __repr__(self):
+        return "%s(%r, scale=%r)" % (
+            self.__class__.__name__, self.dist, self.scale)
 
     def make_step(self, size_in, size_out, dt, rng):
         assert size_in == 0
@@ -127,12 +133,17 @@ class FilteredNoise(Process):
     dist = DistributionParam()
     scale = BoolParam()
 
-    def __init__(self, synapse=None, synapse_kwargs={}, dist=None, scale=True):
+    def __init__(self, synapse=Lowpass(tau=0.005), synapse_kwargs={},
+                 dist=Gaussian(mean=0, std=1), scale=True):
         super(FilteredNoise, self).__init__()
-        self.synapse = Lowpass(tau=0.005) if synapse is None else synapse
+        self.synapse = synapse
         self.synapse_kwargs = synapse_kwargs
-        self.dist = Gaussian(mean=0, std=1) if dist is None else dist
+        self.dist = dist
         self.scale = scale
+
+    def __repr__(self):
+        return "%s(synapse=%r, dist=%r, scale=%r)" % (
+            self.__class__.__name__, self.synapse, self.dist, self.scale)
 
     def make_step(self, size_in, size_out, dt, rng):
         assert size_in == 0
@@ -167,11 +178,14 @@ class BrownNoise(FilteredNoise):
         The distribution used to generate the white noise.
         Default: Gaussian(mean=0, std=1)
     """
-    def __init__(self, dist=None):
+    def __init__(self, dist=Gaussian(mean=0, std=1)):
         super(BrownNoise, self).__init__(
             synapse=LinearFilter([1], [1, 0]),
             synapse_kwargs=dict(method='euler'),
-            dist=Gaussian(mean=0, std=1) if dist is None else dist)
+            dist=dist)
+
+    def __repr__(self):
+        return "%s(%r)" % (self.__class__.__name__, self.dist)
 
 
 class WhiteSignal(Process):
@@ -195,11 +209,19 @@ class WhiteSignal(Process):
     rms : float, optional
         The root mean square power of the filtered signal. Default: 0.5.
     """
+    period = NumberParam(low=0, low_open=True)
+    high = NumberParam(low=0, low_open=True, optional=True)
+    rms = NumberParam(low=0, low_open=True)
+
     def __init__(self, period, high=None, rms=0.5):
         super(WhiteSignal, self).__init__()
         self.period = period
         self.high = high
         self.rms = rms
+
+    def __repr__(self):
+        return "%s(period=%r, high=%r, rms=%r)" % (
+            self.__class__.__name__, self.period, self.high, self.rms)
 
     def make_step(self, size_in, size_out, dt, rng):
         assert size_in == 0
