@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 import numpy as np
 
-from nengo.params import (BoolParam, IntParam, NdarrayParam, NumberParam,
-                          Parameter, Unconfigurable, FrozenObject)
+from nengo.params import (
+    BoolParam, IntParam, NdarrayParam, NumberParam, TupleParam,
+    Parameter, Unconfigurable, FrozenObject)
 import nengo.utils.numpy as npext
 
 
@@ -335,6 +336,68 @@ class SubvectorLength(SqrtBeta):
     def __repr__(self):
         return "%s(%r, subdimensions=%r)" % (
             self.__class__.__name__, self.n + self.m, self.m)
+
+
+class Multivariate(Distribution):
+    """Generalized multivariate distribution.
+
+    Uses the copula method to sample from a general multivariate distribution,
+    given marginal distributions and copula covariances [1]_.
+
+    Parameters
+    ----------
+    marginal_icdfs : iterable
+        List of functions, each one being the inverse CDF of the marginal
+        distribution across that dimension.
+    rho : array_like (optional)
+        Array of copula covariances [1]_ between parameters. Defaults to
+        the identity matrix (independent parameters).
+
+    References
+    ----------
+    .. [1] Copula (probability theory). Wikipedia.
+       https://en.wikipedia.org/wiki/Copula_(probability_theory)
+    """
+
+    marginal_icdfs = TupleParam()
+    rho = NdarrayParam(shape=('*', '*'), optional=True)
+
+    def __init__(self, marginal_icdfs, rho=None):
+        import scipy.stats  # we need this for sampling
+
+        super(Distribution, self).__init__()
+        self.marginal_icdfs = marginal_icdfs
+        self.rho = rho
+
+        d = len(self.marginal_icdfs)
+        if not all(callable(f) for f in self.marginal_icdfs):
+            raise ValueError("`marginal_icdfs` must be a list of callables")
+        if self.rho is not None:
+            if self.rho.shape != (d, d):
+                raise ValueError("`rho` must be a %d x %d array" % (d, d))
+            if not np.array_equal(self.rho, self.rho.T):
+                raise ValueError(
+                    "`rho` must be a symmetrical positive-definite array")
+
+    def sample(self, n, d=None, rng=np.random):
+        import scipy.stats as sps
+
+        assert d is None or d == len(self.marginal_icdfs)
+        d = len(self.marginal_icdfs)
+
+        # normalize rho
+        rho = np.eye(d) if self.rho is None else self.rho
+        stds = np.sqrt(np.diag(rho))
+        rho = rho / np.outer(stds, stds)
+
+        # sample from copula
+        x = sps.norm.cdf(sps.multivariate_normal.rvs(cov=rho, size=n))
+
+        # apply marginal inverse CDFs
+        for i in range(d):
+            x[:, i] = self.marginal_icdfs[i](x[:, i])
+
+        return x
 
 
 class DistributionParam(Parameter):
