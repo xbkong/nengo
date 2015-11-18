@@ -216,6 +216,59 @@ class DictParam(Parameter):
         super(DictParam, self).validate(instance, dct)
 
 
+class EnumParam(StringParam):
+    """Stores one of a list of string values."""
+    def __init__(self, default=Unconfigurable, values=(), ignore_case=True,
+                 optional=False, readonly=None):
+        assert all(is_string(s) for s in values)
+        if ignore_case:
+            values = tuple(s.lower() for s in values)
+        value_set = set(values)
+        assert len(values) == len(value_set)
+        self.values = values
+        self.value_set = value_set
+        self.ignore_case = ignore_case
+        super(EnumParam, self).__init__(default, optional, readonly)
+
+    def __set__(self, instance, value):
+        self.validate(instance, value)
+        self.data[instance] = value.lower() if self.ignore_case else value
+
+    def validate(self, instance, string):
+        # ensure is_string(string)
+        super(EnumParam, self).validate(instance, string)
+        if string is not None:
+            if not is_string(string):
+                raise ValueError("Value must be a string (got %r)" % string)
+            string = string.lower() if self.ignore_case else string
+            if string not in self.value_set:
+                raise ValueError("String %r must be one of %s"
+                                 % (string, list(self.values)))
+
+
+class TupleParam(Parameter):
+    equatable = True
+
+    def __init__(self, default=Unconfigurable, length=None,
+                 optional=False, readonly=None):
+        self.length = length
+        super(TupleParam, self).__init__(default, optional, readonly)
+
+    def __set__(self, instance, value):
+        try:
+            value = tuple(value)
+        except TypeError:
+            raise ValueError("Value must be castable to a tuple")
+        super(TupleParam, self).__set__(instance, value)
+
+    def validate(self, instance, value):
+        if value is not None:
+            if self.length is not None and len(value) != self.length:
+                raise ValueError("Must be %d items (got %d)"
+                                 % (self.length, len(value)))
+        super(TupleParam, self).validate(instance, value)
+
+
 class NdarrayParam(Parameter):
     """Can be a NumPy ndarray, or something that can be coerced into one."""
     equatable = True
