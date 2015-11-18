@@ -120,6 +120,59 @@ def test_sqrt_beta(n, m):
     assert np.all(np.abs(np.asfarray(hist - expectation) / num_samples) < 0.16)
 
 
+def test_multivariate(rng, plt):
+    import scipy.stats as sps
+
+    # std1 = 0.5
+    # mean1 = 2
+    # lognorm = lambda p: sps.lognorm.ppf(p, std1, scale=np.exp(mean1))
+
+    # low1 = 0
+    # high1 = 1
+    low1 = 1.5
+    high1 = 3
+    uniform = lambda p: sps.uniform.ppf(p, scale=high1-low1, loc=low1)
+
+    std2 = 0.5
+    mean2 = 2
+    norm = lambda p: sps.norm.ppf(p, scale=std2, loc=mean2)
+
+    # R = np.eye(2)
+    R = np.array([[1., 0.5], [0.5, 1.]])
+    # R = np.array([[1., 0.99], [0.99, 1.]])
+
+    # dist = dists.Multivariate([norm, norm], R)
+    # dist = dists.Multivariate([uniform, uniform], R)
+    dist = dists.Multivariate([uniform, norm], R)
+    # dist = dists.Multivariate([norm, uniform], R)
+    x = dist.sample(100000, rng=rng)
+
+    H, xedges, yedges = np.histogram2d(x[:, 0], x[:, 1], bins=30)
+    xmids = 0.5 * (xedges[:-1] + xedges[1:])
+    ymids = 0.5 * (yedges[:-1] + yedges[1:])
+
+    # check marginals
+    xpdf = H.sum(1).astype(float)
+    xpdf = xpdf / xpdf.sum()
+    assert np.allclose(, sps.norm.pdf(p, scale=std2, loc=mean2), )
+    # assert
+
+    # --- plot
+    plt.subplot(311)
+    plt.contour(ymids, xmids, H)
+    plt.subplot(312)
+
+    plt.bar(xmids, H.sum(1))
+    # plt.hist(x[:, 0], bins=30)
+    plt.subplot(313)
+    plt.bar(ymids, H.sum(0))
+    # plt.hist(x[:, 1], bins=30)
+
+    C = np.cov(x, rowvar=0)
+    s = np.sqrt(np.diag(C))
+    print(C / np.outer(s, s))
+
+
 def test_distorarrayparam():
     """DistOrArrayParams can be distributions or samples."""
     class Test(object):
