@@ -345,7 +345,7 @@ class Izhikevich(NeuronType):
 
     References
     ----------
-    .. [1] E. M. Izhikevich, "Simple model of spiking neurons."
+    .. [1] E. M. Izhikevich (2003) "Simple model of spiking neurons."
        IEEE Transactions on Neural Networks, vol. 14, no. 6, pp. 1569-1572.
        (http://www.izhikevich.org/publications/spikes.pdf)
     """
@@ -405,6 +405,41 @@ class Izhikevich(NeuronType):
         dU = (self.tau_recovery * (self.coupling * voltage - recovery)) * 1000
         recovery[:] += dU * dt
         recovery[spiked > 0] = recovery[spiked > 0] + self.reset_recovery
+
+
+class rEIF(Neuron):
+    """Refractory exponential integrate-and-fire model.
+
+    Implementation based on the original paper [1]_.
+
+    References
+    ----------
+    .. [1] Harrison, P.M., Badel, L., Wall, M.J., & Richardson, M.J.E. (2015).
+       "Experimentally Verified Parameter Sets for Modelling Heterogeneous
+       Neocortical Pyramidal-Cell Populations." PLoS Computational Biology,
+       11(9), 1-23. doi:10.1371/journal.pcbi.1004165
+    """
+
+    def __init__(self, tau_rc, t_ref=0.004, delta_T, V_T0):
+
+        self.dt = 50e-6
+
+        # self.C = tau_rc * g0
+        self.C
+        self.delta_T
+        self.t_ref = 0.004
+        self.g0
+        self.g1
+        self.tau_g
+        self.E0
+        self.E1
+        self.E2
+        self.tau_E1
+        self.tau_E2
+        self.tau_T
+
+    def step_math(self, dt, J, spiked, voltage, recovery):
+        pass
 
 
 class NeuronTypeParam(Parameter):
