@@ -98,7 +98,7 @@ def build_ensemble(model, ens):
         bias_sig = Signal(bias, name="%s.bias" % ens, readonly=True)
         model.add_op(Copy(src=bias_sig, dst=model.sig[ens.neurons]['in']))
         # This adds the neuron's operator and sets other signals
-        model.build(ens.neuron_type, ens.neurons)
+        model.build(ens.neuron_type, ens.neurons, rng=rng)
 
     # Scale the encoders
     if isinstance(ens.neuron_type, Direct):

@@ -10,11 +10,12 @@ from nengo.neurons import (AdaptiveLIF, AdaptiveLIFRate, Izhikevich, LIF,
 class SimNeurons(Operator):
     """Set output to neuron model output for the given input current."""
 
-    def __init__(self, neurons, J, output, states=[], tag=None):
+    def __init__(self, neurons, J, output, states=[], params=[], tag=None):
         self.neurons = neurons
         self.J = J
         self.output = output
         self.states = states
+        self.params = params
         self.tag = tag
 
         self.sets = [output] + states
@@ -30,35 +31,36 @@ class SimNeurons(Operator):
         J = signals[self.J]
         output = signals[self.output]
         states = [signals[state] for state in self.states]
+        args = states + list(self.params)
 
         def step_simneurons():
-            self.neurons.step_math(dt, J, output, *states)
+            self.neurons.step_math(dt, J, output, *args)
         return step_simneurons
 
 
 @Builder.register(RectifiedLinear)
-def build_rectifiedlinear(model, reclinear, neurons):
+def build_rectifiedlinear(model, reclinear, neurons, rng=None):
     model.add_op(SimNeurons(neurons=reclinear,
                             J=model.sig[neurons]['in'],
                             output=model.sig[neurons]['out']))
 
 
 @Builder.register(Sigmoid)
-def build_sigmoid(model, sigmoid, neurons):
+def build_sigmoid(model, sigmoid, neurons, rng=None):
     model.add_op(SimNeurons(neurons=sigmoid,
                             J=model.sig[neurons]['in'],
                             output=model.sig[neurons]['out']))
 
 
 @Builder.register(LIFRate)
-def build_lifrate(model, lifrate, neurons):
+def build_lifrate(model, lifrate, neurons, rng=None):
     model.add_op(SimNeurons(neurons=lifrate,
                             J=model.sig[neurons]['in'],
                             output=model.sig[neurons]['out']))
 
 
 @Builder.register(LIF)
-def build_lif(model, lif, neurons):
+def build_lif(model, lif, neurons, rng=None):
     model.sig[neurons]['voltage'] = Signal(
         np.zeros(neurons.size_in), name="%s.voltage" % neurons)
     model.sig[neurons]['refractory_time'] = Signal(
@@ -72,7 +74,7 @@ def build_lif(model, lif, neurons):
 
 
 @Builder.register(AdaptiveLIFRate)
-def build_alifrate(model, alifrate, neurons):
+def build_alifrate(model, alifrate, neurons, rng=None):
     model.sig[neurons]['adaptation'] = Signal(
         np.zeros(neurons.size_in), name="%s.adaptation" % neurons)
     model.add_op(SimNeurons(neurons=alifrate,
@@ -82,7 +84,7 @@ def build_alifrate(model, alifrate, neurons):
 
 
 @Builder.register(AdaptiveLIF)
-def build_alif(model, alif, neurons):
+def build_alif(model, alif, neurons, rng=None):
     model.sig[neurons]['voltage'] = Signal(
         np.zeros(neurons.size_in), name="%s.voltage" % neurons)
     model.sig[neurons]['refractory_time'] = Signal(
@@ -98,7 +100,7 @@ def build_alif(model, alif, neurons):
 
 
 @Builder.register(Izhikevich)
-def build_izhikevich(model, izhikevich, neurons):
+def build_izhikevich(model, izhikevich, neurons, rng=None):
     model.sig[neurons]['voltage'] = Signal(
         np.ones(neurons.size_in) * izhikevich.reset_voltage,
         name="%s.voltage" % neurons)
