@@ -391,13 +391,23 @@ class Multivariate(Distribution):
         rho = rho / np.outer(stds, stds)
 
         # sample from copula
-        x = sps.norm.cdf(sps.multivariate_normal.rvs(cov=rho, size=n))
+        x = sps.norm.cdf(rng.multivariate_normal(np.zeros(d), rho, size=n))
 
         # apply marginal inverse CDFs
         for i in range(d):
             x[:, i] = self.marginal_icdfs[i](x[:, i])
 
         return x
+
+
+def norm_icdf(mean, std):
+    import scipy.stats
+    return lambda p: scipy.stats.norm.ppf(p, loc=mean, scale=std)
+
+
+def lognorm_icdf(mean, std):
+    import scipy.stats
+    return lambda p: scipy.stats.lognorm.ppf(p, std, scale=np.exp(mean))
 
 
 class DistributionParam(Parameter):
