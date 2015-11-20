@@ -407,10 +407,17 @@ class Izhikevich(NeuronType):
         recovery[spiked > 0] = recovery[spiked > 0] + self.reset_recovery
 
 
-class rEIF(Neuron):
-    """Refractory exponential integrate-and-fire model.
+class EIF(NeuronType):
+    """Exponential integrate-and-fire model.
 
-    Implementation based on the original paper [1]_.
+    Implementation and parameters based on [1]_.
+
+    Parameters
+    ----------
+    t_ref : float
+        Absolute refractory period in milliseconds.
+    params : Distribution
+        C [pF], tau [ms], E [mV], V_T [mV], delta_T [mV]
 
     References
     ----------
@@ -419,27 +426,103 @@ class rEIF(Neuron):
        Neocortical Pyramidal-Cell Populations." PLoS Computational Biology,
        11(9), 1-23. doi:10.1371/journal.pcbi.1004165
     """
+    from nengo.dists import DistributionParam, Multivariate, Choice, norm_icdf, lognorm_icdf
 
-    def __init__(self, tau_rc, t_ref=0.004, delta_T, V_T0):
+    t_ref = DistributionParam()
+    params = DistributionParam()
 
-        self.dt = 50e-6
+    layer23 = Multivariate(
+        [lognorm_icdf(4.87, .258),
+         lognorm_icdf(2.67, .171),
+         norm_icdf(-79.3, 4.27),
+         norm_icdf(-49.5, 3.81),
+         lognorm_icdf(.227, .359)],
+        rho=[[ 1.0000, -0.2721,  0.0042, -0.5636, -0.1307],
+             [-0.2721,  1.0000, -0.1357,  0.4244, -0.4509],
+             [ 0.0042, -0.1357,  1.0000,  0.4765, -0.0464],
+             [-0.5636,  0.4244,  0.4765,  1.0000, -0.3097],
+             [-0.1307, -0.4509, -0.0464, -0.3097,  1.0000]])
 
-        # self.C = tau_rc * g0
-        self.C
-        self.delta_T
-        self.t_ref = 0.004
-        self.g0
-        self.g1
-        self.tau_g
-        self.E0
-        self.E1
-        self.E2
-        self.tau_E1
-        self.tau_E2
-        self.tau_T
+    probeable = ('spikes', 'V', 'W')
 
-    def step_math(self, dt, J, spiked, voltage, recovery):
-        pass
+    def __init__(self, t_ref=Choice([4.01]), params=layer23):
+        super(EIF, self).__init__()
+        self.t_ref = t_ref
+        self.params = params
+        self.neuron_dt = 50e-6
+        # self.neuron_dt = 500e-6
+        # self.neuron_dt = 1e-3
+
+    def step_math(self, dt, I_in, spiked, V, W, t_ref, C, tau, E, VT, DT):
+        upsample = max(int(round(float(dt) / self.neuron_dt)), 1)
+        dtu_ms = 1e3 * float(dt) / upsample
+        V_threshold = 30.
+
+        spiked[:] = 0
+        for _ in range(upsample):
+            dV = I_in / C + (E - V + DT*np.exp((V - VT)/DT)) / tau
+
+            if 0:
+                effective_dt = (dtu_ms - W).clip(0, dtu_ms)
+                V += effective_dt * dV
+                W -= dtu_ms
+
+                spiking = (V > V_threshold)
+                spiked[:] = spiking | (spiked > 0)
+                V[spiking] = E[spiking]
+
+                overshoot = (V[spiking] - V_threshold) / dV[spiking]
+                spiketime = dtu_ms * (1 - overshoot)
+                W[spiking] = t_ref[spiking] + spiketime
+
+            else:
+                V[W <= 0] += dtu_ms * dV[W <= 0]
+                W -= dtu_ms
+
+                spiking = (V > V_threshold)
+                spiked[:] = spiking | (spiked > 0)
+                V[spiking] = E[spiking]
+
+                W[spiking] = t_ref[spiking]
+                # overshoot = (V[spiking] - V_threshold) / dV[spiking]
+                # W[spiking] = t_ref[spiking] - dtu_ms * overshoot
+
+        spiked /= dt
+
+
+# class rEIF(Neuron):
+#     """Refractory exponential integrate-and-fire model.
+
+#     Implementation and parameters based on [1]_.
+
+#     References
+#     ----------
+#     .. [1] Harrison, P.M., Badel, L., Wall, M.J., & Richardson, M.J.E. (2015).
+#        "Experimentally Verified Parameter Sets for Modelling Heterogeneous
+#        Neocortical Pyramidal-Cell Populations." PLoS Computational Biology,
+#        11(9), 1-23. doi:10.1371/journal.pcbi.1004165
+#     """
+
+#     def __init__(self, tau_rc, t_ref=0.004, delta_T, V_T0):
+
+#         self.dt = 50e-6
+
+#         # self.C = tau_rc * g0
+#         self.C
+#         self.delta_T
+#         self.t_ref = 0.004
+#         self.g0
+#         self.g1
+#         self.tau_g
+#         self.E0
+#         self.E1
+#         self.E2
+#         self.tau_E1
+#         self.tau_E2
+#         self.tau_T
+
+#     def step_math(self, dt, J, spiked, voltage, recovery):
+#         pass
 
 
 class NeuronTypeParam(Parameter):

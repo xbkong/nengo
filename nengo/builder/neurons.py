@@ -113,3 +113,20 @@ def build_izhikevich(model, izhikevich, neurons, rng=None):
                             output=model.sig[neurons]['out'],
                             states=[model.sig[neurons]['voltage'],
                                     model.sig[neurons]['recovery']]))
+
+
+from nengo.neurons import EIF
+@Builder.register(EIF)
+def build_eif(model, eif, neurons, rng=None):
+    n = neurons.size_in
+    t_ref = eif.t_ref.sample(n, rng=rng)
+    params = eif.params.sample(n, d=5, rng=rng)
+    C, tau, E, VT, DT = params.T
+    model.sig[neurons]['V'] = Signal(E * np.ones(n), name="%s.V" % neurons)
+    model.sig[neurons]['W'] = Signal(np.zeros(n), name="%s.W" % neurons)
+    model.add_op(SimNeurons(neurons=eif,
+                            J=model.sig[neurons]['in'],
+                            output=model.sig[neurons]['out'],
+                            states=[model.sig[neurons]['V'],
+                                    model.sig[neurons]['W']],
+                            params=[t_ref, C, tau, E, VT, DT]))

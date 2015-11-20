@@ -278,6 +278,81 @@ def test_izhikevich(Simulator, plt, seed, rng):
     plot(rz, "Resonator", 6)
 
 
+def test_eif_curve(Simulator, plt, seed):
+    from nengo.neurons import EIF
+    from nengo.dists import Multivariate, Choice
+
+    # trun = 0.05
+    trun = 1.0
+    # trun = 5.0
+
+    params = Multivariate([lambda p: 134, lambda p: 14.6, lambda p: -79.3,
+                           lambda p: -49.5, lambda p: 1.34])
+    # eif = EIF(params=params)
+    eif = EIF(t_ref=Choice([2.]), params=params)
+    with nengo.Network(seed=seed) as model:
+        n = 100
+
+        a = nengo.Ensemble(n, 1, encoders=np.ones((n, 1)), neuron_type=eif)
+        a.gain = np.ones(n)
+        a.bias = np.linspace(0, 2000, n)
+
+        a_spikes = nengo.Probe(a.neurons)
+        a_V = nengo.Probe(a.neurons, 'V')
+        a_W = nengo.Probe(a.neurons, 'W')
+
+    # dt = eif.neuron_dt
+    sim = nengo.Simulator(model, dt=1e-3)
+
+    sim.run(trun)
+
+    plt.subplot(211)
+    rates = (sim.data[a_spikes] > 0).sum(0) / trun
+    plt.plot(a.bias, rates)
+
+    plt.subplot(212)
+    plt.plot(sim.trange(), sim.data[a_V][:, -1])
+    plt.ylim([-100, 50])
+
+
+def test_eif_heterogeneous(Simulator, plt, seed):
+    from nengo.neurons import EIF
+    from nengo.utils.neurons import rates_kernel
+
+    trun = 1.0
+    u0 = 0
+    u1 = 2000
+
+    eif = EIF()
+    with nengo.Network(seed=seed) as model:
+        n = 100
+
+        u = nengo.Node(lambda t: u0 + (u1 - u0) * (t / trun))
+        u_p = nengo.Probe(u, synapse=None)
+
+        a = nengo.Ensemble(n, 1, encoders=np.ones((n, 1)), neuron_type=eif)
+        a.gain = np.ones(n)
+        a.bias = np.zeros(n)
+
+        nengo.Connection(u, a, synapse=None)
+
+        a_spikes = nengo.Probe(a.neurons)
+        a_V = nengo.Probe(a.neurons, 'V')
+        a_W = nengo.Probe(a.neurons, 'W')
+
+    sim = nengo.Simulator(model)
+
+    sim.run(trun)
+
+    plt.subplot(211)
+    rates = rates_kernel(sim.trange(), sim.data[a_spikes])
+    plt.plot(sim.data[u_p], rates)
+
+    plt.subplot(212)
+    plt.plot(sim.trange(), sim.data[a_V][:, -1])
+    plt.ylim([-100, 50])
+
+
 def test_dt_dependence(Simulator, nl_nodirect, plt, seed, rng):
     """Neurons should not wildly change with different dt."""
     with nengo.Network(seed=seed) as m:
