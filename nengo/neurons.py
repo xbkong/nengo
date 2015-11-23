@@ -445,7 +445,7 @@ class EIF(NeuronType):
 
     probeable = ('spikes', 'V', 'W')
 
-    def __init__(self, t_ref=Choice([4.01]), params=layer23):
+    def __init__(self, t_ref=Choice([4.]), params=layer23):
         super(EIF, self).__init__()
         self.t_ref = t_ref
         self.params = params
@@ -490,39 +490,81 @@ class EIF(NeuronType):
         spiked /= dt
 
 
-# class rEIF(Neuron):
-#     """Refractory exponential integrate-and-fire model.
+class rEIF(NeuronType):
+    """Refractory exponential integrate-and-fire model.
 
-#     Implementation and parameters based on [1]_.
+    Implementation and parameters based on [1]_.
 
-#     References
-#     ----------
-#     .. [1] Harrison, P.M., Badel, L., Wall, M.J., & Richardson, M.J.E. (2015).
-#        "Experimentally Verified Parameter Sets for Modelling Heterogeneous
-#        Neocortical Pyramidal-Cell Populations." PLoS Computational Biology,
-#        11(9), 1-23. doi:10.1371/journal.pcbi.1004165
-#     """
+    Parameters
+    ----------
+    t_ref : float
+        Absolute refractory period in milliseconds.
+    params : Distribution
+        C [pF], tau [ms], E [mV], V_T [mV], delta_T [mV], g_1, tau_g, V_T1, tau_T
 
-#     def __init__(self, tau_rc, t_ref=0.004, delta_T, V_T0):
+    References
+    ----------
+    .. [1] Harrison, P.M., Badel, L., Wall, M.J., & Richardson, M.J.E. (2015).
+       "Experimentally Verified Parameter Sets for Modelling Heterogeneous
+       Neocortical Pyramidal-Cell Populations." PLoS Computational Biology,
+       11(9), 1-23. doi:10.1371/journal.pcbi.1004165
+    """
+    from nengo.dists import DistributionParam, Multivariate, Choice, norm_icdf, lognorm_icdf
 
-#         self.dt = 50e-6
+    t_ref = DistributionParam()
+    params = DistributionParam()
 
-#         # self.C = tau_rc * g0
-#         self.C
-#         self.delta_T
-#         self.t_ref = 0.004
-#         self.g0
-#         self.g1
-#         self.tau_g
-#         self.E0
-#         self.E1
-#         self.E2
-#         self.tau_E1
-#         self.tau_E2
-#         self.tau_T
+    layer23 = Multivariate(
+        [lognorm_icdf(4.87, .258),
+         lognorm_icdf(2.67, .171),
+         norm_icdf(-79.3, 4.27),
+         norm_icdf(-49.5, 3.81),
+         lognorm_icdf(.227, .359),
+         lognorm_icdf(2.50, .616),
+         lognorm_icdf(2.62, .570),
+         lognorm_icdf(2.75, .286),
+         lognorm_icdf(2.49, .442)],
+        rho=[[ 1.0000, -0.2721,  0.0042, -0.5636, -0.1307,  0.3344,  0.1288,  0.2781, -0.1811],
+             [-0.2721,  1.0000, -0.1357,  0.4244, -0.4509, -0.0626, -0.1978, -0.3071, -0.0952],
+             [ 0.0042, -0.1357,  1.0000,  0.4765, -0.0464, -0.1098,  0.0114,  0.0466,  0.1897],
+             [-0.5636,  0.4244,  0.4765,  1.0000, -0.3097, -0.1693, -0.0708, -0.2542,  0.1030],
+             [-0.1307, -0.4509, -0.0464, -0.3097,  1.0000, -0.1271, -0.0322,  0.0376,  0.5705],
+             [ 0.3344, -0.0626, -0.1098, -0.1693, -0.1271,  1.0000, -0.7359,  0.2904, -0.0036],
+             [ 0.1288, -0.1978,  0.0114, -0.0708, -0.0322, -0.7359,  1.0000, -0.2386, -0.1869],
+             [ 0.2781, -0.3071,  0.0466, -0.2542,  0.0376,  0.2904, -0.2386,  1.0000, -0.3623],
+             [-0.1811, -0.0952,  0.1897,  0.1030,  0.5705, -0.0036, -0.1869, -0.3623,  1.0000]]
+    )
 
-#     def step_math(self, dt, J, spiked, voltage, recovery):
-#         pass
+    probeable = ('spikes', 'V', 'W')
+
+    def __init__(self, t_ref=Choice([4.]), params=layer23):
+        super(rEIF, self).__init__()
+        self.t_ref = t_ref
+        self.params = params
+        self.neuron_dt = 50e-6
+
+    def step_math(self, dt, I_in, spiked, V, W, tau, E, VT, t_ref, C, tau0, E0, VT0, DT, g1, taug, VT1, tauT):
+        upsample = max(int(round(float(dt) / self.neuron_dt)), 1)
+        dtu_ms = 1e3 * float(dt) / upsample
+        V_threshold = 30.
+
+        spiked[:] = 0
+        for _ in range(upsample):
+            dV = I_in / C + (E - V + DT*np.exp((V - VT)/DT)) / tau
+
+            V[W <= 0] += dtu_ms * dV[W <= 0]
+            W -= dtu_ms
+            # tau[W <= 0] += dtu_ms * (
+
+            spiking = (V > V_threshold)
+            spiked[:] = spiking | (spiked > 0)
+            V[spiking] = E[spiking]
+
+            W[spiking] = t_ref[spiking]
+            # overshoot = (V[spiking] - V_threshold) / dV[spiking]
+            # W[spiking] = t_ref[spiking] - dtu_ms * overshoot
+
+        spiked /= dt
 
 
 class NeuronTypeParam(Parameter):

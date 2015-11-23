@@ -279,21 +279,28 @@ def test_izhikevich(Simulator, plt, seed, rng):
 
 
 def test_eif_curve(Simulator, plt, seed):
-    from nengo.neurons import EIF
+    from nengo.neurons import EIF, rEIF
     from nengo.dists import Multivariate, Choice
 
     # trun = 0.05
     trun = 1.0
     # trun = 5.0
 
-    params = Multivariate([lambda p: 134, lambda p: 14.6, lambda p: -79.3,
-                           lambda p: -49.5, lambda p: 1.34])
-    # eif = EIF(params=params)
-    eif = EIF(t_ref=Choice([2.]), params=params)
+    if 1:
+        params = Multivariate([lambda p: 134, lambda p: 14.6, lambda p: -79.3,
+                               lambda p: -49.5, lambda p: 1.34])
+        neuron_type = EIF(params=params)
+        # neuron_type = EIF(t_ref=Choice([2.]), params=params)
+    else:
+        params = Multivariate([lambda p: 134, lambda p: 14.6, lambda p: -79.3,
+                               lambda p: -49.5, lambda p: 1.34])
+        neuron_type = rEIF(t_ref=Choice([4.]), params=params)
+
     with nengo.Network(seed=seed) as model:
         n = 100
 
-        a = nengo.Ensemble(n, 1, encoders=np.ones((n, 1)), neuron_type=eif)
+        a = nengo.Ensemble(n, 1, encoders=np.ones((n, 1)),
+                           neuron_type=neuron_type)
         a.gain = np.ones(n)
         a.bias = np.linspace(0, 2000, n)
 
