@@ -116,6 +116,29 @@ class ClassParams(object):
     def params(self):
         return self.default_params + self.extra_params
 
+    def __getstate__(self):
+        state = {'_configures': self._configures,
+                 '_default_params': tuple(self._default_params),
+                 '_extraparams': dict(self._extraparams)}
+
+        # Store all of the things we set in the params
+        for attr in self.params:
+            param = self.get_param(attr)
+            if self in param:
+                state[attr] = param.defaults[self]
+
+        return state
+
+    def __setstate__(self, state):
+        self._configures = state['_configures']
+        self._default_params = state['_default_params']
+        self._extraparams = state['_extraparams']
+
+        # Restore all of the things we set in the params
+        for attr in self.params:
+            if attr in state:
+                self.get_param(attr).defaults[self] = state[attr]
+
 
 class InstanceParams(object):
     """A class to store extra parameters on Nengo objects.
