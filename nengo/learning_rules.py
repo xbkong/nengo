@@ -1,7 +1,7 @@
 import warnings
 
 from nengo.base import NengoObjectParam
-from nengo.params import Parameter, NumberParam
+from nengo.params import Parameter, NumberParam, is_param
 from nengo.utils.compat import is_iterable, itervalues
 
 
@@ -49,6 +49,28 @@ class LearningRuleType(object):
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, ", ".join(self._argreprs))
+
+    @classmethod
+    def param_list(cls):
+        """Returns a list of parameter names that can be set."""
+        return (attr for attr in dir(cls) if is_param(getattr(cls, attr)))
+
+    def __getstate__(self):
+        state = {}
+
+        # Store all of the things we set in the params
+        for attr in self.param_list():
+            param = getattr(self.__class__, attr)
+            if self in param:
+                state[attr] = getattr(self, attr)
+
+        return state
+
+    def __setstate__(self, state):
+        # Restore all of the things we set in the params
+        for attr in self.param_list():
+            if attr in state:
+                setattr(self, attr, state[attr])
 
 
 class PES(LearningRuleType):
@@ -135,7 +157,7 @@ class BCM(LearningRuleType):
     modifies = 'weights'
     probeable = ['theta', 'pre_filtered', 'post_filtered', 'delta']
 
-    def __init__(self, pre_tau=0.005, post_tau=None, theta_tau=1.0,
+    def __init__(self, pre_tau=0.005, post_tau=None, theta_tau=100.0,
                  learning_rate=1e-9):
         self.theta_tau = theta_tau
         self.pre_tau = pre_tau
