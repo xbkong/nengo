@@ -317,9 +317,8 @@ def test_conv2d(local, Simulator, rng):
     image = rng.normal(size=(c, ni, nj))
 
     result = np.zeros((f, ni, nj))
-    result += biases.reshape(-1, 1, 1)
-    si2 = (si - 1) / 2
-    sj2 = (sj - 1) / 2
+    si2 = int((si - 1) / 2.)
+    sj2 = int((sj - 1) / 2.)
     for i in range(ni):
         for j in range(nj):
             i0, i1 = i - si2, i + si2 + 1
@@ -331,10 +330,13 @@ def test_conv2d(local, Simulator, rng):
             xij = image[:, max(i0, 0):min(i1, ni), max(j0, 0):min(j1, nj)]
             result[:, i, j] += np.dot(xij.ravel(), w.reshape(f, -1).T)
 
+    result += biases.reshape(-1, 1, 1)
+
     model = nengo.Network()
     with model:
         u = nengo.Node(image.ravel())
-        v = nengo.Node(nengo.processes.Conv2d((c, ni, nj), filters, biases))
+        v = nengo.Node(nengo.processes.Conv2d(
+            (c, ni, nj), filters, biases, padding=(si2, sj2)))
         nengo.Connection(u, v, synapse=None)
         vp = nengo.Probe(v)
 
