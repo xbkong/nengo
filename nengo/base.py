@@ -131,7 +131,7 @@ class ObjView(object):
 
     @property
     def _slice_string(self):
-        if isinstance(self.slice, list):
+        if isinstance(self.slice, list) or isinstance(self.slice, np.ndarray):
             sl_str = self.slice
         else:
             sl_start = "" if self.slice.start is None else self.slice.start
