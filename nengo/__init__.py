@@ -26,11 +26,13 @@ from .network import Network
 from .learning_rules import PES, BCM, Oja, Voja
 from .params import Default
 from .probe import Probe
+from .processes import (BrownNoise, FilteredNoise, PresentInput, Process,
+                        WhiteNoise, WhiteSignal)
 from .rc import rc, RC_DEFAULTS
 from .simulator import Simulator
 from .synapses import Alpha, LinearFilter, Lowpass
 from .utils.logging import log
-from . import dists, exceptions, networks, processes, utils
+from . import dists, exceptions, networks, utils
 
 logger = logging.getLogger(__name__)
 try:
