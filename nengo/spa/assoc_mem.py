@@ -24,11 +24,6 @@ class AssociativeMemory(Module):
     inhibitable: boolean, optional
         Flag to indicate if the entire associative memory module is
         inhibitable (entire thing can be shut off).
-    inhibit_scale: float, optional
-        Scaling factor on the gating connections (must have inhibitable =
-        True). Setting a larger value will ensure that the cleanup memory
-        output is inhibited at a faster rate, however, recovery of the
-        network when inhibition is released will be slower.
 
     wta_output: boolean, optional
         Flag to indicate if output of the associative memory should contain
@@ -40,19 +35,17 @@ class AssociativeMemory(Module):
     wta_synapse: float, optional
         Synapse to use for the winner-take-all (wta) inhibitory connections.
 
-    output_utilities: boolean, optional
-        Flag to indicate if the direct utilities (in addition to the vectors)
-        are output as well.
-    output_thresholded_utilities: boolean, optional
-        Flag to indicate if the direct thresholded utilities (in addition to
-        the vectors) are output as well.
-
-    neuron_type: nengo.Neurons, optional
-        Neuron type to use in the associative memory. Defaults to
-    n_neurons_per_ensemble: int, optional
-        Number of neurons per ensemble in the associative memory. There is
-        one ensemble created per vector being compared.
-
+    threshold_output: boolean, optional
+        Adds a threholded output.
+    label : str, optional
+        A name for the ensemble. Used for debugging and visualization.
+        Default: None
+    seed : int, optional
+        The seed used for random number generation.
+        Default: None
+    add_to_container : bool, optional
+        Determines if this Network will be added to the current container.
+        Defaults to true iff currently with a Network.
     """
 
     def __init__(self, input_vocab, output_vocab=None,  # noqa: C901

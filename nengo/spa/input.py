@@ -15,6 +15,18 @@ def make_parse_func(func, vocab):
 class Input(Module):
     """A SPA module for providing external inputs to other modules.
 
+    Parameters
+    ----------
+    label : str, optional
+        A name for the ensemble. Used for debugging and visualization.
+        Default: None
+    seed : int, optional
+        The seed used for random number generation.
+        Default: None
+    add_to_container : bool, optional
+        Determines if this Network will be added to the current container.
+        Defaults to true iff currently with a Network.
+
     The arguments are indicate the module input name and the function
     to execute to generate inputs to that module.  The functions should
     always return strings, which will then be parsed by the relevant

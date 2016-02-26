@@ -18,6 +18,16 @@ class Compare(Module):
     input_magnitude : float
         Effective input magnitude for the multiplication.
         The actual input magnitude will be this value times sqrt(2)
+
+    label : str, optional
+        A name for the ensemble. Used for debugging and visualization.
+        Default: None
+    seed : int, optional
+        The seed used for random number generation.
+        Default: None
+    add_to_container : bool, optional
+        Determines if this Network will be added to the current container.
+        Defaults to true iff currently with a Network.
     """
     def __init__(self, dimensions, vocab=None, neurons_per_multiply=200,
                  input_magnitude=1.0, label=None, seed=None,

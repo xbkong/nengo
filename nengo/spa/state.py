@@ -28,6 +28,15 @@ class State(Module):
         The synapse on the feedback connection
     vocab : Vocabulary, optional
         The vocabulary to use to interpret this vector
+    label : str, optional
+        A name for the ensemble. Used for debugging and visualization.
+        Default: None
+    seed : int, optional
+        The seed used for random number generation.
+        Default: None
+    add_to_container : bool, optional
+        Determines if this Network will be added to the current container.
+        Defaults to true iff currently with a Network.
     """
 
     def __init__(self, dimensions, subdimensions=16, neurons_per_dimension=50,

@@ -17,15 +17,25 @@ class Buffer(Module):
     ----------
     dimensions : int
         Number of dimensions for the vector
-    subdimensions : int
+    subdimensions : int, optional
         Size of the individual ensembles making up the vector.  Must divide
         evenly into dimensions
-    neurons_per_dimensions : int
+    neurons_per_dimensions : int, optional
         Number of neurons in an ensemble will be this*subdimensions
     vocab : Vocabulary, optional
         The vocabulary to use to interpret this vector
-    direct : boolean
+    direct : boolean, optional
         Whether or not to use direct mode for the neurons
+
+    label : str, optional
+        A name for the ensemble. Used for debugging and visualization.
+        Default: None
+    seed : int, optional
+        The seed used for random number generation.
+        Default: None
+    add_to_container : bool, optional
+        Determines if this Network will be added to the current container.
+        Defaults to true iff currently with a Network.
     """
     def __init__(self, dimensions, subdimensions=16, neurons_per_dimension=50,
                  vocab=None, direct=False, label=None, seed=None,

@@ -21,6 +21,16 @@ class Bind(Module):
         correlation instead of circular convolution.
     input_magnitude : float
         The expected magnitude (vector norm) of the two input values.
+
+    label : str, optional
+        A name for the ensemble. Used for debugging and visualization.
+        Default: None
+    seed : int, optional
+        The seed used for random number generation.
+        Default: None
+    add_to_container : bool, optional
+        Determines if this Network will be added to the current container.
+        Defaults to true iff currently with a Network.
     """
     def __init__(self, dimensions, vocab=None, n_neurons=200, invert_a=False,
                  invert_b=False, input_magnitude=1.0, label=None, seed=None,
