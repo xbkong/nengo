@@ -112,7 +112,9 @@ class Simulator(object):
         self.model.decoder_cache.shrink()
 
         # -- map from Signal.base -> ndarray
-        self.signals = SignalDict(__time__=np.asarray(0.0, dtype=np.float64))
+        self.signals = SignalDict()
+        self.signals.init(self.model.step)
+        self.signals.init(self.model.time)
         for op in self.model.operators:
             op.init_signals(self.signals)
 
@@ -148,9 +150,14 @@ class Simulator(object):
                              "/issues and describe your use case.")
 
     @property
+    def n_steps(self):
+        """The current time step of the simulator"""
+        return self.signals[self.model.step].copy()
+
+    @property
     def time(self):
         """The current time of the simulator"""
-        return self.signals['__time__'].copy()
+        return self.signals[self.model.time].copy()
 
     def trange(self, dt=None):
         """Create a range of times matching probe data.
@@ -183,8 +190,9 @@ class Simulator(object):
         if self.closed:
             raise ValueError("Simulator cannot run because it is closed.")
 
-        self.n_steps += 1
-        self.signals['__time__'][...] = self.n_steps * self.dt
+        n_steps = self.signals[self.model.step]
+        self.signals[self.model.step][...] = n_steps + 1
+        self.signals[self.model.time][...] = n_steps * self.dt
 
         old_err = np.seterr(invalid='raise', divide='ignore')
         try:
@@ -263,13 +271,9 @@ class Simulator(object):
         if seed is not None:
             self.seed = seed
 
-        self.n_steps = 0
-        self.signals['__time__'][...] = 0
-
         # reset signals
         for key in self.signals:
-            if key != '__time__':
-                self.signals.reset(key)
+            self.signals.reset(key)
 
         # rebuild steps (resets ops with their own state, like Processes)
         self.rng = np.random.RandomState(self.seed)
