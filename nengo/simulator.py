@@ -150,12 +150,16 @@ class Simulator(object):
     @property
     def n_steps(self):
         """The current time step of the simulator"""
-        return self.signals[self.model.step].copy()
+        if self._n_steps is None:
+            self._n_steps = self.signals[self.model.step].copy()
+        return self._n_steps
 
     @property
     def time(self):
         """The current time of the simulator"""
-        return self.signals[self.model.time].copy()
+        if self._time is None:
+            self._time = self.signals[self.model.time].copy()
+        return self._time
 
     def trange(self, dt=None):
         """Create a range of times matching probe data.
@@ -187,6 +191,9 @@ class Simulator(object):
         """
         if self.closed:
             raise ValueError("Simulator cannot run because it is closed.")
+
+        self._n_steps = None
+        self._time = None
 
         old_err = np.seterr(invalid='raise', divide='ignore')
         try:
@@ -265,6 +272,9 @@ class Simulator(object):
         if seed is not None:
             self.seed = seed
 
+        self._n_steps = None
+        self._time = None
+
         # reset signals
         for key in self.signals:
             self.signals.reset(key)
@@ -285,4 +295,6 @@ class Simulator(object):
         simulator will raise a ``ValueError``.
         """
         self.closed = True
+        self.n_steps  # copy from signals
+        self.time  # copy from signals
         self.signals = None  # signals may no longer exist on some backends
