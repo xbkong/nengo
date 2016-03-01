@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 
 from nengo.builder.signal import Signal, SignalDict
+from nengo.builder.operator import TimeUpdate
 from nengo.cache import NoDecoderCache
 
 
@@ -32,6 +33,7 @@ class Model(object):
 
         self.step = Signal(np.array(0, dtype=np.int64), name='step')
         self.time = Signal(np.array(0, dtype=np.float64), name='time')
+        self.add_op(TimeUpdate(self.step, self.time))
 
     def __str__(self):
         return "Model: %s" % self.label

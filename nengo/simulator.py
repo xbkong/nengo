@@ -113,8 +113,6 @@ class Simulator(object):
 
         # -- map from Signal.base -> ndarray
         self.signals = SignalDict()
-        self.signals.init(self.model.step)
-        self.signals.init(self.model.time)
         for op in self.model.operators:
             op.init_signals(self.signals)
 
@@ -189,10 +187,6 @@ class Simulator(object):
         """
         if self.closed:
             raise ValueError("Simulator cannot run because it is closed.")
-
-        n_steps = self.signals[self.model.step]
-        self.signals[self.model.step][...] = n_steps + 1
-        self.signals[self.model.time][...] = n_steps * self.dt
 
         old_err = np.seterr(invalid='raise', divide='ignore')
         try:
@@ -291,3 +285,4 @@ class Simulator(object):
         simulator will raise a ``ValueError``.
         """
         self.closed = True
+        self.signals = None  # signals may no longer exist on some backends

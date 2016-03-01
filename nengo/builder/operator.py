@@ -136,6 +136,32 @@ class Operator(object):
                 signals.init(sig)
 
 
+class TimeUpdate(Operator):
+    """Updates the simulation time"""
+
+    def __init__(self, step, time):
+        self.step = step
+        self.time = time
+
+        self.sets = [step, time]
+        self.incs = []
+        self.reads = []
+        self.updates = []
+
+    def __str__(self):
+        return 'TimeUpdate()'
+
+    def make_step(self, signals, dt, rng):
+        step = signals[self.step]
+        time = signals[self.time]
+
+        def step_timeupdate():
+            step[...] += 1
+            time[...] = step * dt
+
+        return step_timeupdate
+
+
 class PreserveValue(Operator):
     """Marks a signal as `set` for the graph checker.
 
