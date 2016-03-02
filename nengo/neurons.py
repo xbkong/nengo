@@ -162,7 +162,17 @@ class Sigmoid(NeuronType):
 
 
 class LIFRate(NeuronType):
-    """Rate version of the leaky integrate-and-fire (LIF) neuron model."""
+    """Rate version of the leaky integrate-and-fire (LIF) neuron model.
+
+    Parameters
+    ----------
+    tau_rc : float
+        Membrane RC time constant, in seconds. Affects how quickly the membrane
+        voltage decays to zero in the absence of input (larger = slower decay).
+    tau_ref : float
+        Absolute refractory period, in seconds. This is how long the
+        membrane voltage is held at zero after a spike.
+    """
 
     tau_rc = NumberParam('tau_rc', low=0, low_open=True)
     tau_ref = NumberParam('tau_ref', low=0)
@@ -224,7 +234,20 @@ class LIFRate(NeuronType):
 
 
 class LIF(LIFRate):
-    """Spiking version of the leaky integrate-and-fire (LIF) neuron model."""
+    """Spiking version of the leaky integrate-and-fire (LIF) neuron model.
+
+    Parameters
+    ----------
+    tau_rc : float
+        Membrane RC time constant, in seconds. Affects how quickly the membrane
+        voltage decays to zero in the absence of input (larger = slower decay).
+    tau_ref : float
+        Absolute refractory period, in seconds. This is how long the
+        membrane voltage is held at zero after a spike.
+    min_voltage : float
+        Minimum value for the membrane voltage. If ``-np.inf``, the voltage
+        is never clipped.
+    """
 
     min_voltage = NumberParam('min_voltage', high=0)
     probeable = ('spikes', 'voltage', 'refractory_time')
@@ -262,10 +285,30 @@ class LIF(LIFRate):
 class AdaptiveLIFRate(LIFRate):
     """Adaptive rate version of the LIF neuron model.
 
+    Works as the LIF model, except with adapation state ``n``, which is
+    subtracted from the input current. Its dynamics are:
+        tau_n dn/dt = -n
+    where ``n`` is incremented by ``inc_n`` when the neuron spikes.
+
+    Parameters
+    ----------
+    tau_n : float
+        Adaptation time constant. Affects how quickly the adaptation state
+        decays to zero in the absence of spikes (larger = slower decay).
+    inc_n : float
+        Adaptation increment. How much the adaptation state is increased after
+        each spike.
+    tau_rc : float
+        Membrane RC time constant, in seconds. Affects how quickly the membrane
+        voltage decays to zero in the absence of input (larger = slower decay).
+    tau_ref : float
+        Absolute refractory period, in seconds. This is how long the
+        membrane voltage is held at zero after a spike.
+
     References
     ----------
     .. [1] Koch, Christof. Biophysics of Computation: Information Processing
-       in Single Neurons. Oxford University Press, 1999.
+       in Single Neurons. Oxford University Press, 1999. p. 339
     """
 
     tau_n = NumberParam('tau_n', low=0, low_open=True)
@@ -296,10 +339,30 @@ class AdaptiveLIFRate(LIFRate):
 class AdaptiveLIF(AdaptiveLIFRate, LIF):
     """Adaptive spiking version of the LIF neuron model.
 
+    Works as the LIF model, except with adapation state ``n``, which is
+    subtracted from the input current. Its dynamics are:
+        tau_n dn/dt = -n
+    where ``n`` is incremented by ``inc_n`` when the neuron spikes.
+
+    Parameters
+    ----------
+    tau_n : float
+        Adaptation time constant. Affects how quickly the adaptation state
+        decays to zero in the absence of spikes (larger = slower decay).
+    inc_n : float
+        Adaptation increment. How much the adaptation state is increased after
+        each spike.
+    tau_rc : float
+        Membrane RC time constant, in seconds. Affects how quickly the membrane
+        voltage decays to zero in the absence of input (larger = slower decay).
+    tau_ref : float
+        Absolute refractory period, in seconds. This is how long the
+        membrane voltage is held at zero after a spike.
+
     References
     ----------
     .. [1] Koch, Christof. Biophysics of Computation: Information Processing
-       in Single Neurons. Oxford University Press, 1999.
+       in Single Neurons. Oxford University Press, 1999. p. 339
     """
 
     probeable = ('spikes', 'adaptation', 'voltage', 'refractory_time')
