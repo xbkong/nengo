@@ -147,18 +147,18 @@ class Simulator(object):
                              "an issue at http://github.com/nengo/nengo"
                              "/issues and describe your use case.")
 
+    def _probe_step_time(self):
+        self._n_steps = self.signals[self.model.step].copy()
+        self._time = self.signals[self.model.time].copy()
+
     @property
     def n_steps(self):
         """The current time step of the simulator"""
-        if self._n_steps is None:
-            self._n_steps = self.signals[self.model.step].copy()
         return self._n_steps
 
     @property
     def time(self):
         """The current time of the simulator"""
-        if self._time is None:
-            self._time = self.signals[self.model.time].copy()
         return self._time
 
     def trange(self, dt=None):
@@ -179,6 +179,8 @@ class Simulator(object):
 
     def _probe(self):
         """Copy all probed signals to buffers"""
+        self._probe_step_time()
+
         for probe in self.model.probes:
             period = (1 if probe.sample_every is None else
                       probe.sample_every / self.dt)
@@ -192,9 +194,6 @@ class Simulator(object):
         if self.closed:
             raise ValueError("Simulator cannot run because it is closed.")
 
-        self._n_steps = None
-        self._time = None
-
         old_err = np.seterr(invalid='raise', divide='ignore')
         try:
             for step_fn in self._steps:
@@ -202,8 +201,7 @@ class Simulator(object):
         finally:
             np.seterr(**old_err)
 
-        if len(self.model.probes) > 0:
-            self._probe()
+        self._probe()
 
     def run(self, time_in_seconds, progress_bar=True):
         """Simulate for the given length of time.
@@ -272,9 +270,6 @@ class Simulator(object):
         if seed is not None:
             self.seed = seed
 
-        self._n_steps = None
-        self._time = None
-
         # reset signals
         for key in self.signals:
             self.signals.reset(key)
@@ -288,6 +283,8 @@ class Simulator(object):
         for probe in self.model.probes:
             self._probe_outputs[probe] = []
 
+        self._probe_step_time()
+
     def close(self):
         """Closes the simulator.
 
@@ -295,6 +292,4 @@ class Simulator(object):
         simulator will raise a ``ValueError``.
         """
         self.closed = True
-        self.n_steps  # copy from signals
-        self.time  # copy from signals
         self.signals = None  # signals may no longer exist on some backends
