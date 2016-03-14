@@ -117,6 +117,9 @@ class AssociativeMemory(nengo.Network):
             self.output = nengo.Node(size_in=output_vectors.shape[1],
                                      label="output")
 
+            self.thresholded_output = nengo.Node(size_in=output_vectors.shape[1],
+                                     label="thresholded output")
+
             self.elem_input = nengo.Node(size_in=N, label="element input")
             self.elem_output = nengo.Node(size_in=N, label="element output")
 
@@ -236,7 +239,7 @@ class AssociativeMemory(nengo.Network):
                                      self.thresh_ens.input,
                                      transform=-10, synapse=0.005)
 
-                nengo.Connection(self.thresh_ens.output, self.output,
+                nengo.Connection(self.thresh_ens.output, self.thresholded_output,
                                  transform=output_vectors.T, synapse=None)
 
                 nengo.Connection(default_vector_gate, self.thresh_ens.input,
@@ -247,9 +250,9 @@ class AssociativeMemory(nengo.Network):
                         self.inhibit, self.thresh_ens.input,
                         transform=-np.ones((N, 1)) * inhibit_scale,
                         synapse=None)
-            else:
-                nengo.Connection(self.elem_output, self.output,
-                                 transform=output_vectors.T, synapse=None)
+            # else:
+            nengo.Connection(self.elem_output, self.output,
+                             transform=output_vectors.T, synapse=None)
 
     @with_self
     def add_input(self, name, input_vectors, input_scale=1.0):
