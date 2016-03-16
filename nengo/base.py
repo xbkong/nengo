@@ -7,8 +7,8 @@ import numpy as np
 from nengo.config import Config
 from nengo.exceptions import ValidationError
 from nengo.params import (
-    Default, is_param, IntParam, Parameter, params, StringParam,
-    Unconfigurable)
+    CopyableObject, Default, is_param, IntParam, Parameter, params,
+    StringParam, Unconfigurable)
 from nengo.rc import rc
 from nengo.utils.compat import is_integer, reraise, with_metaclass
 
@@ -34,7 +34,7 @@ class NetworkMember(type):
         return inst
 
 
-class NengoObject(with_metaclass(NetworkMember)):
+class NengoObject(with_metaclass(NetworkMember, CopyableObject)):
     """A base class for Nengo objects.
 
     This defines some functions that the Network requires
@@ -46,6 +46,7 @@ class NengoObject(with_metaclass(NetworkMember)):
     seed = IntParam('seed', default=None, optional=True)
 
     def __init__(self, label, seed):
+        super(NengoObject, self).__init__()
         self.label = label
         self.seed = seed
 
@@ -83,23 +84,12 @@ class NengoObject(with_metaclass(NetworkMember)):
             super(NengoObject, self).__setattr__(name, val)
 
     def __getstate__(self):
-        state = {}
-
-        for attr in params(self):
-            param = getattr(self.__class__, attr)
-            if self in param:
-                state[attr] = getattr(self, attr)
-
-        for attr in vars(self):
-            if attr == '_initialized':
-                continue
-            state[attr] = getattr(self, attr)
-
+        state = super(NengoObject, self).__getstate__()
+        del state['_initialized']
         return state
 
     def __setstate__(self, state):
-        for k, v in state.items():
-            setattr(self, k, v)
+        super(NengoObject, self).__setstate__(state)
         setattr(self, '_initialized', True)
 
     def copy(self, add_to_container=True):

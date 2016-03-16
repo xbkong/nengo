@@ -3,7 +3,17 @@ import pytest
 import nengo
 from nengo.exceptions import NetworkContextError
 from nengo.params import params
+from nengo.utils.compat import pickle
 
+
+def assert_is_copy(copy, original):
+    assert copy is not original  # ensures separate parameters
+    for param in params(copy):
+        if isinstance(getattr(copy, param), nengo.solvers.Solver):
+            continue  # FIXME
+        if isinstance(getattr(copy, param), nengo.base.NengoObject):
+            continue  # FIXME
+        assert getattr(copy, param) == getattr(original, param)
 
 
 class CopyTest(object):
@@ -17,7 +27,7 @@ class CopyTest(object):
             copy = original.copy()
         assert copy in model.all_objects
 
-        self.assert_is_copy(copy, original)
+        assert_is_copy(copy, original)
 
     def test_copy_in_network_without_adding(self):
         original = self.create_original()
@@ -26,7 +36,7 @@ class CopyTest(object):
             copy = original.copy(add_to_container=False)
         assert copy not in model.all_objects
 
-        self.assert_is_copy(copy, original)
+        assert_is_copy(copy, original)
 
     def test_copy_outside_network(self):
         original = self.create_original()
@@ -36,16 +46,20 @@ class CopyTest(object):
     def test_copy_outside_network_without_adding(self):
         original = self.create_original()
         copy = original.copy(add_to_container=False)
-        self.assert_is_copy(copy, original)
-
-    @staticmethod
-    def assert_is_copy(copy, original):
-        assert copy is not original  # ensures separate parameters
-        for param in params(copy):
-            assert getattr(copy, param) == getattr(original, param)
+        assert_is_copy(copy, original)
 
 
-class TestCopyEnsemble(CopyTest):
+class PickleTest(object):
+    def create_original(self):
+        raise NotImplementedError()
+
+    def test_pickle_roundtrip(self):
+        original = self.create_original()
+        copy = pickle.loads(pickle.dumps(original))
+        assert_is_copy(copy, original)
+
+
+class TestCopyEnsemble(CopyTest, PickleTest):
     def create_original(self):
         with nengo.Network() as _:
             e = nengo.Ensemble(10, 1, radius=2.)
@@ -56,6 +70,14 @@ class TestCopyEnsemble(CopyTest):
         copy = original.copy(add_to_container=False)
         assert original.neurons.ensemble is original
         assert copy.neurons.ensemble is copy
+
+
+class TestCopyProbe(CopyTest, PickleTest):
+    def create_original(self):
+        with nengo.Network() as _:
+            e = nengo.Ensemble(10, 1)
+            p = nengo.Probe(e, synapse=0.01)
+        return p
 
 
 # Probe
