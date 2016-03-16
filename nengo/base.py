@@ -1,4 +1,4 @@
-from copy import copy
+import copy
 import sys
 import warnings
 
@@ -83,6 +83,9 @@ class NengoObject(with_metaclass(NetworkMember, CopyableObject)):
         else:
             super(NengoObject, self).__setattr__(name, val)
 
+    def __copy__(self):
+        raise NotImplementedError()
+
     def __getstate__(self):
         state = super(NengoObject, self).__getstate__()
         del state['_initialized']
@@ -93,7 +96,9 @@ class NengoObject(with_metaclass(NetworkMember, CopyableObject)):
         setattr(self, '_initialized', True)
 
     def copy(self, add_to_container=True):
-        c = copy(self)
+        rv = (self.__reduce_ex__(2) if hasattr(self, '__reduce_ex__') else
+              self.__reduce__())
+        c = copy._reconstruct(self, rv, 0)
         if add_to_container:
             from nengo.network import Network
             Network.add(c)

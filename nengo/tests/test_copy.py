@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import pytest
 
@@ -103,3 +105,9 @@ class TestCopyConnection(CopyTest, PickleTest):
 
 
 # copy, copy with add to network, pickle and unpickle
+def test_copy_fail():
+    """Test that copy.copy fails"""
+    with nengo.Network():
+        u = nengo.Node(0)
+        with pytest.raises(NotImplementedError):
+            copy.copy(u)
