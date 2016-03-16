@@ -283,6 +283,7 @@ def test_params():
     class Test(object):
         p1 = params.IntParam('p1')
         p2 = params.IntParam('p2')
+        obsolete = params.ObsoleteParam('obsolete', 'not included in params')
 
     assert set(params.params(Test())) == {'p1', 'p2'}
 

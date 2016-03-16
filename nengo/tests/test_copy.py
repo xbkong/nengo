@@ -62,7 +62,7 @@ class PickleTest(object):
 
 class TestCopyEnsemble(CopyTest, PickleTest):
     def create_original(self):
-        with nengo.Network() as _:
+        with nengo.Network():
             e = nengo.Ensemble(10, 1, radius=2.)
         return e
 
@@ -75,7 +75,7 @@ class TestCopyEnsemble(CopyTest, PickleTest):
 
 class TestCopyProbe(CopyTest, PickleTest):
     def create_original(self):
-        with nengo.Network() as _:
+        with nengo.Network():
             e = nengo.Ensemble(10, 1)
             p = nengo.Probe(e, synapse=0.01)
         return p
@@ -83,11 +83,17 @@ class TestCopyProbe(CopyTest, PickleTest):
 
 class TestCopyNode(CopyTest, PickleTest):
     def create_original(self):
-        with nengo.Network() as _:
+        with nengo.Network():
             n = nengo.Node(np.min, size_in=2, size_out=2)
         return n
 
-# Connection
+class TestCopyConnection(CopyTest, PickleTest):
+    def create_original(self):
+        with nengo.Network(self):
+            e1 = nengo.Ensemble(10, 1)
+            e2 = nengo.Ensemble(10, 1)
+            c = nengo.Connection(e1, e2, transform=2.)
+        return c
 
 # Network
 

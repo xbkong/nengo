@@ -29,7 +29,8 @@ def is_param(obj):
 
 def params(obj):
     """Return list with the names of all parameters of an object."""
-    return [name for name, v in vars(obj.__class__).items() if is_param(v)]
+    return [name for name, v in vars(obj.__class__).items()
+            if is_param(v) and not isinstance(v, ObsoleteParam)]
 
 
 class Parameter(object):
@@ -367,9 +368,12 @@ FunctionInfo = collections.namedtuple('FunctionInfo', ['function', 'size'])
 
 class FunctionParam(Parameter):
     def __set__(self, instance, function):
-        size = (self.determine_size(instance, function)
-                if callable(function) else None)
-        function_info = FunctionInfo(function=function, size=size)
+        if isinstance(function, FunctionInfo):
+            function_info = function
+        else:
+            size = (self.determine_size(instance, function)
+                    if callable(function) else None)
+            function_info = FunctionInfo(function=function, size=size)
         super(FunctionParam, self).__set__(instance, function_info)
 
     def function_args(self, instance, function):
