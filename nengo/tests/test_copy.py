@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 import nengo
@@ -80,9 +81,12 @@ class TestCopyProbe(CopyTest, PickleTest):
         return p
 
 
-# Probe
-# Ensemble
-# Node
+class TestCopyNode(CopyTest, PickleTest):
+    def create_original(self):
+        with nengo.Network() as _:
+            n = nengo.Node(np.min, size_in=2, size_out=2)
+        return n
+
 # Connection
 
 # Network
