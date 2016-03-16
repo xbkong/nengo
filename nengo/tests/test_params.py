@@ -275,3 +275,11 @@ def test_functionparam():
     # Not OK: not a function
     with pytest.raises(ValidationError):
         inst.fp = 0
+
+
+def test_params():
+    class Test(object):
+        p1 = params.IntParam('p1')
+        p2 = params.IntParam('p2')
+
+    assert set(params.params(Test())) == {'p1', 'p2'}

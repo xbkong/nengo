@@ -1,3 +1,4 @@
+from copy import copy
 import sys
 import warnings
 
@@ -6,7 +7,8 @@ import numpy as np
 from nengo.config import Config
 from nengo.exceptions import ValidationError
 from nengo.params import (
-    Default, is_param, IntParam, Parameter, StringParam, Unconfigurable)
+    Default, is_param, IntParam, Parameter, params, StringParam,
+    Unconfigurable)
 from nengo.rc import rc
 from nengo.utils.compat import is_integer, reraise, with_metaclass
 
@@ -81,10 +83,31 @@ class NengoObject(with_metaclass(NetworkMember)):
             super(NengoObject, self).__setattr__(name, val)
 
     def __getstate__(self):
-        raise NotImplementedError("Nengo objects do not support pickling")
+        state = {}
+
+        for attr in params(self):
+            param = getattr(self.__class__, attr)
+            if self in param:
+                state[attr] = getattr(self, attr)
+
+        for attr in vars(self):
+            if attr == '_initialized':
+                continue
+            state[attr] = getattr(self, attr)
+
+        return state
 
     def __setstate__(self, state):
-        raise NotImplementedError("Nengo objects do not support pickling")
+        for k, v in state.items():
+            setattr(self, k, v)
+        setattr(self, '_initialized', True)
+
+    def copy(self, add_to_container=True):
+        c = copy(self)
+        if add_to_container:
+            from nengo.network import Network
+            Network.add(c)
+        return c
 
     @classmethod
     def param_list(cls):
