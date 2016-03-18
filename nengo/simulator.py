@@ -143,6 +143,8 @@ class Simulator(object):
         raise ReadonlyError(attr='dt', obj=self)
 
     def _probe_step_time(self):
+        if self.closed:
+            return
         self._n_steps = self.signals[self.model.step].copy()
         self._time = self.signals[self.model.time].copy()
 
