@@ -10,6 +10,7 @@ The first set of examples explains these three principles:
 For a summary of these principles, see the following example:
 
 .. toctree::
+   :maxdepth: 1
 
    examples/nef_summary
 
@@ -32,6 +33,7 @@ Nodes
 =====
 
 .. toctree::
+   :maxdepth: 1
 
    examples/delay_node
 
@@ -39,6 +41,7 @@ Ensembles
 =========
 
 .. toctree::
+   :maxdepth: 1
 
    examples/tuning_curves
    examples/izhikevich
@@ -54,6 +57,7 @@ Learning
 ========
 
 .. toctree::
+   :maxdepth: 1
 
    examples/learn_communication_channel
    examples/learn_square
@@ -64,6 +68,7 @@ Networks
 ========
 
 .. toctree::
+   :maxdepth: 1
 
    examples/ensemble_array
    examples/matrix_multiplication
@@ -74,6 +79,7 @@ Semantic Pointer Architecture
 =============================
 
 .. toctree::
+   :maxdepth: 1
 
    examples/convolution
    examples/question
@@ -87,5 +93,6 @@ Extending Nengo
 ===============
 
 .. toctree::
+   :maxdepth: 1
 
    examples/rectified_linear
