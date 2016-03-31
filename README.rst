@@ -29,22 +29,23 @@ Nengo: Large-scale brain modelling in Python
 Installation
 ============
 
-If you're on Windows, you'll need to install Numpy first.
-Using `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ or
-  the `official installer <https://www.python.org/downloads/>`_ and
-  `unofficial binaries <http://www.lfd.uci.edu/~gohlke/pythonlibs/>`
+If you're on Windows, you'll need to install NumPy first.
+We recommend using `Anaconda <https://store.continuum.io/cshop/anaconda/>`_
+or the `official installer <https://www.python.org/downloads/>`_ and
+`unofficial binaries <http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy>`_.
 
 To install Nengo::
 
-  pip install nengo
+    pip install nengo
 
 If you have difficulty installing Nengo, please read the more detailed
-`Nengo installation instructions <https://pythonhosted.org/nengo/getting_started.html#installation>`_ first.
+`Nengo installation instructions
+<https://pythonhosted.org/nengo/getting_started.html#installation>`_ first.
 
 If you'd like to install Nengo from source, please read the `development
 installation instructions <https://pythonhosted.org/nengo/dev_introduction.html>`_.
 
-Nengo supports Python 2.7 and 3.3+.
+Nengo supports Python 2.7 and 3.4+.
 
 Examples
 ========
