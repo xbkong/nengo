@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/advanced/izhikevich.ipynb
+.. nbinclude:: ../../examples/advanced/izhikevich.ipynb

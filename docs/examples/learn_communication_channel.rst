@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/learning/learn_communication_channel.ipynb
+.. nbinclude:: ../../examples/learning/learn_communication_channel.ipynb

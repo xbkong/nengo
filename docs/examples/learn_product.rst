@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/learning/learn_product.ipynb
+.. nbinclude:: ../../examples/learning/learn_product.ipynb

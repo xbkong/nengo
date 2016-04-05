@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/dynamics/lorenz_attractor.ipynb
+.. nbinclude:: ../../examples/dynamics/lorenz_attractor.ipynb

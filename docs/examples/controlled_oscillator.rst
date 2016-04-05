@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/dynamics/controlled_oscillator.ipynb
+.. nbinclude:: ../../examples/dynamics/controlled_oscillator.ipynb

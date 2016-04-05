@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/dynamics/integrator.ipynb
+.. nbinclude:: ../../examples/dynamics/integrator.ipynb

@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/networks/integrator_network.ipynb
+.. nbinclude:: ../../examples/networks/integrator_network.ipynb

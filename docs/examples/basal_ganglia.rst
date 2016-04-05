@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/networks/basal_ganglia.ipynb
+.. nbinclude:: ../../examples/networks/basal_ganglia.ipynb

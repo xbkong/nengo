@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/spa/spa_sequence.ipynb
+.. nbinclude:: ../../examples/spa/spa_sequence.ipynb

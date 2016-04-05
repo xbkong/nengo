@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/basic/addition.ipynb
+.. nbinclude:: ../../examples/basic/addition.ipynb

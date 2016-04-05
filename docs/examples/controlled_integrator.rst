@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/dynamics/controlled_integrator.ipynb
+.. nbinclude:: ../../examples/dynamics/controlled_integrator.ipynb

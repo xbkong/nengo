@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/usage/network_design.ipynb
+.. nbinclude:: ../../examples/usage/network_design.ipynb

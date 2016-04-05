@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/spa/question.ipynb
+.. nbinclude:: ../../examples/spa/question.ipynb

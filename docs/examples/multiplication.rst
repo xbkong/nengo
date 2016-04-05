@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/basic/multiplication.ipynb
+.. nbinclude:: ../../examples/basic/multiplication.ipynb

@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/basic/squaring.ipynb
+.. nbinclude:: ../../examples/basic/squaring.ipynb

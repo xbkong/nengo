@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/advanced/inhibitory_gating.ipynb
+.. nbinclude:: ../../examples/advanced/inhibitory_gating.ipynb

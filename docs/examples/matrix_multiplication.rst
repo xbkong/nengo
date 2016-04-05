@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/advanced/matrix_multiplication.ipynb
+.. nbinclude:: ../../examples/advanced/matrix_multiplication.ipynb

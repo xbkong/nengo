@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/dynamics/oscillator.ipynb
+.. nbinclude:: ../../examples/dynamics/oscillator.ipynb

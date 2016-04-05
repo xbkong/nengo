@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/usage/rectified_linear.ipynb
+.. nbinclude:: ../../examples/usage/rectified_linear.ipynb

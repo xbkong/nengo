@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/usage/config.ipynb
+.. nbinclude:: ../../examples/usage/config.ipynb

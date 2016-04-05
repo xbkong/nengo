@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/basic/single_neuron.ipynb
+.. nbinclude:: ../../examples/basic/single_neuron.ipynb

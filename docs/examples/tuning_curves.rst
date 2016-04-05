@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/usage/tuning_curves.ipynb
+.. nbinclude:: ../../examples/usage/tuning_curves.ipynb

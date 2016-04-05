@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/learning/learn_unsupervised.ipynb
+.. nbinclude:: ../../examples/learning/learn_unsupervised.ipynb

@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/learning/learn_square.ipynb
+.. nbinclude:: ../../examples/learning/learn_square.ipynb

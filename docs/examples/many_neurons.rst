@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/basic/many_neurons.ipynb
+.. nbinclude:: ../../examples/basic/many_neurons.ipynb

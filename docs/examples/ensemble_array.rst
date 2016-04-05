@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/networks/ensemble_array.ipynb
+.. nbinclude:: ../../examples/networks/ensemble_array.ipynb

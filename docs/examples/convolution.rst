@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/spa/convolution.ipynb
+.. nbinclude:: ../../examples/spa/convolution.ipynb

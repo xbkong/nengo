@@ -1,1 +1,1 @@
-.. notebook:: ../../examples/spa/spa_parser.ipynb
+.. nbinclude:: ../../examples/spa/spa_parser.ipynb
