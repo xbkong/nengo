@@ -8,7 +8,13 @@ import sys
 try:
     import nbsphinx
     import nengo
+
     import sphinx_rtd_theme
+    import alabaster
+    from better import better_theme_path
+    import guzzle_sphinx_theme
+    import sphinx_readable_theme
+
 except ImportError:
     print("To build the documentation, nengo, nbsphinx, and sphinx_rtd_theme "
           "must be installed in the current environment. Please install these "
@@ -42,10 +48,6 @@ source_parsers = {'.ipynb': nbsphinx.NotebookParser}
 nbsphinx_timeout = 600
 nbsphinx_codecell_lexer = 'python'
 
-# Need to include https Mathjax path for sphinx < v1.3
-mathjax_path = ("https://cdn.mathjax.org/mathjax/latest/MathJax.js"
-                "?config=TeX-AMS-MML_HTMLorMML")
-
 project = u'Nengo'
 authors = u'Applied Brain Research'
 copyright = nengo.__copyright__
@@ -55,14 +57,57 @@ pygments_style = 'default'
 
 # -- Options for HTML output --------------------------------------------------
 
-html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_title = "Nengo {0} docs".format(release)
-# html_static_path = ['_static']
 html_use_smartypants = True
 htmlhelp_basename = 'Nengodoc'
 html_last_updated_fmt = ''  # Suppress 'Last updated on:' timestamp
 html_show_sphinx = False
+
+# sphinx_rtd_theme
+
+# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# html_theme = 'sphinx_rtd_theme'
+
+# alabaster
+
+# html_theme_path = [alabaster.get_path()]
+# extensions.append('alabaster')
+# html_theme = 'alabaster'
+# html_theme_options = {
+#     # 'logo': 'logo.png',
+#     'github_user': 'nengo',
+#     'github_repo': 'nengo',
+# }
+# html_sidebars = {
+#     '**': [
+#         'about.html',
+#         'navigation.html',
+#         'relations.html',
+#         'searchbox.html',
+#         'donate.html',
+#     ]
+# }
+
+# better
+
+# html_theme_path = [better_theme_path]
+# html_theme = 'better'
+
+# guzzle
+
+# html_translator_class = 'guzzle_sphinx_theme.HTMLTranslator'
+# html_theme_path = guzzle_sphinx_theme.html_theme_path()
+# html_theme = 'guzzle_sphinx_theme'
+# extensions.append("guzzle_sphinx_theme")
+# html_theme_options = {
+#     # Set the name of the project to appear in the sidebar
+#     "project_nav_name": "Nengo",
+# }
+
+# sphinx-readable-theme
+
+html_theme_path = [sphinx_readable_theme.get_html_theme_path()]
+html_theme = 'readable'
 
 # -- Options for LaTeX output -------------------------------------------------
 
