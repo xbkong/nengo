@@ -15,11 +15,10 @@ from nengo.utils.numpy import as_shape
 class Synapse(Process):
     """Abstract base class for synapse objects"""
 
-    def __init__(self, analog=True, **kwargs):
+    def __init__(self, **kwargs):
         kwargs.setdefault('default_size_in', 1)
         kwargs.setdefault('default_size_out', kwargs['default_size_in'])
         super(Synapse, self).__init__(**kwargs)
-        self.analog = analog
 
     def filt(self, x, dt=None, axis=0, y0=None, copy=True, filtfilt=False):
         """Filter ``x`` with this synapse.
@@ -29,7 +28,7 @@ class Synapse(Process):
         x : array_like
             The signal to filter.
         dt : float, optional (default: ``self.default_dt``)
-            The time-step of the input signal for analog synapses.
+            The time-step of the input signal.
         axis : integer, optional (default: 0)
             The axis along which to filter.
         y0 : array_like, optional (default: x0)
@@ -83,13 +82,16 @@ class LinearFilter(Synapse):
     This class can be used to implement any linear filter, given the
     filter's transfer function. [1]_
 
-
     Parameters
     ----------
     num : array_like
-        Numerator coefficients of continuous-time transfer function.
+        Numerator coefficients of transfer function.
     den : array_like
-        Denominator coefficients of continuous-time transfer function.
+        Denominator coefficients of transfer function.
+    analog : boolean, optional (Default: True)
+        Whether the synapse coefficients are analog (i.e. continuous-time),
+        or discrete. Analog coefficients will be converted to discrete for
+        simulation using the simulator ``dt``.
 
     References
     ----------
@@ -101,9 +103,10 @@ class LinearFilter(Synapse):
     analog = BoolParam('analog')
 
     def __init__(self, num, den, analog=True, **kwargs):
-        super(LinearFilter, self).__init__(analog=analog, **kwargs)
+        super(LinearFilter, self).__init__(**kwargs)
         self.num = num
         self.den = den
+        self.analog = analog
 
     def __repr__(self):
         return "%s(%s, %s, analog=%r)" % (
@@ -321,7 +324,7 @@ class Triangle(Synapse):
     t = NumberParam('t', low=0)
 
     def __init__(self, t, **kwargs):
-        super(Triangle, self).__init__(analog=True, **kwargs)
+        super(Triangle, self).__init__(**kwargs)
         self.t = t
 
     def __repr__(self):

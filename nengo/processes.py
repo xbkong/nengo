@@ -4,7 +4,7 @@ import nengo.utils.numpy as npext
 from nengo.base import Process
 from nengo.dists import DistributionParam, Gaussian
 from nengo.exceptions import ValidationError
-from nengo.params import BoolParam, NdarrayParam, NumberParam
+from nengo.params import BoolParam, DictParam, NdarrayParam, NumberParam
 from nengo.synapses import LinearFilter, LinearFilterParam, Lowpass
 
 
@@ -68,14 +68,14 @@ class FilteredNoise(Process):
     ----------
     synapse : Synapse, optional
         The synapse to use to filter the noise. Default: Lowpass(tau=0.005)
-    synapse_kwargs : dict, optional
-        Arguments to pass to `synapse.make_step`.
     dist : Distribution, optional
         The distribution used to generate the white noise.
         Default: Gaussian(mean=0, std=1)
     scale : bool, optional
         Whether to scale the white noise for integration, making the output
         signal invariant to `dt`. Defaults to True.
+    synapse_kwargs : dict, optional
+        Arguments to pass to `synapse.make_step`.
     seed : int, optional
         Random number seed. Ensures noise will be the same each run.
     """
@@ -83,9 +83,11 @@ class FilteredNoise(Process):
     synapse = LinearFilterParam('synapse')
     dist = DistributionParam('dist')
     scale = BoolParam('scale')
+    synapse_kwargs = DictParam('synapse_kwargs')
 
-    def __init__(self, synapse=Lowpass(tau=0.005), synapse_kwargs={},
-                 dist=Gaussian(mean=0, std=1), scale=True, **kwargs):
+    def __init__(self,
+                 synapse=Lowpass(tau=0.005), dist=Gaussian(mean=0, std=1),
+                 scale=True, synapse_kwargs={}, **kwargs):
         super(FilteredNoise, self).__init__(default_size_in=0, **kwargs)
         self.synapse = synapse
         self.synapse_kwargs = synapse_kwargs
@@ -163,6 +165,7 @@ class WhiteSignal(Process):
     seed : int, optional
         Random number seed. Ensures noise will be the same each run.
     """
+
     period = NumberParam('period', low=0, low_open=True)
     high = NumberParam('high', low=0, low_open=True)
     rms = NumberParam('rms', low=0, low_open=True)

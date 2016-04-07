@@ -37,7 +37,7 @@ class LearningRuleType(FrozenObject):
 
     error_type = 'none'
     modifies = None
-    probeable = []
+    probeable = ()
 
     learning_rate = NumberParam('learning_rate', low=0, low_open=True)
 
@@ -80,7 +80,7 @@ class PES(LearningRuleType):
 
     error_type = 'decoded'
     modifies = 'decoders'
-    probeable = ['error', 'correction', 'activities', 'delta']
+    probeable = ('error', 'correction', 'activities', 'delta')
 
     pre_tau = NumberParam('pre_tau', low=0, low_open=True)
 
@@ -132,7 +132,7 @@ class BCM(LearningRuleType):
 
     error_type = 'none'
     modifies = 'weights'
-    probeable = ['theta', 'pre_filtered', 'post_filtered', 'delta']
+    probeable = ('theta', 'pre_filtered', 'post_filtered', 'delta')
 
     pre_tau = NumberParam('pre_tau', low=0, low_open=True)
     post_tau = NumberParam('post_tau', low=0, low_open=True)
@@ -190,7 +190,7 @@ class Oja(LearningRuleType):
 
     error_type = 'none'
     modifies = 'weights'
-    probeable = ['pre_filtered', 'post_filtered', 'delta']
+    probeable = ('pre_filtered', 'post_filtered', 'delta')
 
     pre_tau = NumberParam('pre_tau', low=0, low_open=True)
     post_tau = NumberParam('post_tau', low=0, low_open=True)
@@ -244,7 +244,7 @@ class Voja(LearningRuleType):
 
     error_type = 'scalar'
     modifies = 'encoders'
-    probeable = ['post_filtered', 'scaled_encoders', 'delta']
+    probeable = ('post_filtered', 'scaled_encoders', 'delta')
 
     post_tau = NumberParam('post_tau', low=0, low_open=True, optional=True)
 

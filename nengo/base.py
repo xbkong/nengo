@@ -246,6 +246,7 @@ class Process(FrozenObject):
         return np.random.RandomState(seed)
 
     def make_step(self, shape_in, shape_out, dt, rng):
+        """Create function to advance the process forward one time step."""
         raise NotImplementedError("Process must implement `make_step` method.")
 
     def run(self, t, d=None, dt=None, rng=np.random, **kwargs):
@@ -267,10 +268,12 @@ class Process(FrozenObject):
         return output
 
     def ntrange(self, n_steps, dt=None):
+        """Create time points corresponding to a given number of steps."""
         dt = self.default_dt if dt is None else dt
         return dt * np.arange(1, n_steps + 1)
 
     def trange(self, t, dt=None):
+        """Create time points corresponding to a given length of time."""
         dt = self.default_dt if dt is None else dt
         n_steps = int(np.round(float(t) / dt))
         return self.ntrange(n_steps, dt=dt)
