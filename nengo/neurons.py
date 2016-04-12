@@ -89,7 +89,7 @@ class NeuronType(FrozenObject):
 
         return gain, bias
 
-    def rates(self, x, gain, bias):
+    def rates(self, x, gain, bias, out=None):
         """Compute firing rates (in Hz) for given vector input, ``x``.
 
         This default implementation takes the naive approach of running the
@@ -107,7 +107,7 @@ class NeuronType(FrozenObject):
             Bias current associated with each neuron.
         """
         J = gain * x + bias
-        out = np.zeros_like(J)
+        out = np.zeros_like(J) if out is None else out
         self.step_math(dt=1., J=J, output=out)
         return out
 
@@ -143,9 +143,11 @@ class Direct(NeuronType):
         """Always returns ``None, None``."""
         return None, None
 
-    def rates(self, x, gain, bias):
+    def rates(self, x, gain, bias, out=None):
         """Always returns ``x``."""
-        return x
+        out = np.zeros_like(x) if out is None else out
+        out[:] = x
+        return out
 
     def step_math(self, dt, J, output):
         """Raises an error if called.
@@ -255,21 +257,21 @@ class LIFRate(NeuronType):
         bias = 1 - gain * intercepts
         return gain, bias
 
-    def rates(self, x, gain, bias):
+    def rates(self, x, gain, bias, out=None):
         """Always use LIFRate to determine rates."""
         J = gain * x + bias
-        out = np.zeros_like(J)
+        out = np.zeros_like(J) if out is None else out
         # Use LIFRate's step_math explicitly to ensure rate approximation
         LIFRate.step_math(self, dt=1, J=J, output=out)
         return out
 
     def step_math(self, dt, J, output):
         """Implement the LIFRate nonlinearity."""
-        j = J - 1
-        output[:] = 0  # faster than output[j <= 0] = 0
-        output[j > 0] = 1. / (
-            self.tau_ref + self.tau_rc * np.log1p(1. / j[j > 0]))
-        # the above line is designed to throw an error if any j is nan
+        J = J - 1
+        output[:] = 0  # faster than output[J <= 0] = 0
+        output[J > 0] = 1. / (
+            self.tau_ref + self.tau_rc * np.log1p(1. / J[J > 0]))
+        # the above line is designed to throw an error if any J is nan
         # (nan > 0 -> error), and not pass x < -1 to log1p
 
 
@@ -489,7 +491,7 @@ class Izhikevich(NeuronType):
         add("reset_recovery", 8.)
         return args
 
-    def rates(self, x, gain, bias):
+    def rates(self, x, gain, bias, out=None):
         """Estimates steady-state firing rate given gain and bias.
 
         Uses the `nengo.utils.neurons.settled_firingrate` helper function.
@@ -497,8 +499,9 @@ class Izhikevich(NeuronType):
         J = gain * x + bias
         voltage = np.zeros_like(J)
         recovery = np.zeros_like(J)
-        return settled_firingrate(self.step_math, J, [voltage, recovery],
-                                  settle_time=0.001, sim_time=1.0)
+        return settled_firingrate(
+            self.step_math, J, [voltage, recovery],
+            settle_time=0.001, sim_time=1.0, out=out)
 
     def step_math(self, dt, J, spiked, voltage, recovery):
         """Implement the Izhikevich nonlinearity."""
