@@ -216,6 +216,10 @@ class Neurons(object):
         return self._ensemble()
 
     @property
+    def probeable(self):
+        return ('output', 'input') + self.ensemble.neuron_type.probeable
+
+    @property
     def size_in(self):
         if isinstance(self.ensemble.neuron_type, Direct):
             # This will prevent users from connecting/probing Direct neurons
@@ -230,7 +234,3 @@ class Neurons(object):
             # (since there aren't actually any neurons being simulated).
             return 0
         return self.ensemble.n_neurons
-
-    @property
-    def probeable(self):
-        return ('output', 'input') + self.ensemble.neuron_type.probeable

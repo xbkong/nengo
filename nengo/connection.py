@@ -312,6 +312,8 @@ class Connection(NengoObject):
         Linear transform mapping the pre function output to the post input.
     """
 
+    probeable = ('output', 'input', 'weights')
+
     pre = PrePostParam('pre', nonzero_size_out=True)
     post = PrePostParam('post', nonzero_size_in=True)
     synapse = SynapseParam('synapse', default=Lowpass(tau=0.005))
@@ -332,8 +334,6 @@ class Connection(NengoObject):
         "Connect to a learning rule instead.",
         since="v2.1.0",
         url="https://github.com/nengo/nengo/issues/632#issuecomment-71663849")
-
-    probeable = ('output', 'input', 'weights')
 
     def __init__(self, pre, post, synapse=Default, function=Default,
                  transform=Default, solver=Default, learning_rule_type=Default,

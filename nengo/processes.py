@@ -128,6 +128,7 @@ class BrownNoise(FilteredNoise):
     seed : int, optional
         Random number seed. Ensures noise will be the same each run.
     """
+
     def __init__(self, dist=Gaussian(mean=0, std=1), **kwargs):
         super(BrownNoise, self).__init__(
             synapse=LinearFilter([1], [1, 0]),
@@ -224,6 +225,7 @@ class PresentInput(Process):
     presentation_time : float
         Show each input for `presentation_time` seconds.
     """
+
     inputs = NdarrayParam('inputs', shape=('...',))
     presentation_time = NumberParam('presentation_time', low=0, low_open=True)
 
