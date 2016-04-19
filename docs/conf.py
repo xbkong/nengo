@@ -24,7 +24,12 @@ extensions = [
     'nengo.utils.docutils',
 ]
 
-# -- sphinx.ext.todo config
+# -- sphinx.ext.autodoc
+autoclass_content = 'both'  # class and __init__ docstrings are concatenated
+autodoc_default_flags = ['members']
+autodoc_member_order = 'bysource'  # default is alphabetical
+
+# -- sphinx.ext.todo
 todo_include_todos = True
 # -- numpydoc config
 numpydoc_show_class_members = False

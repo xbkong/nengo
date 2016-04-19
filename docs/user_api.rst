@@ -2,142 +2,103 @@
 Nengo Modelling API
 *******************
 
-Objects
-=======
+.. default-role:: obj
 
-Network
--------
+Nengo Objects
+=============
 
-.. autoclass:: nengo.network.Network
-   :members:
+.. autoclass:: nengo.Network
 
-Ensemble
---------
+.. autoclass:: nengo.Ensemble
 
-An ensemble is a group of neurons
-that collectively represent information.
+.. autoclass:: nengo.ensemble.Neurons
 
-.. autoclass:: nengo.ensemble.Ensemble
-   :members:
+.. autoclass:: nengo.Node
 
-Node
-----
+.. autoclass:: nengo.Connection
 
-A node is used to provide arbitrary data to an ensemble,
-or to do some other arbitrary processing.
+.. autoclass:: nengo.connection.LearningRule
 
-.. autoclass:: nengo.node.Node
-   :members:
-
-Connection
-----------
-
-A connection encapsulates all of the information necessary
-to create a connection between two Nengo objects.
-A lot of processing goes on behind the scenes
-for each connection, but it is possible to
-influence that processing by changing several parameters.
-
-.. autoclass:: nengo.connection.Connection
-   :members:
-
-Probe
------
-
-.. autoclass:: nengo.probe.Probe
-   :members:
+.. autoclass:: nengo.Probe
 
 Neuron types
 ============
 
 .. autoclass:: nengo.neurons.NeuronType
-   :members:
 
-.. autoclass:: nengo.neurons.Direct
-   :members:
+.. autoclass:: nengo.Direct
 
-.. autoclass:: nengo.neurons.RectifiedLinear
-   :members:
+.. autoclass:: nengo.RectifiedLinear
 
-.. autoclass:: nengo.neurons.Sigmoid
-   :members:
+.. autoclass:: nengo.Sigmoid
 
-.. autoclass:: nengo.neurons.LIF
-   :members:
+.. autoclass:: nengo.LIF
 
-.. autoclass:: nengo.neurons.LIFRate
-   :members:
+.. autoclass:: nengo.LIFRate
 
-.. autoclass:: nengo.neurons.AdaptiveLIF
-   :members:
+.. autoclass:: nengo.AdaptiveLIF
 
-.. autoclass:: nengo.neurons.AdaptiveLIFRate
-   :members:
+.. autoclass:: nengo.AdaptiveLIFRate
 
-.. autoclass:: nengo.neurons.Izhikevich
-   :members:
+.. autoclass:: nengo.Izhikevich
 
 Learning rule types
 ===================
 
 .. autoclass:: nengo.learning_rules.LearningRuleType
 
-.. autoclass:: nengo.learning_rules.PES
-   :members:
+.. autoclass:: nengo.PES
 
-.. autoclass:: nengo.learning_rules.BCM
-   :members:
+.. autoclass:: nengo.BCM
 
-.. autoclass:: nengo.learning_rules.Oja
-   :members:
+.. autoclass:: nengo.Oja
 
-Synapses
-========
+.. autoclass:: nengo.Voja
 
-.. autoclass:: nengo.synapses.Lowpass
-   :members:
+Synapse models
+==============
 
-.. autoclass:: nengo.synapses.Alpha
-   :members:
+.. autoclass:: nengo.synapses.Synapse
 
-.. autoclass:: nengo.synapses.LinearFilter
-   :members:
+.. autofunction:: nengo.synapses.filt
 
-Decoder solvers
-===============
+.. autofunction:: nengo.synapses.filtfilt
+
+.. autoclass:: nengo.LinearFilter
+
+.. autoclass:: nengo.Lowpass
+
+.. autoclass:: nengo.Alpha
+
+.. autoclass:: nengo.synapses.Triangle
+
+Decoder and connection weight solvers
+=====================================
+
+.. autoclass:: nengo.solvers.Solver
+   :special-members: __call__
 
 .. autoclass:: nengo.solvers.Lstsq
-   :members:
 
 .. autoclass:: nengo.solvers.LstsqNoise
-   :members:
 
 .. autoclass:: nengo.solvers.LstsqMultNoise
-   :members:
 
 .. autoclass:: nengo.solvers.LstsqL2
-   :members:
 
 .. autoclass:: nengo.solvers.LstsqL2nz
-   :members:
 
 .. autoclass:: nengo.solvers.LstsqL1
-   :members:
 
 .. autoclass:: nengo.solvers.LstsqDrop
-   :members:
 
 .. autoclass:: nengo.solvers.Nnls
-   :members:
 
 .. autoclass:: nengo.solvers.NnlsL2
-   :members:
 
 .. autoclass:: nengo.solvers.NnlsL2nz
-   :members:
 
 Simulator
 =========
 
 .. autoclass:: nengo.simulator.Simulator
-   :members:
