@@ -36,9 +36,6 @@ Signals
 .. autoclass:: nengo.builder.signal.Signal
    :members:
 
-.. autoclass:: nengo.builder.signal.SignalView
-   :members:
-
 Operators
 ---------
 
@@ -64,9 +61,6 @@ Operators
    :members:
 
 .. autoclass:: nengo.builder.learning_rules.SimBCM
-   :members:
-
-.. autoclass:: nengo.builder.synapses.SimSynapse
    :members:
 
 Build functions
