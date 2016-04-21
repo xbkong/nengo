@@ -1,5 +1,3 @@
-"""Signals represent values that will be used in the simulation.
-"""
 from __future__ import division
 
 import numpy as np
@@ -10,7 +8,29 @@ from nengo.utils.compat import StringIO, is_integer
 
 
 class Signal(object):
-    """Represents data or views onto data within Nengo"""
+    """Represents data or views onto data within a Nengo simulation.
+
+    Signals are tightly coupled to NumPy arrays, which is how live data is
+    represented in a Nengo simulation. Signals provide a view onto the
+    important metadata of the live NumPy array, and maintain the original
+    value of the array in order to reset the simulation to the initial state.
+
+    Parameters
+    ----------
+    initial_value : array_like
+        The initial value of the signal. Much of the metadata tracked by the
+        Signal is based on this array as well (e.g., dtype).
+    name : str, optional (Default: None)
+        Name of the signal. Primarily used for debugging.
+        If None, the memory location of the Signal will be used.
+    base : Signal, optional (Default: None)
+        The base signal, if this signal is a view on another signal.
+        Linking the two signals with the ``base`` argument is necessary
+        to ensure that their live data is also linked.
+    readonly : bool, optional (Default: False)
+        Whether this signal and its related live data should be marked as
+        readonly. Writing to these arrays will raise an exception.
+    """
 
     # Set assert_named_signals True to raise an Exception
     # if model.signal is used to create a signal with no name.
@@ -41,24 +61,35 @@ class Signal(object):
 
     @property
     def base(self):
+        """(Signal or None) The base signal, if this signal is a view.
+
+        Linking the two signals with the ``base`` argument is necessary
+        to ensure that their live data is also linked.
+        """
         return self if self._base is None else self._base
 
     @property
     def dtype(self):
+        """(numpy.dtype) Data type of the signal (e.g., float64)."""
         return self.initial_value.dtype
 
     @property
     def elemoffset(self):
-        """Offset of data from base in elements"""
+        """(int) Offset of data from base in elements."""
         return self.offset // self.itemsize
 
     @property
     def elemstrides(self):
-        """Strides of data in elements"""
+        """(int) Strides of data in elements."""
         return tuple(s // self.itemsize for s in self.strides)
 
     @property
     def initial_value(self):
+        """(numpy.ndarray) Initial value of the signal.
+
+        Much of the metadata tracked by the Signal is based on this array
+        as well (e.g., dtype).
+        """
         return self._initial_value
 
     @initial_value.setter
@@ -67,14 +98,17 @@ class Signal(object):
 
     @property
     def is_view(self):
+        """(bool) True if this Signal is a view on another Signal."""
         return self._base is not None
 
     @property
     def itemsize(self):
+        """(int) Size of an array element in bytes."""
         return self.initial_value.itemsize
 
     @property
     def name(self):
+        """(str) Name of the signal. Primarily used for debugging."""
         return self._name if self._name is not None else ("0x%x" % id(self))
 
     @name.setter
@@ -83,15 +117,17 @@ class Signal(object):
 
     @property
     def ndim(self):
+        """(int) Number of array dimensions."""
         return self.initial_value.ndim
 
     @property
     def offset(self):
-        """Offset of data from base in bytes."""
+        """(int) Offset of data from base in bytes."""
         return npext.array_offset(self.initial_value)
 
     @property
     def readonly(self):
+        """(bool) Whether associated live data can be changed."""
         return self._readonly
 
     @readonly.setter
@@ -100,15 +136,17 @@ class Signal(object):
 
     @property
     def shape(self):
+        """(tuple) Tuple of array dimensions."""
         return self.initial_value.shape
 
     @property
     def size(self):
+        """(int) Total number of elements."""
         return self.initial_value.size
 
     @property
     def strides(self):
-        """Strides of data in bytes"""
+        """(tuple) Strides of data in bytes."""
         return self.initial_value.strides
 
     def __getitem__(self, item):
@@ -128,6 +166,14 @@ class Signal(object):
                       base=self.base)
 
     def reshape(self, *shape):
+        """Return a view on this signal with a different shape.
+
+        Note that ``reshape`` cannot change the overall size of the signal.
+        See `numpy.reshape` for more details.
+
+        Any number of integers can be passed to this method,
+        describing the desired shape of the returned signal.
+        """
         return Signal(self._initial_value.reshape(*shape),
                       name="%s.reshape(%s)" % (self.name, shape),
                       base=self.base)
@@ -137,7 +183,7 @@ class Signal(object):
         return self.reshape((self.size, 1))
 
     def row(self):
-        """Reshape into a row vector."""
+        """Return a view on this signal with row vector shape."""
         return self.reshape((1, self.size))
 
     def may_share_memory(self, other):

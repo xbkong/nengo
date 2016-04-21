@@ -202,17 +202,16 @@ class Process(FrozenObject):
 
     Attributes
     ----------
-    default_size_in : int
-        Sets the default size in for nodes using this process. Default: 0.
-    default_size_out : int
+    default_size_in : int (Default: 0)
+        Sets the default size in for nodes using this process.
+    default_size_out : int (Default: 1)
         Sets the default size out for nodes running this process. Also,
-        if `d` isn't specified in `run` or `run_steps`, this will be used.
-        Default: 1.
-    default_dt : float
-        If `dt` isn't specified in `run`, `run_steps`, `ntrange`, or `trange`,
-        this will be used. Default: 0.001 (1 millisecond).
-    seed : int, optional
-        Random number seed. Ensures noise will be the same each run.
+        if ``d`` is not specified in `.run` or `.run_steps`, this will be used.
+    default_dt : float (Default: 0.001 (1 millisecond))
+        If ``dt`` is not specified in `.run`, `.run_steps`, `.ntrange`,
+        or `.trange`, this will be used.
+    seed : int, optional (Deafult: None)
+        Random number seed. Ensures random factors will be the same each run.
     """
 
     default_size_in = IntParam('default_size_in', low=0)

@@ -58,6 +58,26 @@ def build_lifrate(model, lifrate, neurons):
 
 @Builder.register(LIF)
 def build_lif(model, lif, neurons):
+    """Builds a `.LIF` object into a model.
+
+    In addition to adding a `.SimNeurons` operator, this build function sets up
+    signals to track the voltage and refractory times for each neuron.
+
+    Parameters
+    ----------
+    model : Model
+        The model to build into.
+    lif : LIF
+        Neuron type to build.
+    neuron : Neurons
+        The neuron population object corresponding to the neuron type.
+
+    Notes
+    -----
+    Does not modify ``model.params[]`` and can therefore be called
+    more than once with the same `.LIF` instance.
+    """
+
     model.sig[neurons]['voltage'] = Signal(
         np.zeros(neurons.size_in), name="%s.voltage" % neurons)
     model.sig[neurons]['refractory_time'] = Signal(
@@ -72,6 +92,26 @@ def build_lif(model, lif, neurons):
 
 @Builder.register(AdaptiveLIFRate)
 def build_alifrate(model, alifrate, neurons):
+    """Builds an `.AdaptiveLIFRate` object into a model.
+
+    In addition to adding a `.SimNeurons` operator, this build function sets up
+    signals to track the adaptation term for each neuron.
+
+    Parameters
+    ----------
+    model : Model
+        The model to build into.
+    alifrate : AdaptiveLIFRate
+        Neuron type to build.
+    neuron : Neurons
+        The neuron population object corresponding to the neuron type.
+
+    Notes
+    -----
+    Does not modify ``model.params[]`` and can therefore be called
+    more than once with the same `.AdaptiveLIFRate` instance.
+    """
+
     model.sig[neurons]['adaptation'] = Signal(
         np.zeros(neurons.size_in), name="%s.adaptation" % neurons)
     model.add_op(SimNeurons(neurons=alifrate,
@@ -82,6 +122,27 @@ def build_alifrate(model, alifrate, neurons):
 
 @Builder.register(AdaptiveLIF)
 def build_alif(model, alif, neurons):
+    """Builds an `.AdaptiveLIF` object into a model.
+
+    In addition to adding a `.SimNeurons` operator, this build function sets up
+    signals to track the voltage, refractory time, and adaptation term
+    for each neuron.
+
+    Parameters
+    ----------
+    model : Model
+        The model to build into.
+    alif : AdaptiveLIF
+        Neuron type to build.
+    neuron : Neurons
+        The neuron population object corresponding to the neuron type.
+
+    Notes
+    -----
+    Does not modify ``model.params[]`` and can therefore be called
+    more than once with the same `.AdaptiveLIF` instance.
+    """
+
     model.sig[neurons]['voltage'] = Signal(
         np.zeros(neurons.size_in), name="%s.voltage" % neurons)
     model.sig[neurons]['refractory_time'] = Signal(
@@ -98,6 +159,26 @@ def build_alif(model, alif, neurons):
 
 @Builder.register(Izhikevich)
 def build_izhikevich(model, izhikevich, neurons):
+    """Builds an `.Izhikevich` object into a model.
+
+    In addition to adding a `.SimNeurons` operator, this build function sets up
+    signals to track the voltage and recovery terms for each neuron.
+
+    Parameters
+    ----------
+    model : Model
+        The model to build into.
+    izhikevich : Izhikevich
+        Neuron type to build.
+    neuron : Neurons
+        The neuron population object corresponding to the neuron type.
+
+    Notes
+    -----
+    Does not modify ``model.params[]`` and can therefore be called
+    more than once with the same `.Izhikevich` instance.
+    """
+
     model.sig[neurons]['voltage'] = Signal(
         np.ones(neurons.size_in) * izhikevich.reset_voltage,
         name="%s.voltage" % neurons)

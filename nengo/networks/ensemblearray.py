@@ -18,30 +18,62 @@ class EnsembleArray(nengo.Network):
     However, since the neurons represent different dimensions separately,
     we cannot compute nonlinear interactions between those dimensions.
 
+    Note that in addition to the parameters below, parameters affecting
+    all of the sub-ensembles can be passed to the ensemble array.
+    For example::
+
+        ea = nengo.networks.EnsembleArray(20, 2, radius=1.5)
+
+    creates an ensemble array with 2 sub-ensembles, each with 20 neurons,
+    and a radius of 1.5.
+
     Parameters
     ----------
     n_neurons : int
         The number of neurons in each sub-ensemble.
     n_ensembles : int
         The number of sub-ensembles to create.
-    ens_dimensions: int, optional
-        The dimensionality of each sub-ensemble. Default: 1.
-    neuron_nodes : bool, optional
+
+    ens_dimensions : int, optional (Default: 1)
+        The dimensionality of each sub-ensemble.
+    neuron_nodes : bool, optional (Default: False)
         Whether to create a node that provides each access to each individual
-        neuron, typically for the purpose of inibiting the entire
-        EnsembleArray. Default: False.
-        *Note: this parameter is deprecated. Please call add_neuron_input
-        or add_neuron_output instead.*
-    label : str, optional
+        neuron, typically for the purpose of inibiting the entire EnsembleArray.
+
+        .. note:: Deprecated in Nengo 2.1.0.
+                  Call `~.EnsembleArray.add_neuron_input` or
+                  `~.EnsembleArray.add_neuron_output` instead.
+    label : str, optional (Default: None)
         A name to assign this EnsembleArray.
         Used for visualization and debugging.
-    seed : int, optional
+    seed : int, optional (Default: None)
         Random number seed that will be used in the build step.
-    add_to_container : bool, optional
-        Whether this network will be added to the current context.
+    add_to_container : bool, optional (Default: None)
+        Determines if this network will be added to the current container.
+        If None, this network will be added to the network at the top of the
+        ``Network.context`` stack unless the stack is empty.
 
-    Additional parameters for each sub-ensemble can be passed through
-    ``**ens_kwargs``.
+    Attributes
+    ----------
+    dimensions_per_ensemble : int
+        The dimensionality of each sub-ensemble.
+    ea_ensembles : list
+        The sub-ensembles in the ensemble array.
+    input : Node
+        A node that provides input to all of the ensembles in the array.
+    n_ensembles : int
+        The number of sub-ensembles to create.
+    n_neurons : int
+        The number of neurons in each sub-ensemble.
+    neuron_input : Node or None
+        A node that provides input to all the neurons in the ensemble array.
+        None unless created in `~.EnsembleArray.add_neuron_input`.
+    neuron_output : Node or None
+        A node that gathers neural output from all the neurons in the ensemble
+        array. None unless created in `~.EnsembleArray.add_neuron_output`.
+    output : Node
+        A node that gathers decoded output from all of the ensembles
+        in the array.
     """
 
     def __init__(self, n_neurons, n_ensembles, ens_dimensions=1,
@@ -92,6 +124,7 @@ class EnsembleArray(nengo.Network):
 
     @property
     def dimensions(self):
+        """(int) Dimensionality of the ensemble array."""
         return self.n_ensembles * self.dimensions_per_ensemble
 
     @with_self
