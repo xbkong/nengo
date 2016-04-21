@@ -350,6 +350,8 @@ def build_learning_rule(model, rule):
     model.add_op(
         ElementwiseInc(model.sig['common'][1], delta, target, tag=tag))
     model.sig[rule]['delta'] = delta
+
+    model.params[rule] = None  # by default, no build-time info to return
     model.build(rule.learning_rule_type, rule)  # updates delta
 
 
@@ -393,8 +395,6 @@ def build_bcm(model, bcm, rule):
     model.sig[rule]['pre_filtered'] = pre_filtered
     model.sig[rule]['post_filtered'] = post_filtered
 
-    model.params[rule] = None  # no build-time info to return
-
 
 @Builder.register(Oja)
 def build_oja(model, oja, rule):
@@ -434,8 +434,6 @@ def build_oja(model, oja, rule):
     # expose these for probes
     model.sig[rule]['pre_filtered'] = pre_filtered
     model.sig[rule]['post_filtered'] = post_filtered
-
-    model.params[rule] = None  # no build-time info to return
 
 
 @Builder.register(Voja)
@@ -495,8 +493,6 @@ def build_voja(model, voja, rule):
 
     model.sig[rule]['scaled_encoders'] = scaled_encoders
     model.sig[rule]['post_filtered'] = post_filtered
-
-    model.params[rule] = None  # no build-time info to return
 
 
 @Builder.register(PES)
@@ -572,5 +568,3 @@ def build_pes(model, pes, rule):
     model.sig[rule]['error'] = error
     model.sig[rule]['correction'] = correction
     model.sig[rule]['activities'] = acts
-
-    model.params[rule] = None  # no build-time info to return
