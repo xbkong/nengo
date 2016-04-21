@@ -188,6 +188,39 @@ class EnsembleArray(nengo.Network):
 
     @with_self
     def add_output(self, name, function, synapse=None, **conn_kwargs):
+        """Adds a node that collects the decoded output of all ensembles.
+
+        By default, this is called once in ``__init__`` with ``function=None``.
+        However, this can be called multiple times with different functions,
+        similar to the way in which an ensemble can be connected to many
+        downstream ensembles with different functions.
+
+        Note that in addition to the parameters below, parameters affecting
+        all of the connections from the sub-ensembles to the new node
+        can be passed to this function. For example::
+
+            ea.add_output('output', None, solver=nengo.solers.Lstsq())
+
+        creates a new output with the decoders of each connection solved for
+        with the `.Lstsq` solver.
+
+        Parameters
+        ----------
+        name : str
+            The name of the output. This will also be the name of the attribute
+            set on the ensemble array.
+        function : callable or iterable of callables
+            The function to compute across the connection from sub-ensembles
+            to the new output node. If function is an iterable, it must be
+            an iterable consisting of one function for each sub-ensemble.
+        synapse : Synapse, optional (Default: None)
+            The synapse model with which to filter the connections from
+            sub-ensembles to the new output node. This is kept separate from
+            the other ``conn_kwargs`` because this defaults to None rather
+            than the default synapse model. In almost all cases, the synapse
+            should stay as None, and instead applied to the connection from
+            the output node.
+        """
         dims_per_ens = self.dimensions_per_ensemble
 
         # get output size for each ensemble
