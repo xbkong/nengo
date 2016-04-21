@@ -10,24 +10,24 @@ class Compare(Module):
     Parameters
     ----------
     dimensions : int
-        Number of dimensions for the two vectors to be compared
-    vocab : Vocabulary, optional
-        The vocabulary to use to interpret the vectors
-    neurons_per_multiply : int
-        Number of neurons to use in each product computation
-    input_magnitude : float
-        Effective input magnitude for the multiplication.
-        The actual input magnitude will be this value times sqrt(2)
+        Number of dimensions for the two vectors to be compared.
+    vocab : Vocabulary, optional (Default: None)
+        The vocabulary to use to interpret the vector. If None,
+        the default vocabulary for the given dimensionality is used.
+    neurons_per_multiply : int, optional (Default: 200)
+        Number of neurons to use in each product computation.
+    input_magnitude : float, optional (Default: 1.0)
+        The expected magnitude of the vectors to be multiplied.
+        This value is used to determine the radius of the ensembles
+        computing the element-wise product.
 
-    label : str, optional
+    label : str, optional (Default: None)
         A name for the ensemble. Used for debugging and visualization.
-        Default: None
-    seed : int, optional
+    seed : int, optional (Default: None)
         The seed used for random number generation.
-        Default: None
-    add_to_container : bool, optional
+    add_to_container : bool, optional (Default: None)
         Determines if this Network will be added to the current container.
-        Defaults to true iff currently within a Network.
+        If None, will be true if currently within a Network.
     """
     def __init__(self, dimensions, vocab=None, neurons_per_multiply=200,
                  input_magnitude=1.0, label=None, seed=None,

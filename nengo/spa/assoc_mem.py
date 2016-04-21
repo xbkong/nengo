@@ -7,45 +7,42 @@ class AssociativeMemory(Module):
 
     Parameters
     ----------
-    input_vocab: list of numpy.array, spa.Vocabulary
+    input_vocab: list or Vocabulary
         The vocabulary (or list of vectors) to match.
-    output_vocab: list of numpy.array, spa.Vocabulary, optional
+    output_vocab: list or Vocabulary, optional (Default: None)
         The vocabulary (or list of vectors) to be produced for each match. If
-        not given, the associative memory will act like an auto-associative
-        memory (cleanup memory).
-    default_output_vector: numpy.array, spa.SemanticPointer, optional
-        The vector to be produced if the input value matches none of vectors
-        in the input vector list.
-    threshold: float, optional
+        None, the associative memory will act like an autoassociative memory
+        (cleanup memory).
+    input_keys : list, optional (Default: None)
+        A list of strings that correspond to the input vectors.
+    output_keys : list, optional (Default: None)
+        A list of strings that correspond to the output vectors.
+    default_output_key: str, optional (Default: None)
+        The semantic pointer string to be produced if the input value matches
+        none of vectors in the input vector list.
+    threshold: float, optional (Default: 0.3)
         The association activation threshold.
-    input_scale: float, optional
-        Scaling factor to apply on the input vectors.
-
-    inhibitable: boolean, optional
+    inhibitable: bool, optional (Default: False)
         Flag to indicate if the entire associative memory module is
-        inhibitable (entire thing can be shut off).
-
-    wta_output: boolean, optional
+        inhibitable (i.e., the entire module can be inhibited).
+    wta_output: bool, optional (Default: False)
         Flag to indicate if output of the associative memory should contain
-        more than one vectors. Set to True if only one vectors output is
-        desired -- i.e. a winner-take-all (wta) output. Leave as default
-        (False) if (possible) combinations of vectors is desired.
-    wta_inhibit_scale: float, optional
-        Scaling factor on the winner-take-all (wta) inhibitory connections.
-    wta_synapse: float, optional
+        more than one vector. If True, only one vector's output will be
+        produced; i.e. produce a winner-take-all (WTA) output.
+        If False, combinations of vectors will be produced.
+    wta_inhibit_scale: float, optional (Default: 3.0)
+        Scaling factor on the winner-take-all (WTA) inhibitory connections.
+    wta_synapse: float, optional (Default: 0.005)
         Synapse to use for the winner-take-all (wta) inhibitory connections.
-
-    threshold_output: boolean, optional
-        Adds a threholded output.
-    label : str, optional
+    threshold_output: bool, optional (Default: False)
+        Adds a threholded output if True.
+    label : str, optional (Default: None)
         A name for the ensemble. Used for debugging and visualization.
-        Default: None
-    seed : int, optional
+    seed : int, optional (Default: None)
         The seed used for random number generation.
-        Default: None
-    add_to_container : bool, optional
+    add_to_container : bool, optional (Default: None)
         Determines if this Network will be added to the current container.
-        Defaults to true iff currently within a Network.
+        If None, will be true if currently within a Network.
     """
 
     def __init__(self, input_vocab, output_vocab=None,  # noqa: C901
