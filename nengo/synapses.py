@@ -15,10 +15,51 @@ from nengo.utils.numpy import as_shape
 class Synapse(Process):
     """Abstract base class for synapse model.
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault('default_size_in', 1)
-        kwargs.setdefault('default_size_out', kwargs['default_size_in'])
-        super(Synapse, self).__init__(**kwargs)
+    Conceptually, a synapse model emulates a biological synapse, taking in
+    input in the form of released neurotransmitter and opening ion channels
+    to allow more or less current to flow into the neuron.
+
+    In Nengo, the implementation of a synapse is as a specific case of a
+    `.Process` in which the input and output shapes are the same.
+    The input is the current across the synapse, and the output isthe current
+    that will be imparted in the postsynaptic neuron.
+
+    Synapses also contain the `.Synapse.filt` and `.Synapse.filtfilt` methods,
+    which make it easy to use Nengo's synapse models
+    outside of Nengo simulations.
+
+    Parameters
+    ----------
+    default_size_in : int, optional (Default: 1)
+        The size_in used if not specified.
+    default_size_out : int (Default: None)
+        The size_out used if not specified.
+        If None, will be the same as default_size_in.
+    default_dt : float (Default: 0.001 (1 millisecond))
+        The simulation timestep used if not specified.
+    seed : int, optional (Default: None)
+        Random number seed. Ensures random factors will be the same each run.
+
+    Attributes
+    ----------
+    default_dt : float (Default: 0.001 (1 millisecond))
+        The simulation timestep used if not specified.
+    default_size_in : int (Default: 0)
+        The size_in used if not specified.
+    default_size_out : int (Default: 1)
+        The size_out used if not specified.
+    seed : int, optional (Deafult: None)
+        Random number seed. Ensures random factors will be the same each run.
+    """
+
+    def __init__(self, default_size_in=1, default_size_out=None,
+                 default_dt=0.001, seed=None):
+        if default_size_out is None:
+            default_size_out = default_size_in
+        super(Synapse, self).__init__(default_size_in=default_size_in,
+                                      default_size_out=default_size_out,
+                                      default_dt=default_dt,
+                                      seed=seed)
 
     def filt(self, x, dt=None, axis=0, y0=None, copy=True, filtfilt=False):
         """Filter ``x`` with this synapse model.
