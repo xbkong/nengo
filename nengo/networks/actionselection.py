@@ -139,7 +139,7 @@ def BasalGanglia(dimensions, n_neurons_per_ensemble=100, output_weight=-3.,
     net.strD1 : EnsembleArray
         Striatal D1 ensembles.
     net.strD2 : EnsembleArray
-        Straital D2 ensembles.
+        Striatal D2 ensembles.
 
     References
     ----------

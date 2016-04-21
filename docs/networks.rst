@@ -33,12 +33,14 @@ useful:
 
 .. autofunction:: nengo.networks.Thalamus
 
-.. autofunction:: nengo.networks.InputGatedMemory
-
-.. autofunction:: nengo.networks.Product
+.. autoclass:: nengo.networks.AssociativeMemory
 
 .. autofunction:: nengo.networks.CircularConvolution
 
 .. autofunction:: nengo.networks.Integrator
 
 .. autofunction:: nengo.networks.Oscillator
+
+.. autofunction:: nengo.networks.Product
+
+.. autofunction:: nengo.networks.InputGatedMemory
