@@ -59,6 +59,7 @@ Learning
    examples/learn_square
    examples/learn_product
    examples/learn_unsupervised
+   examples/learn_associations
 
 Networks
 ========
