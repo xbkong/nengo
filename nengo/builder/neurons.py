@@ -2,20 +2,56 @@ import numpy as np
 
 from nengo.builder import Builder, Operator, Signal
 from nengo.neurons import (AdaptiveLIF, AdaptiveLIFRate, Izhikevich, LIF,
-                           LIFRate, RectifiedLinear, Sigmoid)
+                           LIFRate, NeuronType)
 
 
 class SimNeurons(Operator):
-    """Set output to neuron model output for the given input current."""
+    """Set a neuron model output for the given input current.
 
-    def __init__(self, neurons, J, output, states=[], tag=None):
+    Implements ``neurons.step_math(dt, J, output, *states)``.
+
+    Parameters
+    ----------
+    neurons : NeuronType
+        The `.NeuronType`, which defines a ``step_math`` function.
+    J : Signal
+        The input current.
+    output : Signal
+        The neuron output signal that will be set.
+    states : list, optional (Default: None)
+        A list of additional neuron state signals set by ``step_math``.
+    tag : str, optional (Default: None)
+        A label associated with the operator, for debugging purposes.
+
+    Attributes
+    ----------
+    J : Signal
+        The input current.
+    neurons : NeuronType
+        The `.NeuronType`, which defines a ``step_math`` function.
+    output : Signal
+        The neuron output signal that will be set.
+    states : list
+        A list of additional neuron state signals set by ``step_math``.
+    tag : str or None
+        A label associated with the operator, for debugging purposes.
+
+    Notes
+    -----
+    1. sets ``[output] + states``
+    2. incs ``[]``
+    3. reads ``[J]``
+    4. updates ``[]``
+    """
+
+    def __init__(self, neurons, J, output, states=None, tag=None):
         self.neurons = neurons
         self.J = J
         self.output = output
-        self.states = states
+        self.states = [] if states is None else states
         self.tag = tag
 
-        self.sets = [output] + states
+        self.sets = [output] + self.states
         self.incs = []
         self.reads = [J]
         self.updates = []
@@ -33,23 +69,31 @@ class SimNeurons(Operator):
         return step_simneurons
 
 
-@Builder.register(RectifiedLinear)
-def build_rectifiedlinear(model, reclinear, neurons):
-    model.add_op(SimNeurons(neurons=reclinear,
-                            J=model.sig[neurons]['in'],
-                            output=model.sig[neurons]['out']))
+@Builder.register(NeuronType)
+def build_neurons(model, neurontype, neurons):
+    """Builds a `.NeuronType` object into a model.
 
+    This build function works with any `.NeuronType` that does not require
+    extra state, like `.RectifiedLinear` and `.LIFRate`. This function adds a
+    `.SimNeurons` operator connecting the input current to the
+    neural output signals.
 
-@Builder.register(Sigmoid)
-def build_sigmoid(model, sigmoid, neurons):
-    model.add_op(SimNeurons(neurons=sigmoid,
-                            J=model.sig[neurons]['in'],
-                            output=model.sig[neurons]['out']))
+    Parameters
+    ----------
+    model : Model
+        The model to build into.
+    neurontype : NeuronType
+        Neuron type to build.
+    neuron : Neurons
+        The neuron population object corresponding to the neuron type.
 
+    Notes
+    -----
+    Does not modify ``model.params[]`` and can therefore be called
+    more than once with the same `.NeuronType` instance.
+    """
 
-@Builder.register(LIFRate)
-def build_lifrate(model, lifrate, neurons):
-    model.add_op(SimNeurons(neurons=lifrate,
+    model.add_op(SimNeurons(neurons=neurontype,
                             J=model.sig[neurons]['in'],
                             output=model.sig[neurons]['out']))
 
