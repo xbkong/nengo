@@ -79,7 +79,7 @@ class Probe(NengoObject):
         Sampling period in seconds. If None, the ``dt`` of the simluation
         will be used.
     synapse : Synapse, optional (Default: None)
-        A synaptic model to filtering the probed signal.
+        A synaptic model to filter the probed signal.
     solver : Solver, optional (Default: ``ConnectionDefault``)
         `~nengo.solvers.Solver` to compute decoders
         for probes that require them.
@@ -100,7 +100,7 @@ class Probe(NengoObject):
         `~nengo.solvers.Solver` to compute decoders. Only used for probes
         of an ensemble's decoded output.
     synapse : Synapse or None
-        A synaptic model to filtering the probed signal.
+        A synaptic model to filter the probed signal.
     target : Ensemble, Neurons, Node, or Connection
         The object to probe.
     """

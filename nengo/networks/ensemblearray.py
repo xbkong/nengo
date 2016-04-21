@@ -37,8 +37,9 @@ class EnsembleArray(nengo.Network):
     ens_dimensions : int, optional (Default: 1)
         The dimensionality of each sub-ensemble.
     neuron_nodes : bool, optional (Default: False)
-        Whether to create a node that provides each access to each individual
-        neuron, typically for the purpose of inibiting the entire EnsembleArray.
+        Whether to create a node that provides access to each individual
+        neuron, typically for the purpose of inhibiting the entire
+        EnsembleArray.
 
         .. note:: Deprecated in Nengo 2.1.0.
                   Call `~.EnsembleArray.add_neuron_input` or
@@ -217,9 +218,9 @@ class EnsembleArray(nengo.Network):
             The synapse model with which to filter the connections from
             sub-ensembles to the new output node. This is kept separate from
             the other ``conn_kwargs`` because this defaults to None rather
-            than the default synapse model. In almost all cases, the synapse
-            should stay as None, and instead applied to the connection from
-            the output node.
+            than the default synapse model. In almost all cases the synapse
+            should stay as None, and synaptic filtering should be performed in
+            the connection from the output node.
         """
         dims_per_ens = self.dimensions_per_ensemble
 

@@ -165,11 +165,11 @@ def slice_signal(model, signal, sl):
 def build_connection(model, conn):
     """Builds a `.Connection` object into a model.
 
-    A brief of summary of what happens in the connection build process,
+    A brief summary of what happens in the connection build process,
     in order:
 
     1. Solve for decoders.
-    2. Incorporate transform matrix with decoders to get weights.
+    2. Combine transform matrix with decoders to get weights.
     3. Add operators for computing the function
        or multiplying neural activity by weights.
     4. Call build function for the synapse.

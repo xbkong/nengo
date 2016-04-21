@@ -66,8 +66,8 @@ def BasalGanglia(dimensions, n_neurons_per_ensemble=100, output_weight=-3.,
                  input_bias=0., ampa_config=None, gaba_config=None, net=None):
     """Winner take all network, typically used for action selection.
 
-    The basal ganglia network outputs 0 at the max dimension,
-    and is negative elsewhere.
+    The basal ganglia network outputs approximately 0 at the dimension with
+    the largest value, and is negative elsewhere.
 
     While the basal ganglia is primarily defined by its winner-take-all
     function, it is also organized to match the organization of the human

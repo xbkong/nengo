@@ -483,7 +483,7 @@ class LearningRule(object):
 
     @property
     def modifies(self):
-        """(str) The quantity modified by the learning rule."""
+        """(str) The variable modified by the learning rule."""
         return self.learning_rule_type.modifies
 
     @property

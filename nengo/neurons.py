@@ -94,7 +94,8 @@ class NeuronType(FrozenObject):
 
         This default implementation takes the naive approach of running the
         step function for a second. This should suffice for most rate-based
-        neuron types; for spiking neurons it will likely fail.
+        neuron types; for spiking neurons it will likely fail (those models
+        should override this function).
 
         Parameters
         ----------

@@ -306,7 +306,7 @@ class NdarrayParam(Parameter):
     """A parameter where the value is a NumPy ndarray.
 
     If the passed value is an ndarray, a view onto that array is stored.
-    If the passed value is not an ndarray, it will be casted to an ndarray
+    If the passed value is not an ndarray, it will be cast to an ndarray
     of float64s and stored.
     """
 

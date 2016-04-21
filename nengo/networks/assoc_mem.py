@@ -49,7 +49,7 @@ class AssociativeMemory(nengo.Network):
         Default: None
     add_to_container : bool, optional
         Determines if this Network will be added to the current container.
-        Defaults to true iff currently with a Network.
+        Defaults to true iff currently within a Network.
     """
 
     exp_scale = 0.15  # Scaling factor for exponential distribution

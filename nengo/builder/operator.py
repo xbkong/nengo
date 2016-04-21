@@ -581,9 +581,9 @@ class DotInc(Operator):
     Parameters
     ----------
     A : Signal
-        The first signal to be multiplied.
+        The first signal to be multiplied (a matrix).
     X : Signal
-        The second signal to be multiplied.
+        The second signal to be multiplied (a vector).
     Y : Signal
         The signal to be incremented.
     tag : str, optional (Default: None)
@@ -642,7 +642,7 @@ class DotInc(Operator):
 
 
 class SimPyFunc(Operator):
-    """Set a signal to a Python function with optional arguments.
+    """Apply a Python function to a signal, with optional arguments.
 
     Implements ``output[...] = fn(*args)`` where ``args`` can
     include the current simulation time ``t`` and an input signal ``x``.

@@ -97,7 +97,7 @@ def CircularConvolution(n_neurons, dimensions, invert_a=False, invert_b=False,
 
     .. math:: c[i] = \sum_j a[j] b[i - j]
 
-    where the indices on :math:`b` are assumed to wrap around as required.
+    where negative indices on :math:`b` wrap around to the end of the vector.
 
     This computation can also be done in the Fourier domain,
 

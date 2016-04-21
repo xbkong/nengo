@@ -107,7 +107,6 @@ class Node(NengoObject):
     output : callable, array_like, or None
         Function that transforms the Node inputs into outputs,
         a constant output value, or None to transmit signals unchanged.
-
     size_in : int, optional (Default: 0)
         The number of dimensions of the input data parameter.
     size_out : int, optional (Default: None)

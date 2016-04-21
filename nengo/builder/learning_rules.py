@@ -206,8 +206,8 @@ class SimVoja(Operator):
     scale : ndarray
         The length of each encoder.
     learning_signal : Signal
-        Scalar signal to be multiplied by ``learning_rate``. Expected to range
-        between 0 and 1 to turn learning off or on, respectively.
+        Scalar signal to be multiplied by ``learning_rate``. Expected to be
+        either 0 or 1 to turn learning off or on, respectively.
     learning_rate : float
         The scalar learning rate.
     tag : str, optional (Default: None)
@@ -220,8 +220,8 @@ class SimVoja(Operator):
     learning_rate : float
         The scalar learning rate.
     learning_signal : Signal
-        Scalar signal to be multiplied by ``learning_rate``. Expected to range
-        between 0 and 1 to turn learning off or on, respectively.
+        Scalar signal to be multiplied by ``learning_rate``. Expected to be
+        either 0 or 1 to turn learning off or on, respectively.
     post_filtered : Signal
         Filtered postsynaptic activity signal.
     pre_decoded : Signal
@@ -292,7 +292,7 @@ def get_post_ens(conn):
 def build_learning_rule(model, rule):
     """Builds a `.LearningRule` object into a model.
 
-    A brief of summary of what happens in the learning rule build process,
+    A brief summary of what happens in the learning rule build process,
     in order:
 
     1. Create a delta signal for the weight change.

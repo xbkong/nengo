@@ -191,7 +191,9 @@ class Neurons(object):
     This should only ever be accessed through the ``neurons`` attribute of an
     ensemble, as a way to signal to `~nengo.Connection` that the connection
     should be made directly to the neurons rather than to the ensemble's
-    decoded value.
+    decoded value, e.g.::
+
+        nengo.Connection(a.neurons, b.neurons)
     """
     def __init__(self, ensemble):
         self._ensemble = weakref.ref(ensemble)

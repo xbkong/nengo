@@ -210,7 +210,7 @@ class Process(FrozenObject):
     default_dt : float (Default: 0.001 (1 millisecond))
         If ``dt`` is not specified in `.run`, `.run_steps`, `.ntrange`,
         or `.trange`, this will be used.
-    seed : int, optional (Deafult: None)
+    seed : int, optional (Default: None)
         Random number seed. Ensures random factors will be the same each run.
     """
 
@@ -245,7 +245,7 @@ class Process(FrozenObject):
         return np.random.RandomState(seed)
 
     def make_step(self, shape_in, shape_out, dt, rng):
-        """Create function to advance the process forward one time step."""
+        """Create function that advances the process forward one time step."""
         raise NotImplementedError("Process must implement `make_step` method.")
 
     def run(self, t, d=None, dt=None, rng=np.random, **kwargs):

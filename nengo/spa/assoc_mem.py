@@ -45,7 +45,7 @@ class AssociativeMemory(Module):
         Default: None
     add_to_container : bool, optional
         Determines if this Network will be added to the current container.
-        Defaults to true iff currently with a Network.
+        Defaults to true iff currently within a Network.
     """
 
     def __init__(self, input_vocab, output_vocab=None,  # noqa: C901

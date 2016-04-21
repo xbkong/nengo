@@ -25,7 +25,7 @@ class Input(Module):
         Default: None
     add_to_container : bool, optional
         Determines if this Network will be added to the current container.
-        Defaults to true iff currently with a Network.
+        Defaults to true iff currently within a Network.
 
     The arguments are indicate the module input name and the function
     to execute to generate inputs to that module.  The functions should

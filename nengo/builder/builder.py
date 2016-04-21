@@ -95,8 +95,8 @@ class Model(object):
 
         In addition to adding the operator, this method performs additional
         error checking by calling the operator's ``make_step`` function.
-        Calling ``make_step`` catches errors in which signals are not
-        properly initialized early, which aids debugging. For that reason,
+        Calling ``make_step`` catches errors early, such as when signals are
+        not properly initialized, which aids debugging. For that reason,
         we recommend calling this method over directly accessing
         the ``operators`` attribute.
         """
@@ -174,11 +174,11 @@ class Builder(object):
         """Build ``obj`` into ``model``.
 
         This method looks up the appropriate build function for ``obj`` and
-        calls with the model and other arguments provided.
+        calls it with the model and other arguments provided.
 
         Note that if a build function is not specified for a particular type
         (e.g., `.EnsembleArray`), the type's method resolution order will be
-        examined to determine the class hierarchy and look for superclasses
+        examined to look for superclasses
         with defined build functions (e.g., `.Network` in the case of
         `.EnsembleArray`).
 
@@ -187,7 +187,7 @@ class Builder(object):
         own models, rather than having to modify Nengo itself.
 
         In addition to the parameters listed below, further positional and
-        keyword arguments will be passed onto the build function unchanged.
+        keyword arguments will be passed unchanged into the build function.
 
         Parameters
         ----------

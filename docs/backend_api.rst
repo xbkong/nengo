@@ -7,12 +7,12 @@ Reference simulator
 Nengo is designed so that models created with the
 :doc:`Nengo modeling API <frontend_api>`
 work on a variety of different simulators.
-Simulators have been created to take advantage of
+For example, simulators have been created to take advantage of
 `GPUs <https://github.com/nengo/nengo_ocl/>`_ and
 `neuromorphic hardware <https://github.com/project-rig/nengo_spinnaker>`_.
 
 Nengo comes with a simulator that is relatively fast,
-but works on general purpose computers.
+and works on general purpose computers.
 For most users, the only thing that you need to know
 about the reference simulator is how to
 create and close a `nengo.Simulator` instance.
@@ -35,7 +35,7 @@ new neuron types, learning rules, and other components.
 `Bekolay et al., 2014
 <http://compneuro.uwaterloo.ca/publications/bekolay2014.html>`_
 provides a high-level description
-and detailed picture of the build process.
+of the build process.
 For lower-level details
 and reference documentation, read on.
 

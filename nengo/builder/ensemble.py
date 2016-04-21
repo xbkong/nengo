@@ -110,7 +110,7 @@ def get_gain_bias(ens, rng=np.random):
 def build_ensemble(model, ens):
     """Builds an `.Ensemble` object into a model.
 
-    A brief of summary of what happens in the ensemble build process, in order:
+    A brief summary of what happens in the ensemble build process, in order:
 
     1. Generate evaluation points and encoders.
     2. Normalize encoders to unit length.
@@ -119,7 +119,7 @@ def build_ensemble(model, ens):
     5. Add operator for injecting bias.
     6. Call build function for neuron type.
     7. Scale encoders by gain and radius.
-    8. Add operators for mulitplying decoded input signal by encoders and
+    8. Add operators for multiplying decoded input signal by encoders and
        incrementing the result in the neuron input signal.
     9. Call build function for injected noise.
 

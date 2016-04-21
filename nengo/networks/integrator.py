@@ -2,7 +2,7 @@ import nengo
 
 
 def Integrator(recurrent_tau, n_neurons, dimensions, net=None):
-    """An emsemble that accumulates input and maintains state.
+    """An ensemble that accumulates input and maintains state.
 
     This is accomplished through scaling the input signal and recurrently
     connecting an ensemble to itself to maintain state.

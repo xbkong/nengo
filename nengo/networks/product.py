@@ -21,7 +21,7 @@ def Product(n_neurons, dimensions, input_magnitude=1., net=None):
     n_neurons : int
         Number of neurons per dimension in the vector.
 
-        .. note:: These neurons will be distributed evently across two
+        .. note:: These neurons will be distributed evenly across two
                   ensembles. If an odd number of neurons is specified, the
                   extra neuron will not be used.
     dimensions : int

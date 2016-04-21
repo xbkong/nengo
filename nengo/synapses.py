@@ -21,12 +21,12 @@ class Synapse(Process):
 
     In Nengo, the implementation of a synapse is as a specific case of a
     `.Process` in which the input and output shapes are the same.
-    The input is the current across the synapse, and the output isthe current
-    that will be imparted in the postsynaptic neuron.
+    The input is the current across the synapse, and the output is the current
+    that will be induced in the postsynaptic neuron.
 
     Synapses also contain the `.Synapse.filt` and `.Synapse.filtfilt` methods,
-    which make it easy to use Nengo's synapse models
-    outside of Nengo simulations.
+    which make it easy to use Nengo's synapse models outside of Nengo
+    simulations.
 
     Parameters
     ----------
@@ -48,7 +48,7 @@ class Synapse(Process):
         The size_in used if not specified.
     default_size_out : int (Default: 1)
         The size_out used if not specified.
-    seed : int, optional (Deafult: None)
+    seed : int, optional (Default: None)
         Random number seed. Ensures random factors will be the same each run.
     """
 
@@ -115,7 +115,7 @@ class Synapse(Process):
 
     def make_step(self, shape_in, shape_out, dt, rng, y0=None,
                   dtype=np.float64):
-        """Create function to advance the synapse forward one time step.
+        """Create function that advances the synapse forward one time step.
 
         At a minimum, Synapse subclasses must implement this method.
         That implementation should return a callable that will perform

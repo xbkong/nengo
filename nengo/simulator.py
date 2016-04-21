@@ -76,7 +76,7 @@ class Simulator(object):
     Parameters
     ----------
     network : Network or None
-        A network object to the built and then simulated. If None,
+        A network object to be built and then simulated. If None,
         then a `.Model` with the build model must be provided instead.
     dt : float, optional (Default: 0.001)
         The length of a simulator timestep, in seconds.
