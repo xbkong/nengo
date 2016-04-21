@@ -97,8 +97,3 @@ Decoder and connection weight solvers
 .. autoclass:: nengo.solvers.NnlsL2
 
 .. autoclass:: nengo.solvers.NnlsL2nz
-
-Simulator
-=========
-
-.. autoclass:: nengo.simulator.Simulator

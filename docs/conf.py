@@ -18,8 +18,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
     'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
     'numpydoc',
     'nengo.utils.docutils',
 ]
@@ -34,7 +34,7 @@ todo_include_todos = True
 # -- numpydoc config
 numpydoc_show_class_members = False
 
-# -- sphinx config
+# -- sphinx
 exclude_patterns = ['_build']
 source_suffix = '.rst'
 source_encoding = 'utf-8'

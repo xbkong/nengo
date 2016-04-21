@@ -1,107 +1,112 @@
-***********************
-Reference simulator API
-***********************
+*******************
+Reference simulator
+*******************
 
-Understanding how the reference simulator works
-is important for debugging problems,
-and implementing your own simulator.
+.. default-role:: obj
 
-In general, there are two steps to the reference simulator.
-The first is a build step, in which a ``Network``
-is converted into a ``Model`` which consists of
-``Signals`` (values that can be manipulated)
-and ``Operators`` (operations to be done on those values).
-The second is the simulator, which runs
-``Operator`` functions and collects probed data.
-The simulator API is described in the
-`user API <user_api.html>`_.
+Nengo is designed so that models created with the
+:doc:`Nengo modeling API <frontend_api>`
+work on a variety of different simulators.
+Simulators have been created to take advantage of
+`GPUs <https://github.com/nengo/nengo_ocl/>`_ and
+`neuromorphic hardware <https://github.com/project-rig/nengo_spinnaker>`_.
 
-`Bekolay et al., 2014 <http://compneuro.uwaterloo.ca/publications/bekolay2014.html>`_
+Nengo comes with a simulator that is relatively fast,
+but works on general purpose computers.
+For most users, the only thing that you need to know
+about the reference simulator is how to
+create and close a `nengo.Simulator` instance.
+
+.. autoclass:: nengo.Simulator
+
+The build process
+=================
+
+The build process translates a Nengo model
+to a set of data buffers (`.Signal` instances)
+and computational operations (`.Operator` instances)
+which implement the Nengo model
+defined with the :doc:`modeling API <frontend_api>`.
+The build process is central to
+how the reference simulator works,
+and details how Nengo can be extended to include
+new neuron types, learning rules, and other components.
+
+`Bekolay et al., 2014
+<http://compneuro.uwaterloo.ca/publications/bekolay2014.html>`_
 provides a high-level description
-and detailed picture of the build process,
-which may helpful.
+and detailed picture of the build process.
+For lower-level details
+and reference documentation, read on.
 
-Build step
-==========
+.. autoclass:: nengo.builder.Signal
 
-.. autoclass:: nengo.builder.Model
-   :members:
-
-.. autoclass:: nengo.builder.Builder
-   :members:
-
-Signals
--------
-
-.. autoclass:: nengo.builder.signal.Signal
-   :members:
+.. autoclass:: nengo.builder.Operator
 
 Operators
 ---------
 
-.. autoclass:: nengo.builder.operator.Operator
-   :members:
-
 .. autoclass:: nengo.builder.operator.Reset
-   :members:
 
 .. autoclass:: nengo.builder.operator.Copy
-   :members:
+
+.. autoclass:: nengo.builder.operator.SlicedCopy
+
+.. autoclass:: nengo.builder.operator.ElementwiseInc
 
 .. autoclass:: nengo.builder.operator.DotInc
-   :members:
 
-.. autoclass:: nengo.builder.node.SimPyFunc
-   :members:
+.. autoclass:: nengo.builder.operator.TimeUpdate
+
+.. autoclass:: nengo.builder.operator.PreserveValue
+
+.. autoclass:: nengo.builder.operator.SimPyFunc
 
 .. autoclass:: nengo.builder.neurons.SimNeurons
-   :members:
-
-.. autoclass:: nengo.builder.learning_rules.SimOja
-   :members:
 
 .. autoclass:: nengo.builder.learning_rules.SimBCM
-   :members:
+
+.. autoclass:: nengo.builder.learning_rules.SimOja
+
+.. autoclass:: nengo.builder.learning_rules.SimVoja
 
 Build functions
 ---------------
 
-Nengo Objects
-^^^^^^^^^^^^^
+.. autoclass:: nengo.builder.Builder
 
-.. autofunction:: nengo.builder.build_network
+.. autoclass:: nengo.builder.Model
 
-.. autofunction:: nengo.builder.build_ensemble
+.. autofunction:: nengo.builder.network.build_network
 
-.. autofunction:: nengo.builder.build_node
+.. autofunction:: nengo.builder.ensemble.build_ensemble
 
-.. autofunction:: nengo.builder.build_probe
+.. autoclass:: nengo.builder.ensemble.BuiltEnsemble
 
-.. autofunction:: nengo.builder.build_connection
+.. autofunction:: nengo.builder.node.build_node
 
-Neurons
-^^^^^^^
+.. autofunction:: nengo.builder.connection.build_connection
 
-.. autofunction:: nengo.builder.build_lifrate
+.. autoclass:: nengo.builder.connection.BuiltConnection
 
-.. autofunction:: nengo.builder.build_lif
+.. autofunction:: nengo.builder.probe.build_probe
 
-.. autofunction:: nengo.builder.build_alifrate
+.. autofunction:: nengo.builder.neurons.build_neurons
 
-.. autofunction:: nengo.builder.build_alif
+.. autofunction:: nengo.builder.neurons.build_lif
 
+.. autofunction:: nengo.builder.neurons.build_alifrate
 
-Learning rules
-^^^^^^^^^^^^^^
+.. autofunction:: nengo.builder.neurons.build_alif
 
-.. autofunction:: nengo.builder.build_pes
+.. autofunction:: nengo.builder.neurons.build_izhikevich
 
-.. autofunction:: nengo.builder.build_bcm
+.. autofunction:: nengo.builder.learning_rules.build_learning_rule
 
-.. autofunction:: nengo.builder.build_oja
+.. autofunction:: nengo.builder.learning_rules.build_bcm
 
+.. autofunction:: nengo.builder.learning_rules.build_oja
 
-Synapses
-^^^^^^^^
+.. autofunction:: nengo.builder.learning_rules.build_voja
 
-.. autofunction:: nengo.builder.build_synapse
+.. autofunction:: nengo.builder.learning_rules.build_pes
