@@ -155,4 +155,5 @@ class Node(NengoObject):
 
     @property
     def probeable(self):
-        return ['output']
+        """(tuple) Signals that can be probed on a node."""
+        return ('output',)

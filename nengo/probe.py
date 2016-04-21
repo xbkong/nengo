@@ -64,7 +64,7 @@ class Probe(NengoObject):
     >>> with nengo.Network():
     ...     ens = nengo.Ensemble(10, 1)
     >>> print(ens.probeable)
-    ['decoded_output', 'input']
+    ('decoded_output', 'input')
 
     Parameters
     ----------

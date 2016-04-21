@@ -171,7 +171,8 @@ class Ensemble(NengoObject):
 
     @property
     def probeable(self):
-        return ["decoded_output", "input"]
+        """(tuple) Signals that can be probed on an ensemble."""
+        return ("decoded_output", "input")
 
     @property
     def size_in(self):
