@@ -157,7 +157,7 @@ def slice_signal(model, signal, sl):
     else:
         size = np.arange(signal.size)[sl].size
         sliced_signal = Signal(np.zeros(size), name="%s.sliced" % signal.name)
-        model.add_op(SlicedCopy(signal, sliced_signal, a_slice=sl))
+        model.add_op(SlicedCopy(sliced_signal, signal, src_slice=sl))
         return sliced_signal
 
 
@@ -272,7 +272,7 @@ def build_connection(model, conn):
 
     # Copy to the proper slice
     model.add_op(SlicedCopy(
-        signal, model.sig[conn]['out'], b_slice=post_slice,
+        model.sig[conn]['out'], signal, dst_slice=post_slice,
         inc=True, tag="%s.gain" % conn))
 
     # Build learning rules
