@@ -56,6 +56,22 @@ class Signal(object):
 
         self._readonly = bool(readonly)
 
+    def __getitem__(self, item):
+        """Index or slice into array"""
+        if not isinstance(item, tuple):
+            item = (item,)
+
+        if not all(is_integer(i) or isinstance(i, slice) for i in item):
+            raise SignalError("Can only index or slice into signals")
+
+        if all(map(is_integer, item)):
+            # turn one index into slice to get a view from numpy
+            item = item[:-1] + (slice(item[-1], item[-1]+1),)
+
+        return Signal(self._initial_value[item],
+                      name="%s[%s]" % (self.name, item),
+                      base=self.base)
+
     def __repr__(self):
         return "Signal(%s, shape=%s)" % (self._name, self.shape)
 
@@ -149,21 +165,22 @@ class Signal(object):
         """(tuple) Strides of data in bytes."""
         return self.initial_value.strides
 
-    def __getitem__(self, item):
-        """Index or slice into array"""
-        if not isinstance(item, tuple):
-            item = (item,)
+    def column(self):
+        """Return a view on this signal with column vector shape."""
+        return self.reshape((self.size, 1))
 
-        if not all(is_integer(i) or isinstance(i, slice) for i in item):
-            raise SignalError("Can only index or slice into signals")
+    def may_share_memory(self, other):
+        """Determine if two signals might overlap in memory.
 
-        if all(map(is_integer, item)):
-            # turn one index into slice to get a view from numpy
-            item = item[:-1] + (slice(item[-1], item[-1]+1),)
+        This comparison is not exact and errs on the side of false positives.
+        See `numpy.may_share_memory` for more details.
 
-        return Signal(self._initial_value[item],
-                      name="%s[%s]" % (self.name, item),
-                      base=self.base)
+        Parameters
+        ----------
+        other : Signal
+            The other signal we are investigating.
+        """
+        return np.may_share_memory(self.initial_value, other.initial_value)
 
     def reshape(self, *shape):
         """Return a view on this signal with a different shape.
@@ -178,16 +195,9 @@ class Signal(object):
                       name="%s.reshape(%s)" % (self.name, shape),
                       base=self.base)
 
-    def column(self):
-        """Reshape into a column vector."""
-        return self.reshape((self.size, 1))
-
     def row(self):
         """Return a view on this signal with row vector shape."""
         return self.reshape((1, self.size))
-
-    def may_share_memory(self, other):
-        return np.may_share_memory(self.initial_value, other.initial_value)
 
 
 class SignalDict(dict):

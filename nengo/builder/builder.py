@@ -209,3 +209,22 @@ class Builder(object):
                 "Cannot build object of type %r" % obj.__class__.__name__)
 
         return cls.builders[obj_cls](model, obj, *args, **kwargs)
+
+    @classmethod
+    def register(cls, nengo_class):
+        """A decorator for adding a class to the build function registry.
+
+        Raises a warning if a build function already exists for the class.
+
+        Parameters
+        ----------
+        nengo_class : Class
+            The type associated with the build function being decorated.
+        """
+        def register_builder(build_fn):
+            if nengo_class in cls.builders:
+                warnings.warn("Type '%s' already has a builder. Overwriting."
+                              % nengo_class)
+            cls.builders[nengo_class] = build_fn
+            return build_fn
+        return register_builder

@@ -79,13 +79,13 @@ class Operator(object):
     def __init__(self, tag=None):
         self.tag = tag
 
-    def __str__(self):
-        strs = (s for s in (self._descstr(), self._tagstr()) if s)
-        return "%s{%s}" % (self.__class__.__name__, ' '.join(strs))
-
     def __repr__(self):
         return "<%s%s at 0x%x>" % (
             self.__class__.__name__, self._tagstr(), id(self))
+
+    def __str__(self):
+        strs = (s for s in (self._descstr(), self._tagstr()) if s)
+        return "%s{%s}" % (self.__class__.__name__, ' '.join(strs))
 
     def _descstr(self):
         return ''
@@ -94,8 +94,27 @@ class Operator(object):
         return ('"%s"' % self.tag) if self.tag is not None else ''
 
     @property
+    def all_signals(self):
+        return self.reads + self.sets + self.incs + self.updates
+
+    @property
+    def incs(self):
+        """Signals incremented by this operator.
+
+        Increments will be applied after sets (if it is set), and before reads.
+        """
+        return self._incs
+
+    @incs.setter
+    def incs(self, val):
+        self._incs = val
+
+    @property
     def reads(self):
-        """Signals that are read and not modified"""
+        """Signals that are read and not modified by this operator.
+
+        Reads occur after increments, and before updates.
+        """
         return self._reads
 
     @reads.setter
@@ -116,34 +135,16 @@ class Operator(object):
         self._sets = val
 
     @property
-    def incs(self):
-        """Signals incremented by this operator
-
-        Increments will be applied after this signal has been
-        set (if it is set), and before reads.
-        """
-        return self._incs
-
-    @incs.setter
-    def incs(self, val):
-        self._incs = val
-
-    @property
     def updates(self):
-        """Signals assigned their value for time t + 1
+        """Signals updated by this operator.
 
-        This operator will be scheduled so that updates appear after
-        all sets, increments and reads of this signal.
+        Updates are the last operation to occur to a signal.
         """
         return self._updates
 
     @updates.setter
     def updates(self, val):
         self._updates = val
-
-    @property
-    def all_signals(self):
-        return self.reads + self.sets + self.incs + self.updates
 
     def init_signals(self, signals):
         """Initialize the signals associated with this operator.

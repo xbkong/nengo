@@ -102,13 +102,8 @@ class Network(object):
         raise NotImplementedError("Nengo Networks do not support pickling")
 
     @staticmethod
-    def default_config():
-        """Constructs a Config object for setting Nengo object defaults."""
-        return Config(Connection, Ensemble, Node, Probe)
-
-    @staticmethod
     def add(obj):
-        """Add the passed object to the current Network.context."""
+        """Add the passed object to ``Network.context``."""
         if len(Network.context) == 0:
             raise NetworkContextError(
                 "'%s' must either be created inside a ``with network:`` "
@@ -126,8 +121,13 @@ class Network(object):
             raise NetworkContextError("Objects of type %r cannot be added to "
                                       "networks." % obj.__class__.__name__)
 
+    @staticmethod
+    def default_config():
+        """Constructs a `~.Config` object for setting defaults."""
+        return Config(Connection, Ensemble, Node, Probe)
+
     def _all_objects(self, object_type):
-        """Returns a list of all objects of the specified type"""
+        """Returns a list of all objects of the specified type."""
         # Make a copy of this network's list
         objects = list(self.objects[object_type])
         for subnet in self.networks:
