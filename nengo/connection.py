@@ -205,6 +205,10 @@ class TransformParam(DistOrArrayParam):
 class Connection(NengoObject):
     """Connects two objects together.
 
+    The connection between the two object is unidirectional,
+    transmitting information from the first argument, ``pre``,
+    to the second argument, ``post``.
+
     Almost any Nengo object can act as the pre or post side of a connection.
     Additionally, you can use Python slice syntax to access only some of the
     dimensions of the pre or post object.
@@ -217,7 +221,7 @@ class Connection(NengoObject):
     But, we could create either of these two connections.
 
         nengo.Connection(node[0], ensemble)
-        nengo.Connection(ndoe[1], ensemble)
+        nengo.Connection(node[1], ensemble)
 
     Parameters
     ----------
@@ -226,64 +230,86 @@ class Connection(NengoObject):
     post : Ensemble or Neurons or Node or Probe
         The destination object for the connection.
 
-    label : string
-        A descriptive label for the connection.
-    dimensions : int
-        The number of output dimensions of the pre object, including
-        `function`, but not including `transform`.
-    eval_points : (n_eval_points, pre_size) array_like or int
-        Points at which to evaluate `function` when computing decoders,
-        spanning the interval (-pre.radius, pre.radius) in each dimension.
-    synapse : float, optional
-        Post-synaptic time constant (PSTC) to use for filtering.
+    synapse : Synapse, optional
+        Synapse model to use for filtering (see ``nengo.synapses``).
+        Default: Lowpass(tau=0.005)
+    function : callable, optional
+        Function to compute using the pre population (pre must be Ensemble).
+        Default: None
     transform : (post_size, pre_size) array_like, optional
         Linear transform mapping the pre output to the post input.
         This transform is in terms of the sliced size; if either pre
         or post is a slice, the transform must be of shape
         (len(pre_slice), len(post_slice)).
+        Default: np.array(1.0)
     solver : Solver
         Instance of a Solver class to compute decoders or weights
-        (see `nengo.solvers`). If `solver.weights` is True, a full
+        (see ``nengo.solvers``). If ``solver.weights`` is True, a full
         connection weight matrix is computed instead of decoders.
-    function : callable, optional
-        Function to compute using the pre population (pre must be Ensemble).
-    eval_points : (n_eval_points, pre_size) array_like or int, optional
-        Points at which to evaluate `function` when computing decoders,
-        spanning the interval (-pre.radius, pre.radius) in each dimension.
-    scale_eval_points : bool
-        Indicates whether the eval_points should be scaled by the radius of
-        the pre Ensemble. Defaults to True.
+        Default: LstsqL2()
     learning_rule_type : instance or list or dict of LearningRuleType, optional
         Methods of modifying the connection weights during simulation.
+        Default: None
+    eval_points : (n_eval_points, pre_size) array_like or int, optional
+        Points at which to evaluate ``function`` when computing decoders,
+        spanning the interval (-pre.radius, pre.radius) in each dimension.
+        If None, will use the eval_points associated with ``pre``.
+        Default: None
+    scale_eval_points : bool
+        Indicates whether the eval_points should be scaled by the radius of
+        the pre Ensemble. Default: True.
+    label : string, optional
+        A descriptive label for the connection. Default: None
+    seed : int, optional
+        The seed used for random number generation. Default: None
 
     Attributes
     ----------
-    dimensions : int
-        The number of output dimensions of the pre object, including
-        `function`, but before applying the `transform`.
+    is_decoded: bool
+        True if and only if the connection is decoded. This will not occur
+        when ``solver.weights`` is True or both ``pre`` and ``post`` are
+        ``Neurons``.
     function : callable
         The given function.
     function_size : int
         The output dimensionality of the given function. Defaults to 0.
-    is_decoded: bool
-        True if and only if the connection is decoded. This will not occur
-        when `solver.weights` is True or both `pre` and `post` are `Neurons`.
     label : str
         A human-readable connection label for debugging and visualization.
-        Incorporates the labels of the pre and post objects.
+        If not overridden, incorporates the labels of the pre and post objects.
     learning_rule : LearningRule or collection of LearningRule
-        The LearningRule objects corresponding to `learning_rule_type`, and in
-        the same format. Use these to probe the learning rules.
+        The LearningRule objects corresponding to ``learning_rule_type``,
+        and in the same format. Use these to probe the learning rules.
     learning_rule_type : instance or list or dict of LearningRuleType, optional
         The learning rule types.
-    post : Ensemble or Neurons or Node or Probe
+    post : Ensemble or Neurons or Node or Probe or ObjView
+        The given post object.
+    post_obj : Ensemble or Neurons or Node or Probe
+        The underlying post object, even if ``post`` is an ``ObjView``.
+    post_slice : slice or list or None
+        The slice associated with ``post`` if it is an ObjView, or None.
+    pre : Ensemble or Neurons or Node or ObjView
         The given pre object.
-    pre : Ensemble or Neurons or Node
-        The given pre object.
-    transform : (post_size, pre_size) array_like
-        Linear transform mapping the pre output to the post input.
+    pre_obj : Ensemble or Neurons or Node
+        The underlying pre object, even if ``post`` is an ``ObjView``.
+    pre_slice : slice or list or None
+        The slice associated with ``pre`` if it is an ObjView, or None.
     seed : int
         The seed used for random number generation.
+    size_in : int
+        The number of output dimensions of the pre object.
+    size_mid : int
+        The number of dimensions resulting from applying ``function`` to
+        a signal of size ``size_in``.
+    size_out : int
+        The number of input dimensions of the post object.
+    solver : Solver
+        The Solver instance that will be used to compute decoders or weights
+        (see ``nengo.solvers``).
+    synapse : Synapse
+        The Synapse model used for filtering across the connection
+        (see ``nengo.synapses``).
+    transform : (size_mid, size_out) array_like
+        Linear transform mapping the pre function output to the post input.
     """
 
     pre = PrePostParam('pre', nonzero_size_out=True)

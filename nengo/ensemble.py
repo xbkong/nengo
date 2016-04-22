@@ -18,35 +18,98 @@ class Ensemble(NengoObject):
         The number of representational dimensions.
     radius : int, optional
         The representational radius of the ensemble.
-    encoders : Distribution or ndarray (`n_neurons`, `dimensions`), optional
-        The encoders, used to transform from representational space
-        to neuron space. Each row is a neuron's encoder, each column is a
+        Default: 1.0
+    encoders : Distribution or (n_neurons, dimensions) array_like, optional
+        The encoders used to transform from representational space
+        to neuron space. Each row is a neuron's encoder; each column is a
         representational dimension.
+        Default: UniformHypersphere(surface=True)
     intercepts : Distribution or ndarray (`n_neurons`), optional
         The point along each neuron's encoder where its activity is zero. If
-        e is the neuron's encoder, then the activity will be zero when
-        dot(x, e) <= c, where c is the given intercept.
+        ``e`` is the neuron's encoder, then the activity will be zero when
+        ``dot(x, e) <= c``, where ``c`` is the given intercept.
+        Default: Uniform(-1.0, 1.0)
     max_rates : Distribution or ndarray (`n_neurons`), optional
-        The activity of each neuron when dot(x, e) = 1, where e is the neuron's
-        encoder.
+        The activity of each neuron when the input signal ``x`` is magnitude 1
+        and aligned with that neuron's encoder ``e``;
+        i.e., when ``dot(x, e) = 1``.
+        Default: Uniform(200, 400)
     eval_points : Distribution or ndarray (`n_eval_points`, `dims`), optional
         The evaluation points used for decoder solving, spanning the interval
         (-radius, radius) in each dimension, or a distribution from which to
-        choose evaluation points. Default: ``UniformHypersphere``.
+        choose evaluation points.
+        Default: UniformHypersphere(surface=True)
     n_eval_points : int, optional
         The number of evaluation points to be drawn from the `eval_points`
-        distribution. If None (the default), then a heuristic is used to
-        determine the number of evaluation points.
-    neuron_type : Neurons, optional
-        The model that simulates all neurons in the ensemble.
+        distribution. If None, then a heuristic is used to determine
+        the number of evaluation points.
+        Default: None
+    neuron_type : NeuronType, optional
+        The model that simulates all neurons in the ensemble
+        (see ``nengo.neurons``).
+        Default: LIF()
+    gain : Distribution or (n_neurons,) array_like
+        The gains associated with each neuron in the ensemble. If None, then
+        the gain will be solved for using the ``max_rates`` and ``intercepts``.
+        Default: None
+    bias : Distribution or (n_neurons,) array_like
+        The biases associated with each neuron in the ensemble. If None, then
+        the gain will be solved for using the ``max_rates`` and ``intercepts``.
+        Default: None
     noise : Process, optional
         Random noise injected directly into each neuron in the ensemble
         as current. A sample is drawn for each individual neuron on
         every simulation step.
-    seed : int, optional
-        The seed used for random number generation.
+        Default: None
     label : str, optional
         A name for the ensemble. Used for debugging and visualization.
+        Default: None
+    seed : int, optional
+        The seed used for random number generation.
+        Default: None
+
+    Attributes
+    ----------
+    bias : Distribution or (n_neurons,) array_like or None
+        The biases associated with each neuron in the ensemble.
+    dimensions : int
+        The number of representational dimensions.
+    encoders : Distribution or ndarray (`n_neurons`, `dimensions`)
+        The encoders, used to transform from representational space
+        to neuron space. Each row is a neuron's encoder, each column is a
+        representational dimension.
+    eval_points : Distribution or ndarray (`n_eval_points`, `dims`)
+        The evaluation points used for decoder solving, spanning the interval
+        (-radius, radius) in each dimension, or a distribution from which to
+        choose evaluation points.
+    gain : Distribution or (n_neurons,) array_like or None
+        The gains associated with each neuron in the ensemble.
+    intercepts : Distribution or ndarray (`n_neurons`) or None
+        The point along each neuron's encoder where its activity is zero. If
+        e is the neuron's encoder, then the activity will be zero when
+        dot(x, e) <= c, where c is the given intercept.
+    label : str or None
+        A name for the ensemble. Used for debugging and visualization.
+    max_rates : Distribution or ndarray (`n_neurons`) or None
+        The activity of each neuron when dot(x, e) = 1, where e is the neuron's
+        encoder.
+    n_eval_points : int or None
+        The number of evaluation points to be drawn from the `eval_points`
+        distribution. If None, then a heuristic is used to determine
+        the number of evaluation points.
+    n_neurons : int or None
+        The number of neurons.
+    neuron_type : NeuronType
+        The model that simulates all neurons in the ensemble
+        (see ``nengo.neurons``).
+    noise : Process or None
+        Random noise injected directly into each neuron in the ensemble
+        as current. A sample is drawn for each individual neuron on
+        every simulation step.
+    radius : int
+        The representational radius of the ensemble.
+    seed : int or None
+        The seed used for random number generation.
     """
 
     n_neurons = IntParam('n_neurons', default=None, low=1)

@@ -37,9 +37,19 @@ class NetworkMember(type):
 class NengoObject(with_metaclass(NetworkMember)):
     """A base class for Nengo objects.
 
-    This defines some functions that the Network requires
-    for correct operation. In particular, list membership
-    and object comparison require each object to have a unique ID.
+    Parameters
+    ----------
+    label : string
+        A descriptive label for the object.
+    seed : int
+        The seed used for random number generation.
+
+    Attributes
+    ----------
+    label : string
+        A descriptive label for the object.
+    seed : int
+        The seed used for random number generation.
     """
 
     label = StringParam('label', default=None, optional=True)
