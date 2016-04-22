@@ -25,7 +25,7 @@ class Vocabulary(object):
         pointers will be ``[1, 0, 0, ...], [0, 1, 0, ...], [0, 0, 1, ...]``
         and so on.
     unitary : bool or list, optional (Default: False)
-        If True, all generated pointers to be unitary. If a list of
+        If True, all generated pointers will be unitary. If a list of
         strings, any pointer whose name is in the list will be forced to be
         unitary when created.
     max_similarity : float, optional (Default: 0.1)
@@ -425,7 +425,7 @@ class Vocabulary(object):
         keys : list
             List of semantic pointer names to be added to the vocabulary.
         unitary : bool or list, optional (Default: False)
-            If True, all generated pointers to be unitary. If a list of
+            If True, all generated pointers will be unitary. If a list of
             strings, any pointer whose name is on the list will be forced to
             be unitary when created.
         """
