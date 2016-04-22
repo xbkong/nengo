@@ -115,7 +115,6 @@ class Ensemble(NengoObject):
     n_neurons = IntParam('n_neurons', default=None, low=1)
     dimensions = IntParam('dimensions', default=None, low=1)
     radius = NumberParam('radius', default=1.0, low=1e-10)
-    neuron_type = NeuronTypeParam('neuron_type', default=LIF())
     encoders = DistOrArrayParam('encoders',
                                 default=UniformHypersphere(surface=True),
                                 sample_shape=('n_neurons', 'dimensions'))
@@ -127,15 +126,16 @@ class Ensemble(NengoObject):
                                  default=Uniform(200, 400),
                                  optional=True,
                                  sample_shape=('n_neurons',))
-    n_eval_points = IntParam('n_eval_points', default=None, optional=True)
     eval_points = DistOrArrayParam('eval_points',
                                    default=UniformHypersphere(),
                                    sample_shape=('*', 'dimensions'))
-    bias = DistOrArrayParam('bias',
+    n_eval_points = IntParam('n_eval_points', default=None, optional=True)
+    neuron_type = NeuronTypeParam('neuron_type', default=LIF())
+    gain = DistOrArrayParam('gain',
                             default=None,
                             optional=True,
                             sample_shape=('n_neurons',))
-    gain = DistOrArrayParam('gain',
+    bias = DistOrArrayParam('bias',
                             default=None,
                             optional=True,
                             sample_shape=('n_neurons',))
