@@ -473,6 +473,18 @@ class DistributionParam(Parameter):
 
     equatable = True
 
+    def __init__(self, name, default=Unconfigurable,
+                 optional=False, readonly=None, cast_number=False):
+        super(DistributionParam, self).__init__(
+            name, default=default, optional=optional, readonly=readonly)
+        self.cast_number = cast_number
+
+    def __set__(self, instance, value):
+        if self.cast_number and is_number(value):
+            value = Choice([value])
+        self.validate(instance, value)
+        self.data[instance] = value
+
     def validate(self, instance, dist):
         if dist is not None and not isinstance(dist, Distribution):
             raise ValidationError("'%s' is not a Distribution type" % dist,
