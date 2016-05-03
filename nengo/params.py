@@ -61,14 +61,11 @@ class Parameter(object):
         self.optional = optional
         self.readonly = readonly
 
-        # default values set by config system
-        self._defaults = WeakKeyIDDictionary()
-
         # param values set on objects
         self.data = WeakKeyIDDictionary()
 
     def __contains__(self, key):
-        return key in self.data or key in self._defaults
+        return key in self.data
 
     def __delete__(self, instance):
         del self.data[instance]
@@ -98,18 +95,6 @@ class Parameter(object):
     @property
     def configurable(self):
         return self.default is not Unconfigurable
-
-    def del_default(self, obj):
-        del self._defaults[obj]
-
-    def get_default(self, obj):
-        return self._defaults.get(obj, self.default)
-
-    def set_default(self, obj, value):
-        if not self.configurable:
-            raise ConfigError("Parameter '%s' is not configurable" % self)
-        self.validate(obj, value)
-        self._defaults[obj] = value
 
     def equal(self, instance_a, instance_b):
         a = self.__get__(instance_a, None)
