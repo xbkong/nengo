@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
 
+from nengo.builder.signal import Signal
 import nengo.utils.numpy as npext
 from nengo.exceptions import BuildError, SimulationError
 
@@ -178,6 +179,36 @@ class Operator(object):
         """
         raise NotImplementedError("subclasses must implement this method.")
 
+    @classmethod
+    def supports_merge(cls):
+        """Returns whether this operator type supports merges at all."""
+        return False
+
+    def can_merge(self, other):
+        """Checks if this signal can be merged with another signal.
+
+        Will return ``False`` by default. Override this method if an operator
+        supports merging.
+
+        This function is expected to be transitive and symmetric.
+        """
+        return False
+
+    def merge(self, others):
+        """Merge this operator with `others`.
+
+        May lead to undefined behaviour if ``can_merge`` returns ``False`` for
+        any of the elements in ``others``.
+
+        Returns
+        -------
+        Operator
+            The merged operator.
+        dict
+            Dictionary mapping old signals to new signals to update the
+            signals of other operators.
+        """
+        raise NotImplementedError("Merge not supported by operator.")
 
 class TimeUpdate(Operator):
     """Updates the simulation step and time.
@@ -233,6 +264,21 @@ class TimeUpdate(Operator):
             time[...] = step * dt
 
         return step_timeupdate
+
+    @classmethod
+    def supports_merge(cls):
+        return True
+
+    def can_merge(self, other):
+        return (self.__class__ is other.__class__)
+
+    def merge(self, others):
+        replacements = {}
+        step = Signal.merge_signals_or_views(
+            [self.step] + [o.step for o in others], replacements)
+        time = Signal.merge_signals_or_views(
+            [self.time] + [o.time for o in others], replacements)
+        return TimeUpdate(step, time), replacements
 
 
 class PreserveValue(Operator):
@@ -333,6 +379,22 @@ class Reset(Operator):
             target[...] = value
         return step_reset
 
+    @classmethod
+    def supports_merge(cls):
+        return True
+
+    def can_merge(self, other):
+        return (
+            self.__class__ is other.__class__ and
+            Signal.compatible([self.dst, other.dst]) and
+            self.value == other.value)
+
+    def merge(self, others):
+        replacements = {}
+        dst = Signal.merge_signals_or_views(
+            [self.dst] + [o.dst for o in others], replacements)
+        return Reset(dst, self.value), replacements
+
 
 class Copy(Operator):
     """Assign the value of one signal to another.
@@ -385,6 +447,24 @@ class Copy(Operator):
         def step_copy():
             dst[...] = src
         return step_copy
+
+    @classmethod
+    def supports_merge(cls):
+        return True
+
+    def can_merge(self, other):
+        return (
+            self.__class__ is other.__class__ and
+            Signal.compatible([self.dst, other.dst]) and
+            Signal.compatible([self.src, other.src]))
+
+    def merge(self, others):
+        replacements = {}
+        dst = Signal.merge_signals_or_views(
+            [self.dst] + [o.dst for o in others], replacements)
+        src = Signal.merge_signals_or_views(
+            [self.src] + [o.src for o in others], replacements)
+        return Copy(src, dst), replacements
 
 
 class SlicedCopy(Operator):
@@ -471,6 +551,47 @@ class SlicedCopy(Operator):
                 dst[dst_slice] = src[src_slice]
         return step_slicedcopy
 
+    @classmethod
+    def supports_merge(cls):
+        return True
+
+    def can_merge(self, other):
+        return (
+            self.__class__ is other.__class__ and
+            Signal.compatible([self.src, other.src]) and
+            Signal.compatible([self.dst, other.dst]) and
+            self.src_slice is Ellipsis and self.dst_slice is Ellipsis and
+            other.src_slice is Ellipsis and other.dst_slice is Ellipsis and
+            self.inc == other.inc)
+
+    def _merged_slice(self, signals, slices):
+        if all(s is Ellipsis for s in slices):
+            return Ellipsis
+        elif any(s is Ellipsis for s in slices):
+            raise ValueError("Mixed Ellipsis with list of indices.")
+
+        offset = 0
+        merged_slice = []
+        for sig, sl in zip(signals, slices):
+            merged_slice.extend([i + offset for i in sl])
+            offset += sig.size
+        return merged_slice
+
+    def merge(self, others):
+        src_sigs = [self.src] + [o.src for o in others]
+        dst_sigs = [self.dst] + [o.dst for o in others]
+
+        replacements = {}
+        src = Signal.merge_signals_or_views(src_sigs, replacements)
+        dst = Signal.merge_signals_or_views(dst_sigs, replacements)
+        src_slice = self._merged_slice(
+            src_sigs, [self.src_slice] + [o.src_slice for o in others])
+        dst_slice = self._merged_slice(
+            dst_sigs, [self.dst_slice] + [o.dst_slice for o in others])
+        return SlicedCopy(
+            src, dst, src_slice=src_slice, dst_slice=dst_slice,
+            inc=self.inc), replacements
+
 
 class ElementwiseInc(Operator):
     """Increment signal ``Y`` by ``A * X`` (with broadcasting).
@@ -540,6 +661,30 @@ class ElementwiseInc(Operator):
         def step_elementwiseinc():
             Y[...] += A * X
         return step_elementwiseinc
+
+    @classmethod
+    def supports_merge(cls):
+        return True
+
+    def can_merge(self, other):
+        return (
+            self.__class__ is other.__class__ and
+            Signal.compatible([self.A, other.A], axis=self.A.ndim - 1) and
+            Signal.compatible([self.X, other.X], axis=self.X.ndim - 1) and
+            Signal.compatible([self.Y, other.Y], axis=self.Y.ndim - 1))
+
+    def merge(self, others):
+        replacements = {}
+        A = Signal.merge_signals_or_views(
+            [self.A] + [o.A for o in others], replacements,
+            axis=self.A.ndim - 1)
+        X = Signal.merge_signals_or_views(
+            [self.X] + [o.X for o in others], replacements,
+            axis=self.X.ndim - 1)
+        Y = Signal.merge_signals_or_views(
+            [self.Y] + [o.Y for o in others], replacements,
+            axis=self.Y.ndim - 1)
+        return ElementwiseInc(A, X, Y), replacements
 
 
 def reshape_dot(A, X, Y, tag=None):
@@ -636,6 +781,133 @@ class DotInc(Operator):
         def step_dotinc():
             inc = np.dot(A, X)
             if reshape:
+                inc = np.asarray(inc).reshape(Y.shape)
+            Y[...] += inc
+        return step_dotinc
+
+    @classmethod
+    def supports_merge(cls):
+        return True
+
+    def can_merge(self, other):
+        if self.__class__ is not other.__class__:
+            return False
+
+        if self.X is other.X:
+            # simple merge might be possible
+            return (Signal.compatible([self.Y, other.Y]) and
+                    Signal.compatible([self.A, other.A]))
+
+        # check if BSR merge is possible
+        try:
+            # Not using Signal.compatible for A, because A must not be a view.
+            Signal.check_signals_mergeable([self.A, other.A])
+            from scipy.sparse import bsr_matrix
+            assert bsr_matrix
+        except (ValueError, ImportError):
+            return False
+        return (Signal.compatible([self.X, other.X]) and
+                Signal.compatible([self.Y, other.Y]) and
+                self.A.shape == other.A.shape)
+
+    def merge(self, others):
+        replacements = {}
+
+        # Simple merge if all X are the same.
+        if all(o.X is self.X for o in others):
+            A = Signal.merge_signals_or_views(
+                [self.A] + [o.A for o in others], replacements)
+            Y = Signal.merge_signals_or_views(
+                [self.Y] + [o.Y for o in others], replacements)
+            return DotInc(A, self.X, Y), replacements
+
+        # BSR merge if X differ
+        X = Signal.merge_signals_or_views(
+            [self.X] + [o.X for o in others], replacements)
+        Y = Signal.merge_signals_or_views(
+            [self.Y] + [o.Y for o in others], replacements)
+
+        # Construct sparse A representation
+        data = np.stack(
+            [self.A.initial_value] + [o.A.initial_value for o in others])
+        indptr = np.arange(len(others) + 2, dtype=int)
+        indices = np.arange(len(others) + 1, dtype=int)
+        name = 'bsr_merged<' + ', '.join(
+            [self.A.name] + [o.A.name for o in others]) + '>'
+        readonly = all([self.A.readonly] + [o.A.readonly for o in others])
+        A = Signal(data, name=name, readonly=readonly)
+        for i, s in enumerate([self.A] + [o.A for o in others]):
+            replacements[s] = Signal(
+                data[i], name="%s[%i]" % (s.name, i), base=A)
+            assert np.all(s.initial_value == replacements[s].initial_value)
+            assert s.shape == replacements[s].shape
+
+        reshape = reshape_dot(
+            self.A.initial_value, self.X.initial_value, self.Y.initial_value,
+            tag=self.tag)
+        return (
+            BsrDotInc(
+                A, X, Y, indices=indices, indptr=indptr, reshape=reshape),
+            replacements)
+
+
+class BsrDotInc(Operator):
+    """Increment signal Y by dot(A, X) where is a matrix in block sparse row
+    format.
+
+    Requires SciPy.
+
+    Currently, this only supports matrix-vector multiplies for compatibility
+    with NengoOCL.
+
+    Parameters
+    ----------
+    A : (k, r, c) Signal
+        The signal providing the k data blocks with r rows and c columns.
+    X : (k * c) Signal
+        The signal providing the k column vectors to multiply with.
+    Y : (k * r) Signal
+        The signal providing the k column vectors to update.
+    indices : ndarray
+        Column indices, see `scipy.sparse.bsr_matrix` for details.
+    indptr : ndarray
+        Column index pointers, see `scipy.sparse.bsr_matrix` for details.
+    reshape : bool
+        Whether to reshape the result.
+    """
+
+    def __init__(self, A, X, Y, indices, indptr, reshape, tag=None):
+        if X.ndim >= 2 and any(d > 1 for d in X.shape[1:]):
+            raise BuildError("X must be a column vector")
+        if Y.ndim >= 2 and any(d > 1 for d in Y.shape[1:]):
+            raise BuildError("Y must be a column vector")
+
+        self.A = A
+        self.X = X
+        self.Y = Y
+        self.indices = indices
+        self.indptr = indptr
+        self.reshape = reshape
+        self.tag = tag
+
+        self.sets = []
+        self.incs = [Y]
+        self.reads = [A, X]
+        self.updates = []
+
+    def _descstr(self):
+        return '%s, %s -> %s' % (self.A, self.X, self.Y)
+
+    def make_step(self, signals, dt, rng):
+        X = signals[self.X]
+        A = signals[self.A]
+        Y = signals[self.Y]
+
+        def step_dotinc():
+            from scipy.sparse import bsr_matrix
+            mat_A = bsr_matrix((A, self.indices, self.indptr))
+            inc = mat_A.dot(X)
+            if self.reshape:
                 inc = np.asarray(inc).reshape(Y.shape)
             Y[...] += inc
         return step_dotinc
