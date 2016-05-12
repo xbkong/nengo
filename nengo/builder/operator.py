@@ -828,7 +828,7 @@ class DotInc(Operator):
             [self.Y] + [o.Y for o in others], replacements)
 
         # Construct sparse A representation
-        data = np.stack(
+        data = np.array(
             [self.A.initial_value] + [o.A.initial_value for o in others])
         indptr = np.arange(len(others) + 2, dtype=int)
         indices = np.arange(len(others) + 1, dtype=int)
