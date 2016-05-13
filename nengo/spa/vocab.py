@@ -108,10 +108,10 @@ class Vocabulary(object):
                 else:
                     warnings.warn(
                         'Could not create a semantic pointer with '
-                        'max_similarity=%1.2f (D=%d, M=%d)'
+                        'max_similarity=%1.2f (D=%d, M=%d, p_sim=%1.2f)'
                         % (self.max_similarity,
                            self.dimensions,
-                           len(self.pointers)))
+                           len(self.pointers), pvsim))
 
             # Check and make vector unitary if needed
             if unitary:
