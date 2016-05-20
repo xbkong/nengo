@@ -5,7 +5,6 @@ import numpy as np
 
 from nengo.builder.signal import Signal, SignalDict
 from nengo.builder.operator import TimeUpdate
-from nengo.cache import NoDecoderCache
 from nengo.exceptions import BuildError
 
 
@@ -63,32 +62,16 @@ class Model(object):
         or for the network builder to determine if it is the top-level network.
     """
 
-    def __init__(self, dt=0.001, label=None, decoder_cache=NoDecoderCache()):
-        self.dt = dt
-        self.label = label
-        self.decoder_cache = decoder_cache
-
-        # Will be filled in by the network builder
-        self.toplevel = None
-        self.config = None
-
-        # Resources used by the build process
-        self.operators = []
-        self.params = {}
-        self.probes = []
-        self.seeds = {}
-        self.seeded = {}
-
+    def __init__(self):
+        self.ops = []
         self.sig = collections.defaultdict(dict)
+
         self.sig['common'][0] = Signal(0., readonly=True, name='ZERO')
         self.sig['common'][1] = Signal(1., readonly=True, name='ONE')
 
         self.step = Signal(np.array(0, dtype=np.int64), name='step')
         self.time = Signal(np.array(0, dtype=np.float64), name='time')
         self.add_op(TimeUpdate(self.step, self.time))
-
-    def __str__(self):
-        return "Model: %s" % self.label
 
     def add_op(self, op):
         """Add an operator to the model.
@@ -117,24 +100,6 @@ class Model(object):
             The object to build into this model.
         """
         return Builder.build(self, obj, *args, **kwargs)
-
-    def has_built(self, obj):
-        """Returns true if the object has already been built in this model.
-
-        .. note:: Some objects (e.g. synapses) can be built multiple times,
-                  and therefore will always result in this method returning
-                  ``False`` even though they have been built.
-
-        This check is implemented by checking if the object is in the
-        ``params`` dictionary. Build function should therefore add themselves
-        to ``model.params`` if they cannot be built multiple times.
-
-        Parameters
-        ----------
-        obj : object
-            The object to query.
-        """
-        return obj in self.params
 
 
 class Builder(object):

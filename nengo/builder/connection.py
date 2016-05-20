@@ -15,48 +15,6 @@ from nengo.neurons import Direct
 from nengo.node import Node
 from nengo.utils.compat import is_iterable, itervalues
 
-built_attrs = ['eval_points', 'solver_info', 'weights', 'transform']
-
-
-class BuiltConnection(collections.namedtuple('BuiltConnection', built_attrs)):
-    """Collects the parameters generated in `.build_connection`.
-
-    These are stored here because in the majority of cases the equivalent
-    attribute in the original connection is a `.Distribution`. The attributes
-    of a BuiltConnection are the full NumPy arrays used in the simulation.
-
-    See the `.Connection` documentation for more details on each parameter.
-
-    .. note:: The ``decoders`` attribute is obsolete as of Nengo 2.1.0.
-              Use the ``weights`` attribute instead.
-
-    Parameters
-    ----------
-    eval_points : ndarray
-        Evaluation points.
-    solver_info : dict
-        Information dictionary returned by the `.Solver`.
-    weights : ndarray
-        Connection weights. May be synaptic connection weights defined in
-        the connection's transform, or a combination of the decoders
-        automatically solved for and the specified transform.
-    transform : ndarray
-        The transform matrix.
-    """
-
-    __slots__ = ()
-
-    def __new__(cls, eval_points, solver_info, weights, transform):
-        # Overridden to suppress the default __new__ docstring
-        return tuple.__new__(
-            cls, (eval_points, solver_info, weights, transform))
-
-    @property
-    def decoders(self):
-        raise ObsoleteError("decoders are now part of 'weights'. "
-                            "Access BuiltConnection.weights instead.",
-                            since="v2.1.0")
-
 
 def get_eval_points(model, conn, rng):
     if conn.eval_points is None:
@@ -161,23 +119,57 @@ def slice_signal(model, signal, sl):
         return sliced_signal
 
 
-@Builder.register(Connection)  # noqa: C901
-def build_connection(model, conn):
-    """Builds a `.Connection` object into a model.
+class BuiltConnection(object):
+    """Built version of `.Connection`.
+
+    These are stored here because in the majority of cases the equivalent
+    attribute in the original connection is a `.Distribution`. The attributes
+    of a BuiltConnection are the full NumPy arrays used in the simulation.
+
+    See the `.Connection` documentation for more details on each parameter.
 
     A brief summary of what happens in the connection build process,
     in order:
 
     1. Solve for decoders.
     2. Combine transform matrix with decoders to get weights.
-    3. Add operators for computing the function
-       or multiplying neural activity by weights.
-    4. Call build function for the synapse.
-    5. Call build function for the learning rule.
-    6. Add operator for applying learning rule delta to weights.
+    3. Build the synapse.
+    4. Build the learning rule.
 
     Some of these steps may be altered or omitted depending on the parameters
     of the connection, in particular the pre and post types.
+
+    .. note:: The ``decoders`` attribute is obsolete as of Nengo 2.1.0.
+              Use the ``weights`` attribute instead.
+
+    Parameters
+    ----------
+    eval_points : ndarray
+        Evaluation points.
+    solver_info : dict
+        Information dictionary returned by the `.Solver`.
+    weights : ndarray
+        Connection weights. May be synaptic connection weights defined in
+        the connection's transform, or a combination of the decoders
+        automatically solved for and the specified transform.
+    transform : ndarray
+        The transform matrix.
+    """
+
+    __slots__ = ('eval_points', 'solver_info', 'weights', 'transform')
+
+    def __init__(self, conn, seed):
+
+    @property
+    def decoders(self):
+        raise ObsoleteError("decoders are now part of 'weights'. "
+                            "Access BuiltConnection.weights instead.",
+                            since="v2.1.0")
+
+
+@Builder.register(Connection)  # noqa: C901
+def build_connection(model, conn):
+    """Builds a `.Connection` object into a model.
 
     Parameters
     ----------
