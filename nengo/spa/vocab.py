@@ -116,7 +116,7 @@ class Vocabulary(object):
                         'max_similarity=%1.2f (D=%d, M=%d, p_sim=%1.2f)'
                         % (self.max_similarity,
                            self.dimensions,
-                           len(self.pointers), pvsim))
+                           len(self.pointers), p_sim))
 
             # Check and make vector unitary if needed
             if unitary:
