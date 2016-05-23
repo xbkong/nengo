@@ -58,8 +58,7 @@ class BuiltProbe(object):
                  'slice',
                  'solver',
                  'synapse',
-                 'target',
-                 'typename')
+                 'target')
 
     def __init__(self, probe, obj, seed):
         self.seeded = probe.seed is not None

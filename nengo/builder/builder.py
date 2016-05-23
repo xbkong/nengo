@@ -62,6 +62,8 @@ class Model(object):
         or for the network builder to determine if it is the top-level network.
     """
 
+    __slots__ = ('ops', 'sig', 'step', 'time')
+
     def __init__(self):
         self.ops = []
         self.sig = collections.defaultdict(dict)
@@ -132,6 +134,7 @@ class Builder(object):
         Mapping from types to the build function associated with that type.
     """
 
+    __slots__ = ()
     builders = {}
 
     @classmethod

@@ -1,4 +1,3 @@
-import collections
 import warnings
 
 import numpy as np
@@ -20,7 +19,7 @@ built_attrs = ['eval_points',
                'bias']
 
 
-class BuiltEnsemble(collections.namedtuple('BuiltEnsemble', built_attrs)):
+class BuiltEnsemble(object):
     """Collects the parameters generated in `.build_ensemble`.
 
     These are stored here because in the majority of cases the equivalent
@@ -50,11 +49,10 @@ class BuiltEnsemble(collections.namedtuple('BuiltEnsemble', built_attrs)):
 
     __slots__ = ()
 
-    def __new__(cls, eval_points, encoders, intercepts, max_rates,
-                scaled_encoders, gain, bias):
-        # Overridden to suppress the default __new__ docstring
-        return tuple.__new__(cls, (eval_points, encoders, intercepts,
-                                   max_rates, scaled_encoders, gain, bias))
+    def __init__(self, ensemble, seed):
+        self.seeded = ensemble.seed is not None
+        self.seed = self.seed if self.seeded else seed
+
 
 
 def sample(dist, n, d=None, rng=None):

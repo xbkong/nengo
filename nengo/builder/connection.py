@@ -16,9 +16,9 @@ from nengo.node import Node
 from nengo.utils.compat import is_iterable, itervalues
 
 
-def get_eval_points(model, conn, rng):
+def get_eval_points(conn, rng):
     if conn.eval_points is None:
-        view = model.params[conn.pre_obj].eval_points.view()
+        view = conn.pre.eval_points.view()
         view.setflags(write=False)
         return view
     else:
@@ -26,7 +26,7 @@ def get_eval_points(model, conn, rng):
             conn.pre_obj, conn.eval_points, rng, conn.scale_eval_points)
 
 
-def get_targets(model, conn, eval_points):
+def get_targets(conn, eval_points):
     if conn.function is None:
         targets = eval_points[:, conn.pre_slice]
     else:
@@ -156,9 +156,56 @@ class BuiltConnection(object):
         The transform matrix.
     """
 
-    __slots__ = ('eval_points', 'solver_info', 'weights', 'transform')
+    __slots__ = ('conntype',
+                 'eval_points',
+                 'learning_rule',
+                 'pre',
+                 'post',
+                 'seed',
+                 'seeded',
+                 'solver_info',
+                 'synapse',
+                 'transform',
+                 'weights')
 
-    def __init__(self, conn, seed):
+    def __init__(self, conn, pre, post, seed):
+        self.seeded = conn.seed is not None
+        self.seed = conn.seed if self.seeded else seed
+        rng = np.random.RandomState(self.seed)
+
+        weights = None
+        eval_points = None
+        solver_info = None
+        signal_size = conn.size_out
+        post_slice = conn.post_slice
+
+        # Sample transform if given a distribution
+        transform = (
+            conn.transform.sample(conn.size_out, conn.size_mid, rng=rng)
+            if isinstance(conn.transform, Distribution)
+            else np.array(conn.transform))
+
+        # Figure out the signal going across this connection
+        self.conntype = None
+        if (isinstance(conn.pre_obj, Node) or
+                (isinstance(conn.pre_obj, Ensemble) and
+                 isinstance(conn.pre_obj.neuron_type, Direct))):
+            self.conntype = 'direct'
+            weights = transform
+        elif isinstance(conn.pre_obj, Ensemble):
+            self.conntype = 'decoded'
+            eval_points, weights, solver_info = build_decoders(
+                model, conn, rng, transform)
+            if conn.solver.weights:
+                self.conntype = 'decoded_weights'
+        else:
+            self.conntype = '???'
+            weights = transform
+            in_signal = slice_signal(model, in_signal, conn.pre_slice)
+
+        if isinstance(conn.post_obj, Neurons):
+            weights = multiply(
+                model.params[conn.post_obj.ensemble].gain[post_slice], weights)
 
     @property
     def decoders(self):
@@ -182,9 +229,6 @@ def build_connection(model, conn):
     -----
     Sets ``model.params[conn]`` to a `.BuiltConnection` instance.
     """
-
-    # Create random number generator
-    rng = np.random.RandomState(model.seeds[conn])
 
     # Get input and output connections from pre and post
     def get_prepost_signal(is_pre):
