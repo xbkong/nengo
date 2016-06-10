@@ -161,14 +161,6 @@ class Simulator(object):
         seed = np.random.randint(npext.maxint) if seed is None else seed
         self.reset(seed=seed)
 
-    def __del__(self):
-        """Raise a ResourceWarning if we are deallocated while open."""
-        if not self.closed:
-            warnings.warn(
-                "Simulator with model=%s was deallocated while open. Please "
-                "close simulators manually to ensure resources are properly "
-                "freed." % self.model, ResourceWarning)
-
     def __enter__(self):
         return self
 
