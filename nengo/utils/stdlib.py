@@ -26,6 +26,8 @@ class WeakKeyIDDictionary(collections.MutableMapping):
     def __init__(self, *args, **kwargs):
         self._keyrefs = weakref.WeakValueDictionary()
         self._keyvalues = {}
+        self._ref2id = {}
+        self._id2ref = {}
         if len(args) > 0 or len(kwargs) > 0:
             self.update(*args, **kwargs)
 
@@ -37,15 +39,28 @@ class WeakKeyIDDictionary(collections.MutableMapping):
             raise KeyError(str(k))
 
     def __setitem__(self, k, v):
-        assert weakref.ref(k)
+        ref = weakref.ref(k, self.__free_value)
+        assert ref
         self._keyrefs[id(k)] = k
         self._keyvalues[id(k)] = v
+        self._ref2id[id(ref)] = id(k)
+        self._id2ref[id(k)] = ref
+
+    def __free_value(self, ref):
+        id_ = self._ref2id[id(ref)]
+        # no delete from _keyrefs as this will happen by means of the
+        # WeakValueDictionary
+        del self._keyvalues[id_]
+        del self._id2ref[id_]
+        del self._ref2id[id(ref)]
 
     def __delitem__(self, k):
         assert weakref.ref(k)
         if k in self:
             del self._keyrefs[id(k)]
             del self._keyvalues[id(k)]
+            del self._ref2id[id(self._id2ref[id(k)])]
+            del self._id2ref[id(k)]
         else:
             raise KeyError(str(k))
 
