@@ -6,8 +6,8 @@ import numpy as np
 from nengo.config import SupportDefaultsMixin
 from nengo.exceptions import NotAddedToNetworkWarning, ValidationError
 from nengo.params import (
-    CopyableObject, FrozenObject, is_param, IntParam, NumberParam,
-    Parameter, StringParam, Unconfigurable)
+    CopyableObject, FrozenObject, is_param, IntParam, NumberParam, Parameter,
+    StringParam, Unconfigurable)
 from nengo.utils.compat import is_integer, range, with_metaclass
 from nengo.utils.numpy import as_shape, maxint
 

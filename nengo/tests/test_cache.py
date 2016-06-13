@@ -10,6 +10,7 @@ import pytest
 import nengo
 from nengo.cache import DecoderCache, Fingerprint, get_fragment_size
 from nengo.exceptions import FingerprintError
+from nengo.solvers import LstsqL2
 from nengo.utils.compat import int_types
 
 
@@ -143,8 +144,8 @@ def test_decoder_cache_shrinking(tmpdir):
     with DecoderCache(cache_dir=cache_dir) as cache:
         cache.wrap_solver(solver_mock)(**get_solver_test_args())
 
-        # Ensure differing time stamps (depending on the file system the timestamp
-        # resolution might be as bad as 1 day).
+        # Ensure differing time stamps (depending on the file system the
+        # timestamp resolution might be as bad as 1 day).
         for path in cache.get_files():
             timestamp = os.stat(path).st_atime
             timestamp -= 60 * 60 * 24 * 2  # 2 days
@@ -251,6 +252,7 @@ def dummy_fn_b(arg):
     (DummyA(), DummyA(), DummyB()),  # object instance
     (DummyA(1), DummyA(1), DummyA(2)),     # object instance
     (dummy_fn_a, dummy_fn_a, dummy_fn_b),  # function
+    (LstsqL2(reg=.1), LstsqL2(reg=.1), LstsqL2(reg=.2)),     # solver
 ) + tuple((typ(1), typ(1), typ(2)) for typ in int_types))
 def test_fingerprinting(reference, equal, different):
     assert str(Fingerprint(reference)) == str(Fingerprint(equal))

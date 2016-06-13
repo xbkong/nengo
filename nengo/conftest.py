@@ -32,6 +32,19 @@ class TestConfig(object):
     Simulator = nengo.Simulator
     RefSimulator = nengo.Simulator
     neuron_types = [Direct, LIF, LIFRate, RectifiedLinear, Sigmoid]
+    compare_requested = False
+
+    @classmethod
+    def is_sim_overridden(cls):
+        return cls.Simulator is not nengo.Simulator
+
+    @classmethod
+    def is_refsim_overridden(cls):
+        return cls.RefSimulator is not nengo.Simulator
+
+    @classmethod
+    def is_skipping_frontend_tests(cls):
+        return cls.is_sim_overridden() or cls.is_refsim_overridden()
 
 
 def pytest_configure(config):
@@ -47,6 +60,8 @@ def pytest_configure(config):
         ntypes = config.getoption('neurons')[0].split(',')
         TestConfig.neuron_types = [load_class(n) for n in ntypes]
 
+    TestConfig.compare_requested = config.getvalue('compare') is not None
+
 
 def load_class(fully_qualified_name):
     mod_name, cls_name = fully_qualified_name.rsplit('.', 1)
@@ -56,7 +71,7 @@ def load_class(fully_qualified_name):
 
 @pytest.fixture(scope="session")
 def Simulator(request):
-    """the Simulator class being tested.
+    """The Simulator class being tested.
 
     Please use this, and not ``nengo.Simulator`` directly. If the test is
     reference simulator specific, then use ``RefSimulator`` below.
@@ -66,7 +81,7 @@ def Simulator(request):
 
 @pytest.fixture(scope="session")
 def RefSimulator(request):
-    """the reference simulator.
+    """The reference simulator.
 
     Please use this if the test is reference simulator specific.
     Other simulators may choose to implement the same API as the
@@ -76,6 +91,13 @@ def RefSimulator(request):
 
 
 def recorder_dirname(request, name):
+    """Returns the directory to put test artifacts in.
+
+    Test artifacts produced by Nengo include plots and analytics.
+
+    Note that the return value might be None, which indicates that the
+    artifacts should not be saved.
+    """
     record = request.config.getvalue(name)
     if is_string(record):
         return record
@@ -85,6 +107,7 @@ def recorder_dirname(request, name):
     simulator, nl = TestConfig.RefSimulator, None
     if 'Simulator' in request.funcargnames:
         simulator = request.getfuncargvalue('Simulator')
+    # 'nl' stands for the non-linearity used in the neuron equation
     if 'nl' in request.funcargnames:
         nl = request.getfuncargvalue('nl')
     elif 'nl_nodirect' in request.funcargnames:
@@ -97,6 +120,13 @@ def recorder_dirname(request, name):
 
 
 def parametrize_function_name(request, function_name):
+    """Creates a unique name for a test function.
+
+    The unique name accounts for values passed through
+    ``pytest.mark.parametrize``.
+
+    This function is used when naming plots saved through the ``plt`` fixture.
+    """
     suffixes = []
     if 'parametrize' in request.keywords:
         argnames = request.keywords['parametrize'].args[::2]
@@ -111,7 +141,7 @@ def parametrize_function_name(request, function_name):
 
 @pytest.fixture
 def plt(request):
-    """a pyplot-compatible plotting interface.
+    """A pyplot-compatible plotting interface.
 
     Please use this if your test creates plots.
 
@@ -132,7 +162,7 @@ def plt(request):
 
 @pytest.fixture
 def analytics(request):
-    """an object to store data for analytics.
+    """An object to store data for analytics.
 
     Please use this if you're concerned that accuracy or speed may regress.
 
@@ -162,7 +192,7 @@ def analytics_data(request):
 
 @pytest.fixture
 def logger(request):
-    """a logging.Logger object.
+    """A logging.Logger object.
 
     Please use this if your test emits log messages.
 
@@ -178,6 +208,10 @@ def logger(request):
 
 
 def function_seed(function, mod=0):
+    """Generates a unique seed for the given test function.
+
+    The seed should be the same across all machines/platforms.
+    """
     c = function.__code__
 
     # get function file path relative to Nengo directory root
@@ -194,9 +228,19 @@ def function_seed(function, mod=0):
     return int_s
 
 
+def get_item_name(item):
+    """Get a unique backend-independent name for an item (test function)."""
+    item_abspath, item_name = str(item.fspath), item.location[2]
+    nengo_path = os.path.abspath(os.path.dirname(nengo.__file__))
+    item_relpath = os.path.relpath(item_abspath, start=nengo_path)
+    item_relpath = os.path.join('nengo', item_relpath)
+    item_relpath = item_relpath.replace(os.sep, '/')
+    return '%s:%s' % (item_relpath, item_name)
+
+
 @pytest.fixture
 def rng(request):
-    """a seeded random number generator.
+    """A seeded random number generator.
 
     This should be used in lieu of np.random because we control its seed.
     """
@@ -207,7 +251,7 @@ def rng(request):
 
 @pytest.fixture
 def seed(request):
-    """a seed for seeding Networks.
+    """A seed for seeding Networks.
 
     This should be used in lieu of an integer seed so that we can ensure that
     tests are not dependent on specific seeds.
@@ -229,43 +273,48 @@ def pytest_runtest_setup(item):  # noqa: C901
     rc.set('exceptions', 'simplified', 'False')
 
     if not hasattr(item, 'obj'):
-        return
+        return  # Occurs for doctests, possibly other weird tests
 
-    for mark, option, message in [
-            ('example', 'noexamples', "examples not requested"),
-            ('slow', 'slow', "slow tests not requested")]:
-        if getattr(item.obj, mark, None) and not item.config.getvalue(option):
-            pytest.skip(message)
+    conf = item.config
+    test_uses_compare = getattr(item.obj, 'compare', None) is not None
+    test_uses_sim = 'Simulator' in item.fixturenames
+    test_uses_refsim = 'RefSimulator' in item.fixturenames
+    tests_frontend = not (test_uses_sim or test_uses_refsim)
 
-    if getattr(item.obj, 'noassertions', None):
-        skipreasons = []
-        for fixture_name, option, message in [
-                ('analytics', 'analytics', "analytics not requested"),
-                ('plt', 'plots', "plots not requested"),
-                ('logger', 'logs', "logs not requested")]:
-            if fixture_name in item.fixturenames:
-                if item.config.getvalue(option):
-                    break
-                else:
-                    skipreasons.append(message)
-        else:
-            pytest.skip(" and ".join(skipreasons))
+    if getattr(item.obj, 'example', None) and not conf.getvalue('noexamples'):
+        pytest.skip("examples not requested")
+    elif getattr(item.obj, 'slow', None) and not conf.getvalue('slow'):
+        pytest.skip("slow tests not requested")
+    elif not TestConfig.compare_requested and test_uses_compare:
+        pytest.skip("compare tests not requested")
+    elif TestConfig.is_skipping_frontend_tests() and tests_frontend:
+        pytest.skip("frontend tests not run for alternate backends")
+    elif (TestConfig.is_skipping_frontend_tests()
+          and test_uses_refsim
+          and not TestConfig.is_refsim_overridden()):
+        pytest.skip("RefSimulator not overridden")
+    elif (TestConfig.is_skipping_frontend_tests()
+          and test_uses_sim
+          and not TestConfig.is_sim_overridden()):
+        pytest.skip("Simulator not overridden")
+    elif getattr(item.obj, 'noassertions', None):
+        options = []
+        for fixture, option in [('analytics', 'analytics'),
+                                ('plt', 'plots'),
+                                ('logger', 'logs')]:
+            if fixture in item.fixturenames and not conf.getvalue(option):
+                options.append(option)
+        if len(options) > 0:
+            pytest.skip("%s not requested" % " and ".join(options))
 
-    if 'Simulator' in item.fixturenames:
+    if not tests_frontend:
+        item_name = get_item_name(item)
+
         for test, reason in TestConfig.Simulator.unsupported:
             # We add a '*' before test to eliminate the surprise of needing
             # a '*' before the name of a test function.
-            if fnmatch(item.nodeid, '*' + test):
+            if fnmatch(item_name, '*' + test):
                 pytest.xfail(reason)
-
-
-def pytest_collection_modifyitems(session, config, items):
-    compare = config.getvalue('compare') is None
-    for item in list(items):
-        if not hasattr(item, 'obj'):
-            continue
-        if (getattr(item.obj, 'compare', None) is None) != compare:
-            items.remove(item)
 
 
 def pytest_terminal_summary(terminalreporter):

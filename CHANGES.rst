@@ -28,6 +28,32 @@ Release History
   (`#977 <https://github.com/nengo/nengo/issues/977>`_,
   `#984 <https://github.com/nengo/nengo/pull/984>`_)
 
+**Improvements**
+
+- Improved the default ``LIF`` neuron model to spike at the same rate as the
+  ``LIFRate`` neuron model for constant inputs. The older model has been
+  moved to `nengo_extras <https://github.com/nengo/nengo_extras>`_
+  under the name ``FastLIF``.
+  (`#975 <https://github.com/nengo/nengo/pull/975>`_)
+- Added ``y0`` attribute to ``WhiteSignal``, which adjusts the phase of each
+  dimension to begin with absolute value closest to ``y0``.
+  (`#1064 <https://github.com/nengo/nengo/pull/1064>`_)
+
+**Bug fixes**
+
+- The DecoderCache is used as context manager instead of relying on the
+  ``__del__`` method for cleanup. This should solve problems with the
+  cache's file lock not being removed. It might be necessary to
+  manually remove the ``index.lock`` file in the cache directory after
+  upgrading from an older Nengo version.
+  (`#1053 <https://github.com/nengo/nengo/pull/1053>`_,
+  `#1041 <https://github.com/nengo/nengo/issues/1041>`_,
+  `#1048 <https://github.com/nengo/nengo/issues/1048>`_)
+- The ``Nnls`` solver now works for weights. The ``NnlsL2`` solver is
+  improved since we clip values to be non-negative before forming
+  the Gram system.
+  (`#1027 <https://github.com/nengo/nengo/pull/1027>`_,
+  `#1019 <https://github.com/nengo/nengo/issues/1019>`_)
 
 2.1.0 (April 27, 2016)
 ======================
