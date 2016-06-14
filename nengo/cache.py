@@ -387,7 +387,8 @@ class DecoderCache(object):
                     start = fd.tell()
                     nco.write(fd, solver_info, decoders)
                     end = fd.tell()
-                    self._index[key] = (fd.name, start, end)
+                    if self._index is not None:
+                        self._index[key] = (fd.name, start, end)
             else:
                 logger.debug("Cache hit [%s]: Loaded stored decoders.", key)
             return decoders, solver_info
