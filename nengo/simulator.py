@@ -119,7 +119,9 @@ class Simulator(object):
     # would skip all test whose names start with 'test_pes'.
     unsupported = []
 
-    def __init__(self, network, dt=0.001, seed=None, model=None):
+    def __init__(
+            self, network, dt=0.001, seed=None, model=None,
+            shrink_cache=True):
         self.closed = False
 
         if model is None or model.decoder_cache is None:
@@ -141,7 +143,8 @@ class Simulator(object):
                 # Build the network into the model
                 self.model.build(network)
 
-            cache.shrink()
+            if shrink_cache:
+                cache.shrink()
 
         # Order the steps (they are made in `Simulator.reset`)
         self.dg = operator_depencency_graph(self.model.operators)
