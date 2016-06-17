@@ -334,3 +334,82 @@ def test_present_input(Simulator, rng):
     y = sim.data[up].reshape(len(t), c, ni, nj)
     for k, [ii, image] in enumerate(zip(i, y)):
         assert np.allclose(image, images[ii], rtol=1e-4, atol=1e-7), (k, ii)
+
+
+class TestPiecewise(object):
+
+    def get_step(self, data):
+        tp, yp = zip(*data.items())
+        print(yp)
+        process = nengo.processes.Piecewise(tp, yp)
+        return process.make_step(shape_in=(process.default_size_in,),
+                                 shape_out=(process.default_size_out,),
+                                 dt=0.001, rng=None)
+
+    def test_basic(self):
+        f = self.get_step({0.5: 1, 1.0: 0})
+        assert np.allclose(f(-10), [0])
+        assert np.allclose(f(0), [0])
+        assert np.allclose(f(0.25), [0])
+        assert np.allclose(f(0.5), [1])
+        assert np.allclose(f(0.75), [1])
+        assert np.allclose(f(1.0), [0])
+        assert np.allclose(f(1.5), [0])
+        assert np.allclose(f(100), [0])
+
+
+    def test_lists(self):
+        f = self.get_step({0.5: [1, 0], 1.0: [0, 1]})
+        assert np.allclose(f(-10), [0, 0])
+        assert np.allclose(f(0), [0, 0])
+        assert np.allclose(f(0.25), [0, 0])
+        assert np.allclose(f(0.5), [1, 0])
+        assert np.allclose(f(0.75), [1, 0])
+        assert np.allclose(f(1.0), [0, 1])
+        assert np.allclose(f(1.5), [0, 1])
+        assert np.allclose(f(100), [0, 1])
+
+
+    def test_invalid_key(self):
+        with pytest.raises(ValidationError):
+            f = self.get_step({0.5: 1, 1: 0, 'a': 0.2})
+            assert f
+
+
+    def test_invalid_length(self):
+        with pytest.raises(ValidationError):
+            f = self.get_step({0.5: [1, 0], 1.0: [1, 0, 0]})
+            assert f
+
+
+    def test_invalid_function_length(self):
+        with pytest.raises(ValidationError):
+            f = self.get_step({0.5: 0, 1.0: lambda t: [t, t ** 2]})
+            assert f
+
+
+    def test_function(self):
+        f = self.get_step({0: np.sin, 0.5: np.cos})
+        assert np.allclose(f(0), [np.sin(0)])
+        assert np.allclose(f(0.25), [np.sin(0.25)])
+        assert np.allclose(f(0.4999), [np.sin(0.4999)])
+        assert np.allclose(f(0.5), [np.cos(0.5)])
+        assert np.allclose(f(0.75), [np.cos(0.75)])
+        assert np.allclose(f(1.0), [np.cos(1.0)])
+
+
+    def test_function_list(self):
+
+        def func1(t):
+            return t, t**2, t**3
+
+        def func2(t):
+            return t**4, t**5, t**6
+
+        f = self.get_step({0: func1, 0.5: func2})
+        assert np.allclose(f(0), func1(0))
+        assert np.allclose(f(0.25), func1(0.25))
+        assert np.allclose(f(0.4999), func1(0.4999))
+        assert np.allclose(f(0.5), func2(0.5))
+        assert np.allclose(f(0.75), func2(0.75))
+        assert np.allclose(f(1.0), func2(1.0))
