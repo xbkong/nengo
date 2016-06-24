@@ -148,7 +148,7 @@ class Simulator(object):
 
         # Order the steps (they are made in `Simulator.reset`)
         self.dg = operator_depencency_graph(self.model.operators)
-        OpMergeOptimizer(self.model, self.dg).optimize()
+        # OpMergeOptimizer(self.model, self.dg).optimize()
         self._step_order = [op for op in toposort(self.dg)
                             if hasattr(op, 'make_step')]
 
