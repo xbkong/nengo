@@ -390,7 +390,7 @@ class OpMergeOptimizer(object):
             for op2 in sorted_subset[start:]:
                 can_merge = (
                     op2 not in self._merged and
-                    self._mergeable(op1, op2, view_indices, tc) and
+                    self._mergeable(merge[-1], op2, view_indices, tc) and
                     self._is_memory_access_sequential([merge[-1], op2]))
                 if can_merge:
                     merge.append(op2)
