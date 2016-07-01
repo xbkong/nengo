@@ -4,6 +4,7 @@ import numpy as np
 from nengo.exceptions import ValidationError
 from nengo.params import (BoolParam, IntParam, NdarrayParam, NumberParam,
                           Parameter, Unconfigurable, FrozenObject)
+from nengo.utils.compat import is_number
 import nengo.utils.numpy as npext
 
 
@@ -508,11 +509,21 @@ class DistributionParam(Parameter):
 
     equatable = True
 
+    def __set__(self, instance, value):
+        value = self.validate(instance, value)
+        self.data[instance] = value
+
     def validate(self, instance, dist):
-        if dist is not None and not isinstance(dist, Distribution):
-            raise ValidationError("'%s' is not a Distribution type" % dist,
-                                  attr=self.name, obj=instance)
         super(DistributionParam, self).validate(instance, dist)
+
+        if dist is not None:
+            if is_number(dist):
+                return Choice([dist])
+            elif not isinstance(dist, Distribution):
+                raise ValidationError("'%s' is not a Distribution type" % dist,
+                                      attr=self.name, obj=instance)
+
+        return dist
 
 
 class DistOrArrayParam(NdarrayParam):
