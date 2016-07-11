@@ -69,12 +69,16 @@ class LearningRuleType(FrozenObject, SupportDefaultsMixin):
         self.learning_rate = learning_rate
 
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, ", ".join(self._argreprs))
+        r = []
+        for name, default in self._argreprs:
+            value = getattr(self, name)
+            if value != default:
+                r.append("%s=%r" % (name, value))
+        return '%s(%s)' % (self.__class__.__name__, ", ".join(r))
 
     @property
     def _argreprs(self):
-        return (["learning_rate=%g" % self.learning_rate]
-                if self.learning_rate != 1e-6 else [])
+        return (('learning_rate', LearningRuleType.learning_rate.default),)
 
 
 class PES(LearningRuleType):
@@ -126,12 +130,8 @@ class PES(LearningRuleType):
 
     @property
     def _argreprs(self):
-        args = []
-        if self.learning_rate != 1e-4:
-            args.append("learning_rate=%g" % self.learning_rate)
-        if self.pre_synapse != Lowpass(tau=0.005):
-            args.append("pre_synapse=%s" % repr(self.pre_synapse))
-        return args
+        return (('learning_rate', PES.learning_rate.default),
+                ('pre_synapse', PES.pre_synapse.default))
 
 
 class BCM(LearningRuleType):
@@ -212,16 +212,10 @@ class BCM(LearningRuleType):
 
     @property
     def _argreprs(self):
-        args = []
-        if self.learning_rate != 1e-9:
-            args.append("learning_rate=%g" % self.learning_rate)
-        if self.pre_synapse != Lowpass(tau=0.005):
-            args.append("pre_synapse=%s" % repr(self.pre_synapse))
-        if self.post_synapse != self.pre_synapse:
-            args.append("post_synapse=%s" % repr(self.post_synapse))
-        if self.theta_synapse != Lowpass(tau=1.0):
-            args.append("theta_synapse=%s" % repr(self.theta_synapse))
-        return args
+        return (('learning_rate', BCM.learning_rate.default),
+                ('pre_synapse', BCM.pre_synapse.default),
+                ('post_synapse', self.pre_synapse),
+                ('theta_synapse', BCM.theta_synapse.default))
 
 
 class Oja(LearningRuleType):
@@ -294,16 +288,10 @@ class Oja(LearningRuleType):
 
     @property
     def _argreprs(self):
-        args = []
-        if self.learning_rate != 1e-6:
-            args.append("learning_rate=%g" % self.learning_rate)
-        if self.pre_synapse != Lowpass(tau=0.005):
-            args.append("pre_synapse=%s" % repr(self.pre_synapse))
-        if self.post_synapse != self.pre_synapse:
-            args.append("post_synapse=%s" % repr(self.post_synapse))
-        if self.beta != 1.0:
-            args.append("beta=%s" % self.beta)
-        return args
+        return (('learning_rate', Oja.learning_rate.default),
+                ('pre_synapse', Oja.pre_synapse.default),
+                ('post_synapse', self.pre_synapse),
+                ('beta', Oja.beta.default))
 
 
 class Voja(LearningRuleType):
@@ -354,12 +342,8 @@ class Voja(LearningRuleType):
 
     @property
     def _argreprs(self):
-        args = []
-        if self.learning_rate != 1e-2:
-            args.append("learning_rate=%g" % self.learning_rate)
-        if self.post_synapse != Lowpass(tau=0.005):
-            args.append("post_synapse=%s" % repr(self.post_synapse))
-        return args
+        return (('learning_rate', Voja.learning_rate.default),
+                ('post_synapse', Voja.post_synapse.default))
 
 
 class LearningRuleTypeParam(Parameter):
