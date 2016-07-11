@@ -1,8 +1,11 @@
 import warnings
 
 from nengo.base import NengoObjectParam
+from nengo.config import SupportDefaultsMixin
 from nengo.exceptions import ValidationError
-from nengo.params import FrozenObject, NumberParam, Parameter
+from nengo.params import (FrozenObject, NumberParam, Parameter, ObsoleteParam,
+                          Unconfigurable, Default)
+from nengo.synapses import Lowpass, SynapseParam
 from nengo.utils.compat import is_iterable, itervalues
 
 
@@ -15,7 +18,7 @@ class ConnectionParam(NengoObjectParam):
         super(ConnectionParam, self).validate(instance, conn)
 
 
-class LearningRuleType(FrozenObject):
+class LearningRuleType(FrozenObject, SupportDefaultsMixin):
     """Base class for all learning rule objects.
 
     To use a learning rule, pass it as a ``learning_rule_type`` keyword
@@ -58,9 +61,10 @@ class LearningRuleType(FrozenObject):
     modifies = None
     probeable = ()
 
-    learning_rate = NumberParam('learning_rate', low=0, low_open=True)
+    learning_rate = NumberParam(
+        'learning_rate', low=0, low_open=True, readonly=True, default=1e-6)
 
-    def __init__(self, learning_rate=1e-6):
+    def __init__(self, learning_rate=Default):
         super(LearningRuleType, self).__init__()
         self.learning_rate = learning_rate
 
@@ -83,37 +87,50 @@ class PES(LearningRuleType):
     ----------
     learning_rate : float, optional (Default: 1e-4)
         A scalar indicating the rate at which weights will be adjusted.
-    pre_tau : float, optional (Default: 0.005)
-        Filter constant on activities of neurons in pre population.
+    pre_synapse : Synapse, optional \
+              (Default: ``nengo.synapses.Lowpass(tau=0.005)``)
+        Synapse model used to filter the pre-synaptic activities
+        (see `~nengo.synapses.Synapse`).
 
     Attributes
     ----------
     learning_rate : float
         A scalar indicating the rate at which weights will be adjusted.
-    pre_tau : float
-        Filter constant on activities of neurons in pre population.
+    pre_synapse : Synapse
+        Synapse model used to filter the pre-synaptic activities
+        (see `~nengo.synapses.Synapse`).
     """
 
     error_type = 'decoded'
     modifies = 'decoders'
     probeable = ('error', 'correction', 'activities', 'delta')
 
-    pre_tau = NumberParam('pre_tau', low=0, low_open=True)
+    learning_rate = NumberParam(
+        'learning_rate', low=0, low_open=True, readonly=True, default=1e-4)
+    pre_synapse = SynapseParam(
+        'pre_synapse', default=Lowpass(tau=0.005), readonly=True)
 
-    def __init__(self, learning_rate=1e-4, pre_tau=0.005):
-        if learning_rate >= 1.0:
+    pre_tau = ObsoleteParam(
+        'pre_tau', "pre_tau replaced by pre_synapse.", since="v2.2.0",
+        url="https://github.com/nengo/nengo/pull/1095")
+
+    def __init__(self, learning_rate=Default, pre_synapse=Default,
+                 pre_tau=Unconfigurable):
+        super(PES, self).__init__(learning_rate)
+        if learning_rate is not Default and learning_rate >= 1.0:
             warnings.warn("This learning rate is very high, and can result "
                           "in floating point errors from too much current.")
+        self.pre_synapse = pre_synapse
+
         self.pre_tau = pre_tau
-        super(PES, self).__init__(learning_rate)
 
     @property
     def _argreprs(self):
         args = []
         if self.learning_rate != 1e-4:
             args.append("learning_rate=%g" % self.learning_rate)
-        if self.pre_tau != 0.005:
-            args.append("pre_tau=%f" % self.pre_tau)
+        if self.pre_synapse != Lowpass(tau=0.005):
+            args.append("pre_synapse=%s" % repr(self.pre_synapse))
         return args
 
 
@@ -126,54 +143,84 @@ class BCM(LearningRuleType):
 
     Parameters
     ----------
-    theta_tau : float, optional (Default: 1.0)
-        A scalar indicating the time constant for theta integration.
-    pre_tau : float, optional (Default: 0.005)
-        Filter constant on activities of neurons in pre population.
-    post_tau : float, optional (Default: None)
-        Filter constant on activities of neurons in post population.
-        If None, post_tau will be the same as pre_tau.
     learning_rate : float, optional (Default: 1e-9)
         A scalar indicating the rate at which weights will be adjusted.
+    pre_synapse : Synapse, optional \
+              (Default: ``nengo.synapses.Lowpass(tau=0.005)``)
+        Synapse model used to filter the pre-synaptic activities
+        (see `~nengo.synapses.Synapse`).
+    post_synapse : Synapse, optional (Default: ``None``)
+        Synapse model used to filter the post-synaptic activities
+        (see `~nengo.synapses.Synapse`).
+        If None, ``post_synapse`` will be the same as ``pre_synapse``.
+    theta_synapse : Synapse, optional \
+              (Default: ``nengo.synapses.Lowpass(tau=1.0)``)
+        Synapse model used to filter the theta signal
+        (see `~nengo.synapses.Synapse`).
 
     Attributes
     ----------
     learning_rate : float
         A scalar indicating the rate at which weights will be adjusted.
-    post_tau : float
-        Filter constant on activities of neurons in post population.
-    pre_tau : float
-        Filter constant on activities of neurons in pre population.
-    theta_tau : float
-        A scalar indicating the time constant for theta integration.
+    post_synapse : Synapse
+        Synapse model used to filter the post-synaptic activities
+        (see `~nengo.synapses.Synapse`).
+    pre_synapse : Synapse
+        Synapse model used to filter the pre-synaptic activities
+        (see `~nengo.synapses.Synapse`).
+    theta_synapse : Synapse
+        Synapse model used to filter the theta signal
+        (see `~nengo.synapses.Synapse`).
     """
 
     error_type = 'none'
     modifies = 'weights'
     probeable = ('theta', 'pre_filtered', 'post_filtered', 'delta')
 
-    pre_tau = NumberParam('pre_tau', low=0, low_open=True)
-    post_tau = NumberParam('post_tau', low=0, low_open=True)
-    theta_tau = NumberParam('theta_tau', low=0, low_open=True)
+    learning_rate = NumberParam(
+        'learning_rate', low=0, low_open=True, readonly=True, default=1e-9)
+    pre_synapse = SynapseParam(
+        'pre_synapse', default=Lowpass(tau=0.005), readonly=True)
+    post_synapse = SynapseParam(
+        'post_synapse', default=None, readonly=True)
+    theta_synapse = SynapseParam(
+        'theta_synapse', default=Lowpass(tau=1.0), readonly=True)
 
-    def __init__(self, pre_tau=0.005, post_tau=None, theta_tau=1.0,
-                 learning_rate=1e-9):
-        self.theta_tau = theta_tau
-        self.pre_tau = pre_tau
-        self.post_tau = post_tau if post_tau is not None else pre_tau
+    pre_tau = ObsoleteParam(
+        'pre_tau', "pre_tau replaced by pre_synapse.", since="v2.2.0",
+        url="https://github.com/nengo/nengo/pull/1095")
+    post_tau = ObsoleteParam(
+        'post_tau', "post_tau replaced by post_synapse.", since="v2.2.0",
+        url="https://github.com/nengo/nengo/pull/1095")
+    theta_tau = ObsoleteParam(
+        'theta_tau', "theta_tau replaced by theta_synapse.", since="v2.2.0",
+        url="https://github.com/nengo/nengo/pull/1095")
+
+    def __init__(self, learning_rate=Default, pre_synapse=Default,
+                 post_synapse=Default, theta_synapse=Default,
+                 pre_tau=Unconfigurable, post_tau=Unconfigurable,
+                 theta_tau=Unconfigurable):
         super(BCM, self).__init__(learning_rate)
+        self.pre_synapse = pre_synapse
+        self.post_synapse = (self.pre_synapse if post_synapse is Default
+                             else post_synapse)
+        self.theta_synapse = theta_synapse
+
+        self.pre_tau = pre_tau
+        self.post_tau = post_tau
+        self.theta_tau = theta_tau
 
     @property
     def _argreprs(self):
         args = []
-        if self.pre_tau != 0.005:
-            args.append("pre_tau=%f" % self.pre_tau)
-        if self.post_tau != self.pre_tau:
-            args.append("post_tau=%f" % self.post_tau)
-        if self.theta_tau != 1.0:
-            args.append("theta_tau=%f" % self.theta_tau)
         if self.learning_rate != 1e-9:
             args.append("learning_rate=%g" % self.learning_rate)
+        if self.pre_synapse != Lowpass(tau=0.005):
+            args.append("pre_synapse=%s" % repr(self.pre_synapse))
+        if self.post_synapse != self.pre_synapse:
+            args.append("post_synapse=%s" % repr(self.post_synapse))
+        if self.theta_synapse != Lowpass(tau=1.0):
+            args.append("theta_synapse=%s" % repr(self.theta_synapse))
         return args
 
 
@@ -187,15 +234,18 @@ class Oja(LearningRuleType):
 
     Parameters
     ----------
-    pre_tau : float, optional (Default: 0.005)
-        Filter constant on activities of neurons in pre population.
-    post_tau : float, optional (Default: None)
-        Filter constant on activities of neurons in post population.
-        If None, post_tau will be the same as pre_tau.
-    beta : float, optional (Default: 1.0)
-        A scalar weight on the forgetting term.
     learning_rate : float, optional (Default: 1e-6)
         A scalar indicating the rate at which weights will be adjusted.
+    pre_synapse : Synapse, optional \
+              (Default: ``nengo.synapses.Lowpass(tau=0.005)``)
+        Synapse model used to filter the pre-synaptic activities
+        (see `~nengo.synapses.Synapse`).
+    post_synapse : Synapse, optional (Default: ``None``)
+        Synapse model used to filter the post-synaptic activities
+        (see `~nengo.synapses.Synapse`).
+        If None, ``post_synapse`` will be the same as ``pre_synapse``.
+    beta : float, optional (Default: 1.0)
+        A scalar weight on the forgetting term.
 
     Attributes
     ----------
@@ -203,38 +253,56 @@ class Oja(LearningRuleType):
         A scalar weight on the forgetting term.
     learning_rate : float
         A scalar indicating the rate at which weights will be adjusted.
-    post_tau : float
-        Filter constant on activities of neurons in post population.
-    pre_tau : float
-        Filter constant on activities of neurons in pre population.
+    post_synapse : Synapse
+        Synapse model used to filter the post-synaptic activities
+        (see `~nengo.synapses.Synapse`).
+    pre_synapse : Synapse
+        Synapse model used to filter the pre-synaptic activities
+        (see `~nengo.synapses.Synapse`).
     """
 
     error_type = 'none'
     modifies = 'weights'
     probeable = ('pre_filtered', 'post_filtered', 'delta')
 
-    pre_tau = NumberParam('pre_tau', low=0, low_open=True)
-    post_tau = NumberParam('post_tau', low=0, low_open=True)
-    beta = NumberParam('beta', low=0)
+    learning_rate = NumberParam(
+        'learning_rate', low=0, low_open=True, readonly=True, default=1e-6)
+    pre_synapse = SynapseParam(
+        'pre_synapse', default=Lowpass(tau=0.005), readonly=True)
+    post_synapse = SynapseParam(
+        'post_synapse', default=None, readonly=True)
+    beta = NumberParam('beta', low=0, readonly=True, default=1.0)
 
-    def __init__(self, pre_tau=0.005, post_tau=None, beta=1.0,
-                 learning_rate=1e-6):
-        self.pre_tau = pre_tau
-        self.post_tau = post_tau if post_tau is not None else pre_tau
-        self.beta = beta
+    pre_tau = ObsoleteParam(
+        'pre_tau', "pre_tau replaced by pre_synapse.", since="v2.2.0",
+        url="https://github.com/nengo/nengo/pull/1095")
+    post_tau = ObsoleteParam(
+        'post_tau', "post_tau replaced by post_synapse.", since="v2.2.0",
+        url="https://github.com/nengo/nengo/pull/1095")
+
+    def __init__(self, learning_rate=Default, pre_synapse=Default,
+                 post_synapse=Default, beta=Default,
+                 pre_tau=Unconfigurable, post_tau=Unconfigurable):
         super(Oja, self).__init__(learning_rate)
+        self.pre_synapse = pre_synapse
+        self.post_synapse = (self.pre_synapse if post_synapse is Default
+                             else post_synapse)
+        self.beta = beta
+
+        self.pre_tau = pre_tau
+        self.post_tau = post_tau
 
     @property
     def _argreprs(self):
         args = []
-        if self.pre_tau != 0.005:
-            args.append("pre_tau=%f" % self.pre_tau)
-        if self.post_tau != self.pre_tau:
-            args.append("post_tau=%f" % self.post_tau)
-        if self.beta != 1.0:
-            args.append("beta=%f" % self.beta)
         if self.learning_rate != 1e-6:
             args.append("learning_rate=%g" % self.learning_rate)
+        if self.pre_synapse != Lowpass(tau=0.005):
+            args.append("pre_synapse=%s" % repr(self.pre_synapse))
+        if self.post_synapse != self.pre_synapse:
+            args.append("post_synapse=%s" % repr(self.post_synapse))
+        if self.beta != 1.0:
+            args.append("beta=%s" % self.beta)
         return args
 
 
@@ -249,28 +317,49 @@ class Voja(LearningRuleType):
 
     Parameters
     ----------
-    post_tau : float, optional (Default: 0.005)
-        Filter constant on activities of neurons in post population.
     learning_rate : float, optional (Default: 1e-2)
         A scalar indicating the rate at which encoders will be adjusted.
+    post_synapse : Synapse, optional \
+              (Default: ``nengo.synapses.Lowpass(tau=0.005)``)
+        Synapse model used to filter the post-synaptic activities
+        (see `~nengo.synapses.Synapse`).
 
     Attributes
     ----------
     learning_rate : float
         A scalar indicating the rate at which encoders will be adjusted.
-    post_tau : float
-        Filter constant on activities of neurons in post population.
+    post_synapse : Synapse
+        Synapse model used to filter the post-synaptic activities
+        (see `~nengo.synapses.Synapse`).
     """
 
     error_type = 'scalar'
     modifies = 'encoders'
     probeable = ('post_filtered', 'scaled_encoders', 'delta')
 
-    post_tau = NumberParam('post_tau', low=0, low_open=True, optional=True)
+    learning_rate = NumberParam(
+        'learning_rate', low=0, low_open=True, readonly=True, default=1e-2)
+    post_synapse = SynapseParam(
+        'post_synapse', default=Lowpass(tau=0.005), readonly=True)
 
-    def __init__(self, post_tau=0.005, learning_rate=1e-2):
-        self.post_tau = post_tau
+    post_tau = ObsoleteParam(
+        'post_tau', "post_tau replaced by post_synapse.", since="v2.2.0",
+        url="https://github.com/nengo/nengo/pull/1095")
+
+    def __init__(self, learning_rate=Default, post_synapse=Default,
+                 post_tau=Unconfigurable):
         super(Voja, self).__init__(learning_rate)
+        self.post_synapse = post_synapse
+        self.post_tau = post_tau
+
+    @property
+    def _argreprs(self):
+        args = []
+        if self.learning_rate != 1e-2:
+            args.append("learning_rate=%g" % self.learning_rate)
+        if self.post_synapse != Lowpass(tau=0.005):
+            args.append("post_synapse=%s" % repr(self.post_synapse))
+        return args
 
 
 class LearningRuleTypeParam(Parameter):
