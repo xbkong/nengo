@@ -80,7 +80,7 @@ class Operator(object):
         self.tag = tag
 
     def __repr__(self):
-        return "<%s%s at 0x%x>" % (
+        return "<%s %s at 0x%x>" % (
             self.__class__.__name__, self._tagstr(), id(self))
 
     def __str__(self):
