@@ -1,5 +1,8 @@
 from __future__ import division
 
+import ctypes
+from multiprocessing.sharedctypes import RawArray
+
 import numpy as np
 
 import nengo.utils.numpy as npext
@@ -255,7 +258,13 @@ class SignalDict(dict):
             view.setflags(write=not signal.readonly)
             dict.__setitem__(self, signal, view)
         else:
-            x = x.view() if signal.readonly else x.copy()
+            if signal.readonly:
+                x = x.view()
+            else:
+                # FIXME data type should be derived from array
+                base = RawArray(ctypes.c_double, x.flatten())
+                y = np.ctypeslib.as_array(base).reshape(x.shape)
+                x = y
             dict.__setitem__(self, signal, x)
 
     def reset(self, signal):
