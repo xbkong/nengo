@@ -2,6 +2,8 @@
 
 import logging
 import warnings
+import multiprocessing
+import os
 from collections import Mapping
 
 import numpy as np
@@ -139,6 +141,24 @@ class Simulator(object):
         self.dg = operator_depencency_graph(self.model.operators)
         self._step_order = [op for op in toposort(self.dg)
                             if hasattr(op, 'make_step')]
+        self._op_to_idx = {op: i for i, op in enumerate(self._step_order)}
+        self.idg = {op: set() for op in self._step_order}
+        for op in self._step_order:
+            for dep in self.dg[op]:
+                self.idg[dep].add(op)
+        self._events = multiprocessing.Array(
+            'b', np.zeros(len(self._step_order), dtype=int))
+        self._notifier = multiprocessing.Condition()
+        self._workers = []
+        self._sig_locks = [multiprocessing.Lock() for _ in range(len(self.signals))]
+        self._sig_indices = {s: i for i, s in enumerate(self.signals)}
+        self._q = multiprocessing.Queue()
+        self._init = False
+
+        # for i, s in enumerate(self.signals):
+            # print(i, s)
+        # for s in self._step_order:
+            # print(s, [self._op_to_idx[dep] for dep in self.idg[s]])
 
         # Add built states to the probe dictionary
         self._probe_outputs = self.model.params
@@ -149,6 +169,8 @@ class Simulator(object):
         seed = np.random.randint(npext.maxint) if seed is None else seed
         self.reset(seed=seed)
 
+        self._workers = []
+
     def __del__(self):
         """Raise a ResourceWarning if we are deallocated while open."""
         if not self.closed:
@@ -158,6 +180,67 @@ class Simulator(object):
                 "freed." % self.model, ResourceWarning)
 
     def __enter__(self):
+        def worker():
+            steps = []
+            init = False
+            j = 0
+            while True:
+                if init and j == 0:
+                    if len(steps) <= 0:
+                        return
+                    with self._notifier:
+                        self._notifier.wait_for(lambda: self._events[steps[0]] <= 0)
+                    if self._events[steps[0]] <= -1:
+                        return
+                elif not init:
+                    i = self._q.get()
+                    if i is None:
+                        init = True
+                        j = 0
+                        continue
+                    elif i == -1:
+                        return
+                    else:
+                        steps.append(i)
+
+                if init:
+                    i = steps[j]
+
+                op = self._step_order[i]
+                step = self._steps[i]
+                if i > 0:
+                    with self._notifier:
+                        self._notifier.wait_for(
+                            lambda: self._events[i - 1] > 0)
+                for dep in self.idg[op]:
+                    with self._notifier:
+                        self._notifier.wait_for(
+                            lambda: self._events[self._op_to_idx[dep]] > 0)
+
+                for s in op.reads + op.sets + op.incs + op.updates:
+                    ss = s.base if s.is_view else s
+                    self._sig_locks[self._sig_indices[ss]].acquire()
+                    # print('r', j, s, self.signals[s])
+                # print(i, [self._op_to_idx[dep] for dep in self.idg[op]])
+                step()
+                # if str(op).startswith('SlicedCopy'):
+                    # print('!', op)
+                for s in op.reads + op.sets + op.incs + op.updates:
+                    ss = s.base if s.is_view else s
+                    self._sig_locks[self._sig_indices[ss]].release()
+                self._events[i] = 1
+                with self._notifier:
+                    self._notifier.notify_all()
+
+                j += 1
+                if j >= len(steps):
+                    j = 0
+
+        # FIXME variable number of processes
+        self._workers = [multiprocessing.Process(
+            target=worker) for _ in range(2)]
+        for w in self._workers:
+            w.start()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -189,6 +272,18 @@ class Simulator(object):
         `.Simulator.step`, and `.Simulator.reset` on a closed simulator raises
         a `.SimulatorClosed` exception.
         """
+        # for i in range(len(self._workers)):
+            # self._q.put(None)
+        if self._init:
+            self._events[:] = [-1] * len(self._events)
+            with self._notifier:
+                self._notifier.notify_all()
+        else:
+            for i in range(6):
+                self._q.put(-1)
+        for p in self._workers:
+            p.join()
+
         self.closed = True
         self.signals = None  # signals may no longer exist on some backends
 
@@ -288,8 +383,19 @@ class Simulator(object):
 
         old_err = np.seterr(invalid='raise', divide='ignore')
         try:
-            for step_fn in self._steps:
-                step_fn()
+            if not self._init:
+                for i in range(len(self._steps)):
+                    self._q.put(i)
+                for i in range(6):
+                    self._q.put(None)
+                self._init = True
+            else:
+                self._events[:] = [0] * len(self._events)
+                with self._notifier:
+                    self._notifier.notify_all()
+            with self._notifier:
+                self._notifier.wait_for(lambda: all(self._events)) # FIXME process number
+            # print('step')
         finally:
             np.seterr(**old_err)
 
