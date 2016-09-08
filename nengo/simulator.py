@@ -2,8 +2,8 @@
 
 import logging
 import warnings
-import threading
-import queue
+import multiprocessing
+from multiprocessing.sharedctypes import RawArray
 import time
 import os
 from collections import Mapping
@@ -154,11 +154,11 @@ class Simulator(object):
         self._prim_steps = [
             i for i, op in enumerate(self._step_order)
             if len(self.idg[op]) <= 0]
-        # self._events = multiprocessing.Array(
-            # 'b', np.zeros(len(self._step_order), dtype=int))
-        self._events = np.zeros(len(self._step_order), dtype=int)
-        self._q = queue.Queue()
-        # self._count = multiprocessing.Value('i', 0)
+        self._events = RawArray(
+            'b', np.zeros(len(self._step_order), dtype=int))
+        # self._events = np.zeros(len(self._step_order), dtype=int)
+        self._q = multiprocessing.Queue()
+        self._count = multiprocessing.Value('i', 0)
 
         # Add built states to the probe dictionary
         self._probe_outputs = self.model.params
@@ -192,14 +192,14 @@ class Simulator(object):
                     deps = [self._op_to_idx[d] for d in self.idg[op]]
                     if all(self._events[d] > 0 for d in deps):
                         to_enque.append(self._op_to_idx[op])
-                # with self._count.get_lock():
-                    # self._count.value += len(to_enque) - 1
+                with self._count.get_lock():
+                    self._count.value += len(to_enque) - 1
                 for x in to_enque:
                     self._q.put(x)
-                self._q.task_done()
+                # self._q.task_done()
 
         # FIXME variable number of processes
-        self._workers = [threading.Thread(
+        self._workers = [multiprocessing.Process(
             target=worker) for _ in range(4)]
         for w in self._workers:
             w.start()
@@ -338,12 +338,11 @@ class Simulator(object):
 
         old_err = np.seterr(invalid='raise', divide='ignore')
         try:
-            # self._count.value = len(self._prim_steps)
+            self._count.value = len(self._prim_steps)
             for i in self._prim_steps:
                 self._q.put(i)
-            self._q.join()
-            # while self._count.value > 0:
-                # time.sleep(0.001)
+            while self._count.value > 0:
+                time.sleep(0.0001)
             self._events[:] = [0] * len(self._events)
         finally:
             np.seterr(**old_err)
