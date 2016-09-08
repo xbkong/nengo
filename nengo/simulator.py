@@ -2,7 +2,9 @@
 
 import logging
 import warnings
-import multiprocessing
+import threading
+import queue
+import time
 import os
 from collections import Mapping
 
@@ -13,6 +15,7 @@ from nengo.builder import Model
 from nengo.builder.signal import SignalDict
 from nengo.cache import get_default_decoder_cache
 from nengo.exceptions import ReadonlyError, SimulatorClosed
+from nengo.optimizer import OpMergeOptimizer
 from nengo.utils.compat import range, ResourceWarning
 from nengo.utils.graphs import toposort
 from nengo.utils.progress import ProgressTracker
@@ -132,33 +135,30 @@ class Simulator(object):
             # Build the network into the model
             self.model.build(network)
 
+        # Order the steps (they are made in `Simulator.reset`)
+        self.dg = operator_depencency_graph(self.model.operators)
+        OpMergeOptimizer(self.model, self.dg).optimize()
+        self._step_order = [op for op in toposort(self.dg)
+                            if hasattr(op, 'make_step')]
+
         # -- map from Signal.base -> ndarray
         self.signals = SignalDict()
         for op in self.model.operators:
             op.init_signals(self.signals)
 
-        # Order the steps (they are made in `Simulator.reset`)
-        self.dg = operator_depencency_graph(self.model.operators)
-        self._step_order = [op for op in toposort(self.dg)
-                            if hasattr(op, 'make_step')]
         self._op_to_idx = {op: i for i, op in enumerate(self._step_order)}
         self.idg = {op: set() for op in self._step_order}
         for op in self._step_order:
             for dep in self.dg[op]:
                 self.idg[dep].add(op)
-        self._events = multiprocessing.Array(
-            'b', np.zeros(len(self._step_order), dtype=int))
-        self._notifier = multiprocessing.Condition()
-        self._workers = []
-        self._sig_locks = [multiprocessing.Lock() for _ in range(len(self.signals))]
-        self._sig_indices = {s: i for i, s in enumerate(self.signals)}
-        self._q = multiprocessing.Queue()
-        self._init = False
-
-        # for i, s in enumerate(self.signals):
-            # print(i, s)
-        # for s in self._step_order:
-            # print(s, [self._op_to_idx[dep] for dep in self.idg[s]])
+        self._prim_steps = [
+            i for i, op in enumerate(self._step_order)
+            if len(self.idg[op]) <= 0]
+        # self._events = multiprocessing.Array(
+            # 'b', np.zeros(len(self._step_order), dtype=int))
+        self._events = np.zeros(len(self._step_order), dtype=int)
+        self._q = queue.Queue()
+        # self._count = multiprocessing.Value('i', 0)
 
         # Add built states to the probe dictionary
         self._probe_outputs = self.model.params
@@ -181,64 +181,26 @@ class Simulator(object):
 
     def __enter__(self):
         def worker():
-            steps = []
-            init = False
-            j = 0
             while True:
-                if init and j == 0:
-                    if len(steps) <= 0:
-                        return
-                    with self._notifier:
-                        self._notifier.wait_for(lambda: self._events[steps[0]] <= 0)
-                    if self._events[steps[0]] <= -1:
-                        return
-                elif not init:
-                    i = self._q.get()
-                    if i is None:
-                        init = True
-                        j = 0
-                        continue
-                    elif i == -1:
-                        return
-                    else:
-                        steps.append(i)
-
-                if init:
-                    i = steps[j]
-
-                op = self._step_order[i]
-                step = self._steps[i]
-                if i > 0:
-                    with self._notifier:
-                        self._notifier.wait_for(
-                            lambda: self._events[i - 1] > 0)
-                for dep in self.idg[op]:
-                    with self._notifier:
-                        self._notifier.wait_for(
-                            lambda: self._events[self._op_to_idx[dep]] > 0)
-
-                for s in op.reads + op.sets + op.incs + op.updates:
-                    ss = s.base if s.is_view else s
-                    self._sig_locks[self._sig_indices[ss]].acquire()
-                    # print('r', j, s, self.signals[s])
-                # print(i, [self._op_to_idx[dep] for dep in self.idg[op]])
-                step()
-                # if str(op).startswith('SlicedCopy'):
-                    # print('!', op)
-                for s in op.reads + op.sets + op.incs + op.updates:
-                    ss = s.base if s.is_view else s
-                    self._sig_locks[self._sig_indices[ss]].release()
+                i = self._q.get()
+                if i is None:
+                    return
+                self._steps[i]()
                 self._events[i] = 1
-                with self._notifier:
-                    self._notifier.notify_all()
-
-                j += 1
-                if j >= len(steps):
-                    j = 0
+                to_enque = []
+                for op in self.dg[self._step_order[i]]:
+                    deps = [self._op_to_idx[d] for d in self.idg[op]]
+                    if all(self._events[d] > 0 for d in deps):
+                        to_enque.append(self._op_to_idx[op])
+                # with self._count.get_lock():
+                    # self._count.value += len(to_enque) - 1
+                for x in to_enque:
+                    self._q.put(x)
+                self._q.task_done()
 
         # FIXME variable number of processes
-        self._workers = [multiprocessing.Process(
-            target=worker) for _ in range(2)]
+        self._workers = [threading.Thread(
+            target=worker) for _ in range(4)]
         for w in self._workers:
             w.start()
         return self
@@ -272,15 +234,8 @@ class Simulator(object):
         `.Simulator.step`, and `.Simulator.reset` on a closed simulator raises
         a `.SimulatorClosed` exception.
         """
-        # for i in range(len(self._workers)):
-            # self._q.put(None)
-        if self._init:
-            self._events[:] = [-1] * len(self._events)
-            with self._notifier:
-                self._notifier.notify_all()
-        else:
-            for i in range(6):
-                self._q.put(-1)
+        for i in range(len(self._workers)):
+            self._q.put(None)
         for p in self._workers:
             p.join()
 
@@ -383,19 +338,13 @@ class Simulator(object):
 
         old_err = np.seterr(invalid='raise', divide='ignore')
         try:
-            if not self._init:
-                for i in range(len(self._steps)):
-                    self._q.put(i)
-                for i in range(6):
-                    self._q.put(None)
-                self._init = True
-            else:
-                self._events[:] = [0] * len(self._events)
-                with self._notifier:
-                    self._notifier.notify_all()
-            with self._notifier:
-                self._notifier.wait_for(lambda: all(self._events)) # FIXME process number
-            # print('step')
+            # self._count.value = len(self._prim_steps)
+            for i in self._prim_steps:
+                self._q.put(i)
+            self._q.join()
+            # while self._count.value > 0:
+                # time.sleep(0.001)
+            self._events[:] = [0] * len(self._events)
         finally:
             np.seterr(**old_err)
 
