@@ -43,6 +43,9 @@ class RadiusForUnitVector(Deferral):
             cache[key] = get_distortion(model.simulator.__class__, ens)
         distortion = cache[key]
 
+        if distortion is None:
+            return 1.
+
         return self.magnitude * find_optimal_radius(
             distortion, self.sp_dimensions, self.sp_subdimensions)
 
@@ -69,7 +72,10 @@ def get_distortion(Simulator, ens, conn_kwargs=None, seed=None):
             **conn_kwargs)
 
     sim = Simulator(m, shrink_cache=False)
-    return np.mean(np.square(sim.model.params[conn].solver_info['rmses']))
+    try:
+        return np.mean(np.square(sim.model.params[conn].solver_info['rmses']))
+    except TypeError:
+        return None
 
 
 def find_optimal_radius(distortion, sp_dimensions, sp_subdimensions=1):
