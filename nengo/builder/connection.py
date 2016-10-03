@@ -14,6 +14,7 @@ from nengo.exceptions import BuildError, ObsoleteError
 from nengo.neurons import Direct
 from nengo.node import Node
 from nengo.utils.compat import is_iterable, itervalues
+from nengo.solvers import FixedDecoder
 
 built_attrs = ['eval_points', 'solver_info', 'weights', 'transform']
 
@@ -128,9 +129,13 @@ def build_decoders(model, conn, rng, transform):
 
 def solve_for_decoders(
         solver, neuron_type, gain, bias, x, targets, rng, E=None):
-    activities = neuron_type.rates(x, gain, bias)
-    if np.count_nonzero(activities) == 0:
-        raise BuildError()
+
+    if isinstance(solver, FixedDecoder):
+        activities = None
+    else:
+        activities = neuron_type.rates(x, gain, bias)
+        if np.count_nonzero(activities) == 0:
+            raise BuildError()
 
     if solver.weights:
         decoders, solver_info = solver(activities, targets, rng=rng, E=E)

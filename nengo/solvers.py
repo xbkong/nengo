@@ -497,3 +497,11 @@ class NnlsL2nz(NnlsL2):
         sigma = (self.reg * A.max()) * np.sqrt((A > 0).mean(axis=0))
         sigma[sigma == 0] = 1
         return self._solve(A, Y, rng, E, sigma=sigma)
+
+
+class FixedDecoder(Solver):
+    def __init__(self, decoder):
+        self.decoder = decoder
+        super(FixedDecoder, self).__init__(weights=False)
+    def __call__(self, A, Y, rng=None, E=None):
+        return self.decoder, {}
