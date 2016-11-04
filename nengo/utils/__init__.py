@@ -11,7 +11,6 @@ from . import logging
 from . import magic
 from . import nco
 from . import network
-from . import neurons
 from . import numpy
 from . import paths
 from . import probe
