@@ -38,6 +38,12 @@ Release History
   (`#1076 <https://github.com/nengo/nengo/issues/1076>`_,
   `#1175 <https://github.com/nengo/nengo/pull/1175>`_)
 
+**Removed**
+
+- Removed ``generate_graphviz`` utility function. It can now be found in
+  `nengo_extras <https://github.com/nengo/nengo_extras/>`_.
+  (`#1187 <https://github.com/nengo/nengo/pull/1187>`_)
+
 **Deprecated**
 
 - Access to ``nengo.Simulator.model`` is deprecated. To access static data
