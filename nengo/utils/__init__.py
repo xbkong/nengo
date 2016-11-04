@@ -13,6 +13,5 @@ from . import nco
 from . import network
 from . import numpy
 from . import paths
-from . import probe
 from . import simulator
 from . import stdlib

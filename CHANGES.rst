@@ -49,6 +49,9 @@ Release History
 - Removed functions for estimating firing rates from spikes. They can now
   be found in `nengo_extras <https://github.com/nengo/nengo_extras/>`_.
   (`#1187 <https://github.com/nengo/nengo/pull/1187>`_)
+- Removed the ``probe_all`` function. It can now be found in
+  `nengo_extras <https://github.com/nengo/nengo_extras/>`_.
+  (`#1187 <https://github.com/nengo/nengo/pull/1187>`_)
 
 **Deprecated**
 
