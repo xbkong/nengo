@@ -129,7 +129,7 @@ class Simulator(object):
     unsupported = []
 
     def __init__(
-            self, network, dt=0.001, seed=None, model=None, progress_bar=True):
+            self, network, dt=0.001, seed=None, model=None, progress_bar=True, post_build_func=None):
         self.closed = False
         self.progress_bar = progress_bar
 
@@ -149,6 +149,9 @@ class Simulator(object):
         for op in self.model.operators:
             op.init_signals(self.signals)
 
+        if post_build_func is not None:
+           self.post_build_func=post_build_func(self.model,network)
+ 
         # Order the steps (they are made in `Simulator.reset`)
         self.dg = operator_depencency_graph(self.model.operators)
         self._step_order = [op for op in toposort(self.dg)
