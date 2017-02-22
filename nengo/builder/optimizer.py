@@ -736,6 +736,10 @@ class DotIncMerger(AbstractMerger):
 
         # Construct sparse A representation
         data = np.array([o.A.initial_value for o in ops])
+        if data.ndim == 1:
+            data = data.reshape((data.size, 1, 1))
+        elif data.ndim == 2:
+            data = data.reshape(data.shape + (1,))
         indptr = np.arange(len(ops) + 1, dtype=int)
         indices = np.arange(len(ops), dtype=int)
         name = 'bsr_merged<{first}, ..., {last}>'.format(
@@ -746,7 +750,8 @@ class DotIncMerger(AbstractMerger):
             replacements[s] = Signal(
                 data[i], name="%s[%i]" % (s.name, i), base=A)
             assert np.all(s.initial_value == replacements[s].initial_value)
-            assert s.shape == replacements[s].shape
+            assert s.shape == replacements[s].shape or (
+                s.shape == () and replacements[s].shape == (1, 1))
 
         reshape = operator.reshape_dot(
             ops[0].A.initial_value, ops[0].X.initial_value,
