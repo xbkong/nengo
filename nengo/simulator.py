@@ -129,7 +129,8 @@ class Simulator(object):
     unsupported = []
 
     def __init__(
-            self, network, dt=0.001, seed=None, model=None, progress_bar=True, post_build_func=None):
+            self, network, dt=0.001, seed=None, model=None, progress_bar=True,
+            pre_build_func=None, post_build_func=None):
         self.closed = False
         self.progress_bar = progress_bar
 
@@ -139,6 +140,10 @@ class Simulator(object):
                                decoder_cache=get_default_decoder_cache())
         else:
             self.model = model
+
+        '''is this the right place?'''
+        if pre_build_func is not None:
+           self.pre_build_func=pre_build_func(network,dt)
 
         if network is not None:
             # Build the network into the model
