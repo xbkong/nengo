@@ -1,8 +1,12 @@
 import numpy as np
+from numpy.testing import assert_almost_equal
 import pytest
 
+import nengo
 from nengo.builder.optimizer import SigMerger
 from nengo.builder.signal import Signal
+from nengo.spa.tests.test_thalamus import thalamus_net
+from nengo.tests.test_learning_rules import learning_net
 
 
 def test_sigmerger_check():
@@ -113,3 +117,26 @@ def test_sigmerger_merge_views():
     assert np.allclose(merged.initial_value, s.initial_value)
     assert v1.base is s
     assert v2.base is s
+
+
+@pytest.mark.parametrize("net", (thalamus_net, learning_net))
+def test_optimizer_does_not_change_result(plt, seed, net):
+    model = net()
+    model.seed = seed
+
+    with model:
+        # Add the default probe for every non-Probe object
+        probes = [nengo.Probe(obj) for obj in model.all_objects
+                  if not isinstance(obj, (nengo.Probe, nengo.Network))]
+        # Also probe learning rules and neurons
+        probes.extend(nengo.Probe(ens.neurons) for ens in model.all_ensembles)
+        probes.extend(nengo.Probe(conn.learning_rule) for conn in
+                      model.all_connections if conn.learning_rule is not None)
+
+    with nengo.Simulator(model, optimize=False) as sim:
+        sim.run(0.1)
+    with nengo.Simulator(model, optimize=True) as sim_opt:
+        sim_opt.run(0.1)
+
+    for probe in probes:
+        assert_almost_equal(sim.data[probe], sim_opt.data[probe])
