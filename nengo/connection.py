@@ -14,9 +14,17 @@ from nengo.params import (Default, Unconfigurable, ObsoleteParam,
 from nengo.solvers import LstsqL2, SolverParam
 from nengo.synapses import Lowpass, SynapseParam
 from nengo.utils.compat import is_array_like, is_iterable, iteritems
-from nengo.utils.connection import function_name
+from nengo.utils.functions import function_name
 
 logger = logging.getLogger(__name__)
+
+
+class ConnectionParam(NengoObjectParam):
+    def validate(self, instance, conn):
+        if not isinstance(conn, Connection):
+            raise ValidationError("'%s' is not a Connection" % conn,
+                                  attr=self.name, obj=instance)
+        super(ConnectionParam, self).validate(instance, conn)
 
 
 class PrePostParam(NengoObjectParam):

@@ -1,18 +1,8 @@
 import warnings
 
-from nengo.base import NengoObjectParam
 from nengo.exceptions import ValidationError
 from nengo.params import FrozenObject, NumberParam, Parameter
 from nengo.utils.compat import is_iterable, itervalues
-
-
-class ConnectionParam(NengoObjectParam):
-    def validate(self, instance, conn):
-        from nengo.connection import Connection
-        if not isinstance(conn, Connection):
-            raise ValidationError("'%s' is not a Connection" % conn,
-                                  attr=self.name, obj=instance)
-        super(ConnectionParam, self).validate(instance, conn)
 
 
 class LearningRuleType(FrozenObject):

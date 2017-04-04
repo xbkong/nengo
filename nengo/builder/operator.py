@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import numpy as np
 
 import nengo.utils.numpy as npext
-from nengo.utils.connection import function_name
+from nengo.utils.functions import function_name
 from nengo.exceptions import BuildError, SimulationError
 
 
