@@ -9,6 +9,7 @@ enable = anomalous-backslash-in-string,
          super-init-not-called,
          ungrouped-imports,
          unused-import,
+         wrong-import-order,
 
 
 [REPORTS]
