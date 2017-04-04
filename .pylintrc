@@ -1,6 +1,7 @@
 [MESSAGES CONTROL]
 
-disable = all
+disable = all,
+          import-error
 enable = anomalous-backslash-in-string,
          bad-super-call,
          dangerous-default-value,
