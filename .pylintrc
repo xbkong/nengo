@@ -5,6 +5,7 @@ enable = anomalous-backslash-in-string,
          bad-super-call,
          dangerous-default-value,
          super-init-not-called,
+         ungrouped-imports,
          unused-import,
 
 

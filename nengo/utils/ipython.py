@@ -53,6 +53,7 @@ try:
 
     # nbformat.current deprecated in IPython 3.0
     if IPython.version_info[0] <= 2:
+        # pylint: disable=ungrouped-imports
         from IPython.nbformat import current
         from IPython.nbformat.current import write as write_nb
         from IPython.nbformat.current import NotebookNode
