@@ -2,6 +2,7 @@
 
 disable = all,
           import-error
+          reimported,
 enable = anomalous-backslash-in-string,
          bad-super-call,
          dangerous-default-value,
