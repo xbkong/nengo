@@ -2,7 +2,6 @@
 
 import errno
 import hashlib
-import inspect
 import logging
 import os
 import shutil
@@ -24,7 +23,8 @@ from nengo.solvers import (Lstsq, LstsqL1, Nnls, NnlsL2,
 from nengo.utils import nco
 from nengo.utils.cache import byte_align, bytes2human, human2bytes
 from nengo.utils.compat import (
-    int_types, is_string, iteritems, pickle, replace, PY2, string_types)
+    getfullargspec, int_types, is_string, iteritems, pickle, replace, PY2,
+    string_types)
 from nengo.utils.least_squares_solvers import (
     Cholesky, ConjgradScipy, LSMRScipy, Conjgrad,
     BlockConjgrad, SVD, RandomizedSVD)
@@ -642,9 +642,11 @@ class DecoderCache(object):
                     solver, neuron_type, gain, bias, x, targets, rng=rng, E=E)
 
             try:
-                args, _, _, defaults = inspect.getargspec(solver)
+                argspec = getfullargspec(solver)
             except TypeError:
-                args, _, _, defaults = inspect.getargspec(solver.__call__)
+                argspec = getfullargspec(solver.__call__)
+            args = argspec.args
+            defaults = argspec.defaults
             args = args[-len(defaults):]
             if rng is None and 'rng' in args:
                 rng = defaults[args.index('rng')]
