@@ -3,6 +3,7 @@
 disable = all
 enable = anomalous-backslash-in-string,
          bad-super-call,
+         function-redefined,
          dangerous-default-value,
          super-init-not-called,
          unused-import,
