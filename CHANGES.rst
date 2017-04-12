@@ -53,6 +53,14 @@ Release History
   (`#691 <https://github.com/nengo/nengo/issues/691>`_,
   `#766 <https://github.com/nengo/nengo/issues/766>`_,
   `#1233 <https://github.com/nengo/nengo/pull/1233>`_)
+- Network inputs are now consistently named ``input_*``. The old inputs can
+  still be used, but are deprecated. An ``output`` node has been added to
+  networks where it was missing for consistency.
+  (`#887 <https://github.com/nengo/nengo/issues/887>`_,
+  `#1179 <https://github.com/nengo/nengo/pull/1179>`_)
+- Networks do not accept ``net`` argument any longer. To set network arguments
+  like ``label``, keyword arguments can be used.
+  (`#1179 <https://github.com/nengo/nengo/pull/1179>`_)
 
 **Fixed**
 
