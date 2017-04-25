@@ -88,7 +88,7 @@ if PY2:
 else:
     import pickle
     import configparser
-    from inspect import getfullargspec  # noqa
+    from inspect import getfullargspec  # pylint: disable=unused-import
     from io import StringIO
     from os import replace
     TextIO = StringIO
