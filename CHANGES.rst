@@ -56,6 +56,12 @@ Release History
   now has summaries to help navigate the page.
   (`#1304 <https://github.com/nengo/nengo/pull/1304>`_)
 
+**Fixed**
+
+- Fixed an issue in which the PES learning rule could not be used
+  on connections to an ``ObjView`` when using a weight solver.
+  (`#1317 <https://github.com/nengo/nengo/pull/1317>`_)
+
 2.4.0 (April 18, 2017)
 ======================
 

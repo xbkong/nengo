@@ -1,5 +1,6 @@
 import numpy as np
 
+from nengo.base import ObjView
 from nengo.builder import Builder, Operator, Signal
 from nengo.builder.operator import DotInc, ElementwiseInc, Reset
 from nengo.connection import LearningRule
@@ -580,6 +581,8 @@ def build_pes(model, pes, rule):
         post = get_post_ens(conn)
         weights = model.sig[conn]['weights']
         encoders = model.sig[post]['encoders']
+        if isinstance(conn.post, ObjView):
+            encoders = encoders[:, conn.post_slice]
 
         # encoded = dot(encoders, correction)
         encoded = Signal(np.zeros(weights.shape[0]), name="PES:encoded")
