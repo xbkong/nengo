@@ -38,6 +38,9 @@ Release History
 - Added documentation on improving performance.
   (`#1119 <https://github.com/nengo/nengo/issues/1119>`_,
   `#1130 <https://github.com/nengo/nengo/pull/1130>`_)
+- Added ``amplitude`` parameter to ``LIF`` and ``LIFRate``, to allow scaling
+  on the output amplitude.
+  (`#1325 <https://github.com/nengo/nengo/pull/1325>`_)
 
 **Changed**
 
