@@ -231,9 +231,9 @@ class LIFRate(NeuronType):
 
     tau_rc = NumberParam('tau_rc', low=0, low_open=True)
     tau_ref = NumberParam('tau_ref', low=0)
-    amplitude = NumberParam('amplitude', low=0)
+    amplitude = NumberParam('amplitude', low=0, low_open=True)
 
-    def __init__(self, tau_rc=0.02, tau_ref=0.002, amplitude=1.):
+    def __init__(self, tau_rc=0.02, tau_ref=0.002, amplitude=1):
         super(LIFRate, self).__init__()
         self.tau_rc = tau_rc
         self.tau_ref = tau_ref
@@ -300,9 +300,9 @@ class LIF(LIFRate):
 
     min_voltage = NumberParam('min_voltage', high=0)
 
-    def __init__(self, tau_rc=0.02, tau_ref=0.002, amplitude=1, min_voltage=0):
-        super(LIF, self).__init__(tau_rc=tau_rc, tau_ref=tau_ref,
-                                  amplitude=amplitude)
+    def __init__(self, tau_rc=0.02, tau_ref=0.002, min_voltage=0, amplitude=1):
+        super(LIF, self).__init__(
+            tau_rc=tau_rc, tau_ref=tau_ref, amplitude=amplitude)
         self.min_voltage = min_voltage
 
     def step_math(self, dt, J, spiked, voltage, refractory_time):
