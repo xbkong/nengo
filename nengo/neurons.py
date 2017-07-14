@@ -225,6 +225,9 @@ class LIFRate(NeuronType):
     tau_ref : float
         Absolute refractory period, in seconds. This is how long the
         membrane voltage is held at zero after a spike.
+    amplitude : float
+        Scaling factor on the neuron output. Corresponds to the relative
+        amplitude of the output spikes of the neuron.
     """
 
     probeable = ('rates',)
@@ -294,6 +297,9 @@ class LIF(LIFRate):
     min_voltage : float
         Minimum value for the membrane voltage. If ``-np.inf``, the voltage
         is never clipped.
+    amplitude : float
+        Scaling factor on the neuron output. Corresponds to the relative
+        amplitude of the output spikes of the neuron.
     """
 
     probeable = ('spikes', 'voltage', 'refractory_time')
