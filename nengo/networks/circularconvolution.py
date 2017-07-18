@@ -81,7 +81,6 @@ def remove_imag_rows(tr):
         tr = tr[(i == 0) | (i > 3)]
 
 
-@memoize
 def dft_half(n):
     x = np.arange(n)
     w = np.arange(n // 2 + 1)
