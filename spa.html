@@ -1,0 +1,1664 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Semantic Pointer Architecture &#8212; Nengo core 2.5.1.dev0 docs</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.5.1.dev0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Advanced topics" href="advanced.html" />
+    <link rel="prev" title="Advanced network design example" href="examples/network_design_advanced.html" />
+<link rel="stylesheet" type="text/css" href="_static/custom.css">
+
+
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="advanced.html" title="Advanced topics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="examples/network_design_advanced.html" title="Advanced network design example"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo core 2.5.1.dev0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" accesskey="U">User Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Nengo core 2.5</a>
+        <div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="user_guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="frontend_api.html">Nengo Modelling API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Setting parameters with Configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="networks.html">Networks</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Semantic Pointer Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/convolution.html">Circular Convolution example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/question.html">Question example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/question_control.html">Question Control example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/question_memory.html">Question Memory example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/spa_sequence.html">SPA Sequence example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/spa_sequence_routed.html">SPA Sequence Routed example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/spa_parser.html">SPA Left-corner Parser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#api-reference">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="advanced.html">Advanced topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backend_api.html">Reference simulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html">Release History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="history.html">Nengo history</a></li>
+<li class="toctree-l2"><a class="reference internal" href="converting.html">Converting from Nengo 1.4 to Nengo 2.0</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_guide.html">Developer Guide</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+                <li><a href="user_guide.html">User Guide</a></li>
+              
+              <li>Semantic Pointer Architecture</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="semantic-pointer-architecture">
+<h1>Semantic Pointer Architecture<a class="headerlink" href="#semantic-pointer-architecture" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference external" href="http://compneuro.uwaterloo.ca/research/spa/semantic-pointer-architecture.html">Semantic Pointer Architecture</a>
+provides an approach to building cognitive models
+implemented with large-scale spiking neural networks.</p>
+<p>Nengo includes a <code class="docutils literal"><span class="pre">nengo.spa</span></code> module that provides
+a simple interface for building models with
+the Semantic Pointer Architecture.
+See the following examples for demonstrations
+of how <code class="docutils literal"><span class="pre">nengo.spa</span></code> works.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/convolution.html">Circular Convolution example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/question.html">Question example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/question_control.html">Question Control example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/question_memory.html">Question Memory example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/spa_sequence.html">SPA Sequence example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/spa_sequence_routed.html">SPA Sequence Routed example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/spa_parser.html">SPA Left-corner Parser</a></li>
+</ul>
+</div>
+<div class="section" id="api-reference">
+<h2>API reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="nengo.spa.SPA">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">SPA</code><span class="sig-paren">(</span><em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em>, <em>vocabs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/spa.html#SPA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SPA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for SPA models.</p>
+<p>This expands the standard <a class="reference internal" href="frontend_api.html#nengo.Network" title="nengo.Network"><code class="xref py py-obj docutils literal"><span class="pre">Network</span></code></a> system to support structured
+connections that use Semantic Pointers and associated vocabularies
+in their definitions.</p>
+<p>To build a SPA model, you can either use <code class="docutils literal"><span class="pre">with</span></code> or create a subclass
+of this SPA class.</p>
+<p>If you use the <code class="docutils literal"><span class="pre">with</span></code> statement, any attribute added to the SPA network
+will be accessible for SPA connections.</p>
+<p>If you chose to create a subclass, any <a class="reference internal" href="#nengo.spa.module.Module" title="nengo.spa.module.Module"><code class="xref py py-obj docutils literal"><span class="pre">Module</span></code></a> object that
+is assigned to a member variable will automatically be accessible by the
+SPA connection system.</p>
+<p>As an example, the following code will build three modules
+(two buffers and a memory) that can be referred to as <code class="docutils literal"><span class="pre">a</span></code>, <code class="docutils literal"><span class="pre">b</span></code>,
+and <code class="docutils literal"><span class="pre">c</span></code>, respectively.</p>
+<p>First, the example with a <code class="docutils literal"><span class="pre">with</span></code> statement:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">example</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Spa</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="n">example</span><span class="p">:</span>
+    <span class="n">example</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Buffer</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">example</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Buffer</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">example</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Memory</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, the example with a subclass:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Example</span><span class="p">(</span><span class="n">spa</span><span class="o">.</span><span class="n">SPA</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Buffer</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Buffer</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Memory</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>These names can be used by special modules that are aware of these
+names. As an example, the <a class="reference internal" href="#nengo.spa.Cortical" title="nengo.spa.Cortical"><code class="xref py py-obj docutils literal"><span class="pre">Cortical</span></code></a> module allows you to form connections
+between these modules in ways that are aware of semantic pointers:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">example</span><span class="p">:</span>
+    <span class="n">example</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Buffer</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">example</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Buffer</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">example</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Memory</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">example</span><span class="o">.</span><span class="n">cortical</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Cortical</span><span class="p">(</span><span class="n">spa</span><span class="o">.</span><span class="n">Actions</span><span class="p">(</span>
+            <span class="s1">&#39;b=a*CAT&#39;</span><span class="p">,</span> <span class="s1">&#39;c=b*~CAT&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>For complex cognitive control, the key modules are the <a class="reference internal" href="#nengo.spa.BasalGanglia" title="nengo.spa.BasalGanglia"><code class="xref py py-obj docutils literal"><span class="pre">spa.BasalGanglia</span></code></a>
+and the <a class="reference internal" href="#nengo.spa.Thalamus" title="nengo.spa.Thalamus"><code class="xref py py-obj docutils literal"><span class="pre">spa.Thalamus</span></code></a>. Together, these allow us to define complex actions
+using the <code class="xref py py-obj docutils literal"><span class="pre">spa.Action</span></code> syntax:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SequenceExample</span><span class="p">(</span><span class="n">spa</span><span class="o">.</span><span class="n">SPA</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Memory</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+
+        <span class="n">actions</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Actions</span><span class="p">(</span><span class="s1">&#39;dot(state, A) --&gt; state=B&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;dot(state, B) --&gt; state=C&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;dot(state, C) --&gt; state=D&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;dot(state, D) --&gt; state=E&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;dot(state, E) --&gt; state=A&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bg</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">BasalGanglia</span><span class="p">(</span><span class="n">actions</span><span class="o">=</span><span class="n">actions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thal</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Thalamus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bg</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="nengo.spa.SPA.get_module">
+<code class="descname">get_module</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/spa.html#SPA.get_module"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SPA.get_module" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the module for the given name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SPA.get_default_vocab">
+<code class="descname">get_default_vocab</code><span class="sig-paren">(</span><em>dimensions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/spa.html#SPA.get_default_vocab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SPA.get_default_vocab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Vocabulary with the desired dimensions.</p>
+<p>This will create a new default Vocabulary if one doesn’t exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SPA.get_module_input">
+<code class="descname">get_module_input</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/spa.html#SPA.get_module_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SPA.get_module_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object to connect into for the given name.</p>
+<p>The name will be either the same as a module, or of the form
+<code class="docutils literal"><span class="pre">&lt;module_name&gt;_&lt;input_name&gt;</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SPA.get_module_output">
+<code class="descname">get_module_output</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/spa.html#SPA.get_module_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SPA.get_module_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object to connect into for the given name.</p>
+<p>The name will be either the same as a module, or of the form
+<code class="docutils literal"><span class="pre">&lt;module_name&gt;_&lt;output_name&gt;</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SPA.similarity">
+<code class="descname">similarity</code><span class="sig-paren">(</span><em>data</em>, <em>probe</em>, <em>vocab=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/spa.html#SPA.similarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SPA.similarity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the similarity between the probed data and <code class="docutils literal"><span class="pre">vocab</span></code>.</p>
+<p>If no vocabulary is provided, the vocabulary associated with
+<code class="docutils literal"><span class="pre">probe.target</span></code> will be used.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>data: ProbeDict</strong></p>
+<blockquote>
+<div><p>Collection of simulation data returned by sim.run() function call.</p>
+</div></blockquote>
+<p><strong>probe: Probe</strong></p>
+<blockquote>
+<div><p>Probe with desired data.</p>
+</div></blockquote>
+<p><strong>vocab</strong> : Vocabulary, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>The vocabulary to compare with. If None, uses the vocabulary
+associated with <code class="docutils literal"><span class="pre">probe.target</span></code>.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo.spa.enable_spa_params">
+<code class="descclassname">nengo.spa.</code><code class="descname">enable_spa_params</code><span class="sig-paren">(</span><em>model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/utils.html#enable_spa_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.enable_spa_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables the SPA specific parameters on a model.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>model</strong> : Network</p>
+<blockquote class="last">
+<div><p>Model to activate SPA specific parameters for.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.SemanticPointer">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">SemanticPointer</code><span class="sig-paren">(</span><em>data</em>, <em>rng=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Semantic Pointer, based on Holographic Reduced Representations.</p>
+<p>Operators are overloaded so that <code class="docutils literal"><span class="pre">+</span></code> and <code class="docutils literal"><span class="pre">-</span></code> are addition,
+<code class="docutils literal"><span class="pre">*</span></code> is circular convolution, and <code class="docutils literal"><span class="pre">~</span></code> is the inversion operator.</p>
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.length">
+<code class="descname">length</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the L2 norm of the vector.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.normalize">
+<code class="descname">normalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modify the vector to have an L2 norm of 1.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.randomize">
+<code class="descname">randomize</code><span class="sig-paren">(</span><em>N=None</em>, <em>rng=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.randomize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.randomize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the vector to be a random vector with L2 norm of 1.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.make_unitary">
+<code class="descname">make_unitary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.make_unitary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.make_unitary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the vector unitary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.convolve">
+<code class="descname">convolve</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.convolve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.convolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the circular convolution of two SemanticPointers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.compare">
+<code class="descname">compare</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.compare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the similarity between two SemanticPointers.</p>
+<p>This is the normalized dotproduct, or (equivalently), the cosine of
+the angle between the two vectors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.dot">
+<code class="descname">dot</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.dot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dot product of the two vectors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.distance">
+<code class="descname">distance</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a distance measure between the vectors.</p>
+<p>This is <code class="docutils literal"><span class="pre">1-cos(angle)</span></code>, so that it is 0 when they are identical, and
+the distance gets larger as the vectors are farther apart.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return another semantic pointer with the same data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.mse">
+<code class="descname">mse</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.mse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.mse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean-squared-error between two vectors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.SemanticPointer.get_convolution_matrix">
+<code class="descname">get_convolution_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/pointer.html#SemanticPointer.get_convolution_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.SemanticPointer.get_convolution_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the matrix that does a circular convolution by this vector.</p>
+<p>This should be such that <code class="docutils literal"><span class="pre">A*B</span> <span class="pre">==</span> <span class="pre">dot(A.get_convolution_matrix,</span> <span class="pre">B.v)</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.Vocabulary">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Vocabulary</code><span class="sig-paren">(</span><em>dimensions</em>, <em>randomize=True</em>, <em>unitary=False</em>, <em>max_similarity=0.1</em>, <em>include_pairs=False</em>, <em>rng=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of semantic pointers, each with their own text label.</p>
+<p>The Vocabulary can also act as a dictionary, with keys as the names
+of the semantic pointers and values as the <a class="reference internal" href="#nengo.spa.SemanticPointer" title="nengo.spa.SemanticPointer"><code class="xref py py-obj docutils literal"><span class="pre">SemanticPointer</span></code></a> objects
+themselves. If it is asked for a pointer that does not exist, one will
+be automatically created.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>dimensions</strong> : int</p>
+<blockquote>
+<div><p>Number of dimensions for each semantic pointer.</p>
+</div></blockquote>
+<p><strong>randomize</strong> : bool, optional (Default: True)</p>
+<blockquote>
+<div><p>Whether to randomly generate pointers. If False, the semantic
+pointers will be <code class="docutils literal"><span class="pre">[1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">...],</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">...],</span> <span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">...]</span></code>
+and so on.</p>
+</div></blockquote>
+<p><strong>unitary</strong> : bool or list, optional (Default: False)</p>
+<blockquote>
+<div><p>If True, all generated pointers will be unitary. If a list of
+strings, any pointer whose name is in the list will be forced to be
+unitary when created.</p>
+</div></blockquote>
+<p><strong>max_similarity</strong> : float, optional (Default: 0.1)</p>
+<blockquote>
+<div><p>When randomly generating pointers, ensure that the cosine of the
+angle between the new pointer and all existing pointers is less
+than this amount. If the system is unable to find such a pointer
+after 100 tries, a warning message is printed.</p>
+</div></blockquote>
+<p><strong>include_pairs</strong> : bool, optional (Default: False)</p>
+<blockquote>
+<div><p>Whether to keep track of all pairs of pointers as well. This
+is helpful for determining if a vector is similar to <code class="docutils literal"><span class="pre">A*B</span></code> (in
+addition to being similar to <code class="docutils literal"><span class="pre">A</span></code> or <code class="docutils literal"><span class="pre">B</span></code>), but exponentially
+increases the processing time.</p>
+</div></blockquote>
+<p><strong>rng</strong> : <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.RandomState.html#numpy.random.RandomState" title="(in NumPy v1.13)"><code class="xref py py-obj docutils literal"><span class="pre">numpy.random.RandomState</span></code></a>, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>The random number generator to use to create new vectors.</p>
+</div></blockquote>
+</dd>
+</dl>
+<p class="rubric">Attributes</p>
+<table class="table table-bordered">
+<colgroup>
+<col width="7%" />
+<col width="93%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>include_pairs</strong></td>
+<td>(bool) Whether to keep track of all pairs of pointers as well. This is helpful for determining if a vector is similar to <code class="docutils literal"><span class="pre">A*B</span></code> (in addition to being similar to <code class="docutils literal"><span class="pre">A</span></code> or <code class="docutils literal"><span class="pre">B</span></code>), but exponentially increases the processing time.</td>
+</tr>
+<tr class="row-even"><td><strong>key_pairs</strong></td>
+<td>(list) The names of all pairs of semantic pointers (e.g., <code class="docutils literal"><span class="pre">['A*B',</span> <span class="pre">'A*C',</span> <span class="pre">'B*C']</span></code>).</td>
+</tr>
+<tr class="row-odd"><td><strong>keys</strong></td>
+<td>(list of strings) The names of all known semantic pointers (e.g., <code class="docutils literal"><span class="pre">['A',</span> <span class="pre">'B',</span> <span class="pre">'C']</span></code>).</td>
+</tr>
+<tr class="row-even"><td><strong>vector_pairs</strong></td>
+<td>(ndarray) The values for each pair of semantic pointers, convolved together, in the same order as in <code class="docutils literal"><span class="pre">key_pairs</span></code>.</td>
+</tr>
+<tr class="row-odd"><td><strong>vectors</strong></td>
+<td>(ndarray) All of the semantic pointer values in a matrix, in the same order as in <code class="docutils literal"><span class="pre">keys</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.create_pointer">
+<code class="descname">create_pointer</code><span class="sig-paren">(</span><em>attempts=100</em>, <em>unitary=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.create_pointer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.create_pointer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new semantic pointer.</p>
+<p>This will take into account the randomize and max_similarity
+parameters from self. If a pointer satisfying max_similarity
+is not generated after the specified number of attempts, the
+candidate pointer with lowest maximum cosine with all existing
+pointers is returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>key</em>, <em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new semantic pointer to the vocabulary.</p>
+<p>The pointer value can be a <a class="reference internal" href="#nengo.spa.SemanticPointer" title="nengo.spa.SemanticPointer"><code class="xref py py-obj docutils literal"><span class="pre">SemanticPointer</span></code></a> or a vector.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a text string and return the corresponding SemanticPointer.</p>
+<p>This uses the Python <code class="docutils literal"><span class="pre">eval()</span></code> function, so any Python operators that
+have been defined for SemanticPointers are valid (<code class="docutils literal"><span class="pre">+</span></code>, <code class="docutils literal"><span class="pre">-</span></code>, <code class="docutils literal"><span class="pre">*</span></code>,
+<code class="docutils literal"><span class="pre">~</span></code>, <code class="docutils literal"><span class="pre">()</span></code>). Any terms do not exist in the vocabulary will be
+automatically generated. Valid semantic pointer terms must start
+with a capital letter.</p>
+<p>If the expression returns a scalar (int or float), a scaled version
+of the identity SemanticPointer will be returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nengo.spa.Vocabulary.identity">
+<code class="descname">identity</code><a class="headerlink" href="#nengo.spa.Vocabulary.identity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the identity vector.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.text">
+<code class="descname">text</code><span class="sig-paren">(</span><em>v</em>, <em>minimum_count=1</em>, <em>maximum_count=None</em>, <em>threshold=0.1</em>, <em>join=';'</em>, <em>terms=None</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a human-readable text version of the provided vector.</p>
+<p>This is meant to give a quick text version of a vector for display
+purposes. To do this, compute the dot product between the vector
+and all the terms in the vocabulary. The top few vectors are
+chosen for inclusion in the text. It will try to only return
+terms with a match above the threshold, but will always return
+at least minimum_count and at most maximum_count terms. Terms
+are sorted from most to least similar.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>v</strong> : SemanticPointer or ndarray</p>
+<blockquote>
+<div><p>The vector to convert into text.</p>
+</div></blockquote>
+<p><strong>minimum_count</strong> : int, optional (Default: 1)</p>
+<blockquote>
+<div><p>Always return at least this many terms in the text.</p>
+</div></blockquote>
+<p><strong>maximum_count</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>Never return more than this many terms in the text.
+If None, all terms will be returned.</p>
+</div></blockquote>
+<p><strong>threshold</strong> : float, optional (Default: 0.1)</p>
+<blockquote>
+<div><p>How small a similarity for a term to be ignored.</p>
+</div></blockquote>
+<p><strong>join</strong> : str, optional (Default: ‘;’)</p>
+<blockquote>
+<div><p>The text separator to use between terms.</p>
+</div></blockquote>
+<p><strong>terms</strong> : list, optional (Default: None)</p>
+<blockquote>
+<div><p>Only consider terms in this list of strings.</p>
+</div></blockquote>
+<p><strong>normalize</strong> : bool, optional (Default: False)</p>
+<blockquote class="last">
+<div><p>Whether to normalize the vector before computing similarity.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.dot">
+<code class="descname">dot</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.dot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dot product with all terms in the Vocabulary.</p>
+<p>Input parameter can either be a <a class="reference internal" href="#nengo.spa.SemanticPointer" title="nengo.spa.SemanticPointer"><code class="xref py py-obj docutils literal"><span class="pre">SemanticPointer</span></code></a> or a vector.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.dot_pairs">
+<code class="descname">dot_pairs</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.dot_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.dot_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dot product with all pairs of terms in the Vocabulary.</p>
+<p>Input parameter can either be a <a class="reference internal" href="#nengo.spa.SemanticPointer" title="nengo.spa.SemanticPointer"><code class="xref py py-obj docutils literal"><span class="pre">SemanticPointer</span></code></a> or a vector.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.transform_to">
+<code class="descname">transform_to</code><span class="sig-paren">(</span><em>other</em>, <em>keys=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.transform_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.transform_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a linear transform from one Vocabulary to another.</p>
+<p>This is simply the sum of the outer products of the corresponding
+terms in each Vocabulary.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>other</strong> : Vocabulary</p>
+<blockquote>
+<div><p>The other vocabulary to translate into.</p>
+</div></blockquote>
+<p><strong>keys</strong> : list, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>If None, any term that exists in just one of the Vocabularies
+will be created in the other Vocabulary and included. Otherwise,
+the transformation will only consider terms in this list. Any
+terms in this list that do not exist in the Vocabularies will
+be created.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.prob_cleanup">
+<code class="descname">prob_cleanup</code><span class="sig-paren">(</span><em>similarity</em>, <em>vocab_size</em>, <em>steps=10000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.prob_cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.prob_cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the chance of successful cleanup.</p>
+<p>This returns the chance that, out of vocab_size randomly chosen
+vectors, at least one of them will be closer to a particular
+vector than the value given by compare. To use this, compare
+your noisy vector with the ideal vector, pass that value in as
+the similarity parameter, and set <code class="docutils literal"><span class="pre">vocab_size</span></code> to be the number of
+competing vectors.</p>
+<p>The steps parameter sets the accuracy of the approximate integral
+needed to compute this.</p>
+<p>The basic principle used here is that the probability of two random
+vectors in a D-dimensional space being a given angle apart is
+proportional to <code class="docutils literal"><span class="pre">sin(angle)**(D-2)</span></code>.  So we integrate this value
+to get a probability of one vector being farther away than the
+desired angle, and then raise that to vocab_size to get the
+probability that all of them are farther away.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>keys</em>, <em>unitary=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends the vocabulary with additional keys.</p>
+<p>Creates and adds the semantic pointers listed in keys to the
+vocabulary.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>keys</strong> : list</p>
+<blockquote>
+<div><p>List of semantic pointer names to be added to the vocabulary.</p>
+</div></blockquote>
+<p><strong>unitary</strong> : bool or list, optional (Default: False)</p>
+<blockquote class="last">
+<div><p>If True, all generated pointers will be unitary. If a list of
+strings, any pointer whose name is on the list will be forced to
+be unitary when created.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Vocabulary.create_subset">
+<code class="descname">create_subset</code><span class="sig-paren">(</span><em>keys</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/vocab.html#Vocabulary.create_subset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Vocabulary.create_subset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the subset of this vocabulary.</p>
+<p>Creates and returns a subset of the current vocabulary that contains
+all the semantic pointers found in keys.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>keys</strong> : list</p>
+<blockquote class="last">
+<div><p>List of semantic pointer names to be copied over to the
+new vocabulary.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="nengo.spa.similarity">
+<code class="descclassname">nengo.spa.</code><code class="descname">similarity</code><span class="sig-paren">(</span><em>data</em>, <em>vocab</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/utils.html#similarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.similarity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the similarity between some data and the vocabulary.</p>
+<p>Computes the dot products between all data vectors and each
+vocabulary vector. If <code class="docutils literal"><span class="pre">normalize=True</span></code>, normalizes all vectors
+to compute the cosine similarity.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>data: array_like</strong></p>
+<blockquote>
+<div><p>The data used for comparison.</p>
+</div></blockquote>
+<p><strong>vocab: Vocabulary or array_like</strong></p>
+<blockquote>
+<div><p>Vocabulary (or list of vectors) to use to calculate
+the similarity values.</p>
+</div></blockquote>
+<p><strong>normalize</strong> : bool, optional (Default: False)</p>
+<blockquote class="last">
+<div><p>Whether to normalize all vectors, to compute the cosine similarity.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="the-action-language">
+<h3>The action language<a class="headerlink" href="#the-action-language" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="nengo.spa.Actions">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Actions</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/actions.html#Actions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of Action objects.</p>
+<p>The <code class="docutils literal"><span class="pre">*args</span></code> and <code class="docutils literal"><span class="pre">**kwargs</span></code> are treated as unnamed and named actions,
+respectively. The list of actions are only generated once
+<a class="reference internal" href="#nengo.spa.Actions.process" title="nengo.spa.Actions.process"><code class="xref py py-obj docutils literal"><span class="pre">process</span></code></a> is called, since it needs access to the list of
+module inputs and outputs from the SPA object. The <code class="docutils literal"><span class="pre">**kwargs</span></code> are sorted
+alphabetically before being processed.</p>
+<dl class="attribute">
+<dt id="nengo.spa.Actions.count">
+<code class="descname">count</code><a class="headerlink" href="#nengo.spa.Actions.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of actions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Actions.process">
+<code class="descname">process</code><span class="sig-paren">(</span><em>spa</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/actions.html#Actions.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Actions.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the actions and generate the list of Action objects.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.actions.Action">
+<em class="property">class </em><code class="descclassname">nengo.spa.actions.</code><code class="descname">Action</code><span class="sig-paren">(</span><em>sources</em>, <em>sinks</em>, <em>action</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/actions.html#Action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.actions.Action" title="Permalink to this definition">¶</a></dt>
+<dd><p>A single action.</p>
+<p>Consists of a conditional <a class="reference internal" href="#nengo.spa.actions.Expression" title="nengo.spa.actions.Expression"><code class="xref py py-obj docutils literal"><span class="pre">Expression</span></code></a> (optional) and an <a class="reference internal" href="#nengo.spa.actions.Effect" title="nengo.spa.actions.Effect"><code class="xref py py-obj docutils literal"><span class="pre">Effect</span></code></a>.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>sources</strong> : list</p>
+<blockquote>
+<div><p>The names of valid sources of information (SPA module outputs).</p>
+</div></blockquote>
+<p><strong>sinks</strong> : list</p>
+<blockquote>
+<div><p>The names of valid places to send information (SPA module inputs).</p>
+</div></blockquote>
+<p><strong>action</strong> : str</p>
+<blockquote>
+<div><p>A string defining the action.  If <code class="docutils literal"><span class="pre">'--&gt;'</span></code> is in the string, this
+is used as a marker to split the string into condition and effect.
+Otherwise it is treated as having no condition and just effect.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote class="last">
+<div><p>The name of this action.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.actions.Expression">
+<em class="property">class </em><code class="descclassname">nengo.spa.actions.</code><code class="descname">Expression</code><span class="sig-paren">(</span><em>sources</em>, <em>expression</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/actions.html#Expression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.actions.Expression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses an Action expression given a set of module outputs.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>sources</strong> : list</p>
+<blockquote>
+<div><p>The names of the module outputs that can be used as part of the
+expression.</p>
+</div></blockquote>
+<p><strong>expression</strong> : str</p>
+<blockquote class="last">
+<div><p>The expression to evaluate. This either defines the utility of the
+action, or a value from an effect’s assignment, given the state
+information from the module outputs. The simplest expression is
+<code class="docutils literal"><span class="pre">&quot;1&quot;</span></code> and they can get more complex, such as
+<code class="docutils literal"><span class="pre">&quot;0.5*(dot(vision,</span> <span class="pre">DOG)</span> <span class="pre">+</span> <span class="pre">dot(memory,</span> <span class="pre">CAT*MOUSE)*3</span> <span class="pre">-</span> <span class="pre">1)&quot;</span></code>.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.actions.Effect">
+<em class="property">class </em><code class="descclassname">nengo.spa.actions.</code><code class="descname">Effect</code><span class="sig-paren">(</span><em>sources</em>, <em>sinks</em>, <em>effect</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/actions.html#Effect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.actions.Effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses an action effect given a set of module outputs.</p>
+<p>The following, in an <a class="reference internal" href="#nengo.spa.actions.Action" title="nengo.spa.actions.Action"><code class="xref py py-obj docutils literal"><span class="pre">Action</span></code></a> string, are valid effects:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;motor=A&quot;</span>
+<span class="s2">&quot;motor=A*B, memory=vision+DOG&quot;</span>
+<span class="s2">&quot;motor=0.5*(memory*A + vision*B)&quot;</span>
+</pre></div>
+</div>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>sources</strong> : list</p>
+<blockquote>
+<div><p>The names of valid sources of information (SPA module outputs).</p>
+</div></blockquote>
+<p><strong>sinks</strong> : list</p>
+<blockquote>
+<div><p>The names of valid places to send information (SPA module inputs).</p>
+</div></blockquote>
+<p><strong>effect: str</strong></p>
+<blockquote class="last">
+<div><p>The action to implement. This is a set of assignment statements
+which can be parsed into a <code class="xref py py-obj docutils literal"><span class="pre">VectorList</span></code>.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.action_objects.Symbol">
+<em class="property">class </em><code class="descclassname">nengo.spa.action_objects.</code><code class="descname">Symbol</code><span class="sig-paren">(</span><em>symbol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/action_objects.html#Symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.action_objects.Symbol" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of semantic pointer symbols and associated math.</p>
+<p>This is an abstract semantic pointer (not associated with a particular
+vocabulary or dimension). It is just meant for keeping track of the
+desired manipulations until such time as it is parsed with a particular
+<a class="reference internal" href="#nengo.spa.Vocabulary" title="nengo.spa.Vocabulary"><code class="xref py py-obj docutils literal"><span class="pre">Vocabulary</span></code></a>.</p>
+<p>Its contents are a single string, and this string is manipulated via
+standard mathematical operators (<code class="docutils literal"><span class="pre">+</span> <span class="pre">-</span> <span class="pre">*</span> <span class="pre">~</span></code>) for SemanticPointers.
+The result will always be able to be passed to <a class="reference internal" href="#nengo.spa.Vocabulary.parse" title="nengo.spa.Vocabulary.parse"><code class="xref py py-obj docutils literal"><span class="pre">Vocabulary.parse</span></code></a>
+to get a valid <a class="reference internal" href="#nengo.spa.SemanticPointer" title="nengo.spa.SemanticPointer"><code class="xref py py-obj docutils literal"><span class="pre">SemanticPointer</span></code></a>.</p>
+<p>This is used by the <a class="reference internal" href="#nengo.spa.Actions" title="nengo.spa.Actions"><code class="xref py py-obj docutils literal"><span class="pre">spa.Actions</span></code></a> parsing system.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.action_objects.Source">
+<em class="property">class </em><code class="descclassname">nengo.spa.action_objects.</code><code class="descname">Source</code><span class="sig-paren">(</span><em>name</em>, <em>transform=&lt;nengo.spa.action_objects.Symbol object&gt;</em>, <em>inverted=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/action_objects.html#Source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.action_objects.Source" title="Permalink to this definition">¶</a></dt>
+<dd><p>A particular source of a vector for the action system.</p>
+<p>This will always refer to a particular named output from a
+<a class="reference internal" href="#nengo.spa.module.Module" title="nengo.spa.module.Module"><code class="xref py py-obj docutils literal"><span class="pre">spa.module.Module</span></code></a>. It also tracks a single <a class="reference internal" href="#nengo.spa.action_objects.Symbol" title="nengo.spa.action_objects.Symbol"><code class="xref py py-obj docutils literal"><span class="pre">Symbol</span></code></a> which represents
+a desired transformation from that output. For example,
+<code class="docutils literal"><span class="pre">Source('vision')</span> <span class="pre">*</span> <span class="pre">Symbol('VISION')</span></code> will result in a <code class="docutils literal"><span class="pre">Source</span></code> object
+for <code class="docutils literal"><span class="pre">'vision'</span></code>, but with transform set to the <code class="docutils literal"><span class="pre">Symbol('VISION')</span></code>.</p>
+<p>This is used by the <a class="reference internal" href="#nengo.spa.Actions" title="nengo.spa.Actions"><code class="xref py py-obj docutils literal"><span class="pre">spa.Actions</span></code></a> parsing system.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.action_objects.DotProduct">
+<em class="property">class </em><code class="descclassname">nengo.spa.action_objects.</code><code class="descname">DotProduct</code><span class="sig-paren">(</span><em>item1</em>, <em>item2</em>, <em>scale=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/action_objects.html#DotProduct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.action_objects.DotProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dot product of a Source and a Source or a Source and a Symbol.</p>
+<p>This represents a similarity measure for computing the utility of
+an action. It also maintains a scaling factor on the result,
+so that the 0.5 in <code class="docutils literal"><span class="pre">&quot;0.5*DotProduct(Source('vision'),</span> <span class="pre">Symbol('DOG'))&quot;</span></code>
+can be correctly tracked.</p>
+<p>This class is meant to be used with an eval-based parsing system in the
+<code class="xref py py-obj docutils literal"><span class="pre">Condition</span></code> class, so that the above <code class="docutils literal"><span class="pre">DotProduct</span></code> can also be created
+with <code class="docutils literal"><span class="pre">&quot;0.5*dot(vision,</span> <span class="pre">'DOG')&quot;</span></code>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.action_objects.Convolution">
+<em class="property">class </em><code class="descclassname">nengo.spa.action_objects.</code><code class="descname">Convolution</code><span class="sig-paren">(</span><em>source1</em>, <em>source2</em>, <em>transform=&lt;nengo.spa.action_objects.Symbol object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/action_objects.html#Convolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.action_objects.Convolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>The convolution of two sources together.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.action_objects.Summation">
+<em class="property">class </em><code class="descclassname">nengo.spa.action_objects.</code><code class="descname">Summation</code><span class="sig-paren">(</span><em>items</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/action_objects.html#Summation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.action_objects.Summation" title="Permalink to this definition">¶</a></dt>
+<dd><p>A summation over all subexpressions.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="spa-modules">
+<h3>SPA modules<a class="headerlink" href="#spa-modules" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="nengo.spa.module.Module">
+<em class="property">class </em><code class="descclassname">nengo.spa.module.</code><code class="descname">Module</code><span class="sig-paren">(</span><em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/module.html#Module"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.module.Module" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for SPA Modules.</p>
+<p>Modules are networks that also have a list of inputs and outputs,
+each with an associated <a class="reference internal" href="#nengo.spa.Vocabulary" title="nengo.spa.Vocabulary"><code class="xref py py-obj docutils literal"><span class="pre">Vocabulary</span></code></a> (or a desired dimensionality for
+the vocabulary).</p>
+<p>The inputs and outputs are dictionaries that map a name to an
+(object, Vocabulary) pair. The object can be a <a class="reference internal" href="frontend_api.html#nengo.Node" title="nengo.Node"><code class="xref py py-obj docutils literal"><span class="pre">Node</span></code></a> or an <a class="reference internal" href="frontend_api.html#nengo.Ensemble" title="nengo.Ensemble"><code class="xref py py-obj docutils literal"><span class="pre">Ensemble</span></code></a>.</p>
+<dl class="method">
+<dt id="nengo.spa.module.Module.on_add">
+<code class="descname">on_add</code><span class="sig-paren">(</span><em>spa</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/module.html#Module.on_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.module.Module.on_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when this is assigned to a variable in the SPA network.</p>
+<p>Overload this when you want processing to be delayed until after
+the module is attached to the SPA network. This is usually for
+modules that connect to other things in the SPA model (such as
+the basal ganglia or thalamus).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.AssociativeMemory">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">AssociativeMemory</code><span class="sig-paren">(</span><em>input_vocab</em>, <em>output_vocab=None</em>, <em>input_keys=None</em>, <em>output_keys=None</em>, <em>default_output_key=None</em>, <em>threshold=0.3</em>, <em>inhibitable=False</em>, <em>wta_output=False</em>, <em>wta_inhibit_scale=3.0</em>, <em>wta_synapse=0.005</em>, <em>threshold_output=False</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/assoc_mem.html#AssociativeMemory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.AssociativeMemory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Associative memory module.</p>
+<p>See <a class="reference internal" href="examples/associative_memory.html"><span class="doc">Associative Memory example</span></a> for an introduction and examples.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>input_vocab: Vocabulary</strong></p>
+<blockquote>
+<div><p>The vocabulary to match.</p>
+</div></blockquote>
+<p><strong>output_vocab: Vocabulary, optional (Default: None)</strong></p>
+<blockquote>
+<div><p>The vocabulary to be produced for each match. If
+None, the associative memory will act like an autoassociative memory
+(cleanup memory).</p>
+</div></blockquote>
+<p><strong>input_keys</strong> : list, optional (Default: None)</p>
+<blockquote>
+<div><p>A list of strings that correspond to the input vectors.</p>
+</div></blockquote>
+<p><strong>output_keys</strong> : list, optional (Default: None)</p>
+<blockquote>
+<div><p>A list of strings that correspond to the output vectors.</p>
+</div></blockquote>
+<p><strong>default_output_key: str, optional (Default: None)</strong></p>
+<blockquote>
+<div><p>The semantic pointer string to be produced if the input value matches
+none of vectors in the input vector list.</p>
+</div></blockquote>
+<p><strong>threshold: float, optional (Default: 0.3)</strong></p>
+<blockquote>
+<div><p>The association activation threshold.</p>
+</div></blockquote>
+<p><strong>inhibitable: bool, optional (Default: False)</strong></p>
+<blockquote>
+<div><p>Flag to indicate if the entire associative memory module is
+inhibitable (i.e., the entire module can be inhibited).</p>
+</div></blockquote>
+<p><strong>wta_output: bool, optional (Default: False)</strong></p>
+<blockquote>
+<div><p>Flag to indicate if output of the associative memory should contain
+more than one vector. If True, only one vector’s output will be
+produced; i.e. produce a winner-take-all (WTA) output.
+If False, combinations of vectors will be produced.</p>
+</div></blockquote>
+<p><strong>wta_inhibit_scale: float, optional (Default: 3.0)</strong></p>
+<blockquote>
+<div><p>Scaling factor on the winner-take-all (WTA) inhibitory connections.</p>
+</div></blockquote>
+<p><strong>wta_synapse: float, optional (Default: 0.005)</strong></p>
+<blockquote>
+<div><p>Synapse to use for the winner-take-all (wta) inhibitory connections.</p>
+</div></blockquote>
+<p><strong>threshold_output: bool, optional (Default: False)</strong></p>
+<blockquote>
+<div><p>Adds a threholded output if True.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.BasalGanglia">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">BasalGanglia</code><span class="sig-paren">(</span><em>actions</em>, <em>input_synapse=0.002</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/basalganglia.html#BasalGanglia"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.BasalGanglia" title="Permalink to this definition">¶</a></dt>
+<dd><p>A basal ganglia, performing action selection on a set of given actions.</p>
+<p>See <a class="reference internal" href="networks.html#nengo.networks.BasalGanglia" title="nengo.networks.BasalGanglia"><code class="xref py py-obj docutils literal"><span class="pre">networks.BasalGanglia</span></code></a> for more details.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>actions</strong> : Actions</p>
+<blockquote>
+<div><p>The actions to choose between.</p>
+</div></blockquote>
+<p><strong>input_synapse</strong> : float, optional (Default: 0.002)</p>
+<blockquote>
+<div><p>The synaptic filter on all input connections.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="nengo.spa.BasalGanglia.bias">
+<code class="descname">bias</code><a class="headerlink" href="#nengo.spa.BasalGanglia.bias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a bias node, when needed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.BasalGanglia.on_add">
+<code class="descname">on_add</code><span class="sig-paren">(</span><em>spa</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/basalganglia.html#BasalGanglia.on_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.BasalGanglia.on_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Form the connections into the BG to compute the utilty values.</p>
+<p>Each action’s condition variable contains the set of computations
+needed for that action’s utility value, which is the input to the
+basal ganglia.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.BasalGanglia.add_bias_input">
+<code class="descname">add_bias_input</code><span class="sig-paren">(</span><em>index</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/basalganglia.html#BasalGanglia.add_bias_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.BasalGanglia.add_bias_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make an input that is just a fixed scalar value.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>the index of the action</p>
+</div></blockquote>
+<p><strong>value</strong> : float or int</p>
+<blockquote class="last">
+<div><p>the fixed utility value to add</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.BasalGanglia.add_compare_input">
+<code class="descname">add_compare_input</code><span class="sig-paren">(</span><em>index</em>, <em>source1</em>, <em>source2</em>, <em>scale</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/basalganglia.html#BasalGanglia.add_compare_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.BasalGanglia.add_compare_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make an input that is the dot product of two different sources.</p>
+<p>This would be used for an input action such as <code class="docutils literal"><span class="pre">dot(vision,</span> <span class="pre">memory)</span></code>.
+Each source might be transformed before being compared. If the
+two sources have different vocabularies, we use the vocabulary of
+the first one for comparison.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The index of the action.</p>
+</div></blockquote>
+<p><strong>source1</strong> : Source</p>
+<blockquote>
+<div><p>The first module output to read from.</p>
+</div></blockquote>
+<p><strong>source2</strong> : Source</p>
+<blockquote>
+<div><p>The second module output to read from.</p>
+</div></blockquote>
+<p><strong>scale</strong> : float</p>
+<blockquote class="last">
+<div><p>A scaling factor to be applied to the result.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.BasalGanglia.add_dot_input">
+<code class="descname">add_dot_input</code><span class="sig-paren">(</span><em>index</em>, <em>source</em>, <em>symbol</em>, <em>scale</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/basalganglia.html#BasalGanglia.add_dot_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.BasalGanglia.add_dot_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make an input that is the dot product of a Source and a Symbol.</p>
+<p>This would be used for an input action such as <code class="docutils literal"><span class="pre">dot(vision,</span> <span class="pre">A)</span></code>.
+The source may have a transformation applied first.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The index of the action.</p>
+</div></blockquote>
+<p><strong>source</strong> : Source</p>
+<blockquote>
+<div><p>The module output to read from.</p>
+</div></blockquote>
+<p><strong>symbol</strong> : Source</p>
+<blockquote>
+<div><p>The semantic pointer to compute the dot product with.</p>
+</div></blockquote>
+<p><strong>scale</strong> : float</p>
+<blockquote class="last">
+<div><p>A scaling factor to be applied to the result.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.BasalGanglia.add_scalar_input">
+<code class="descname">add_scalar_input</code><span class="sig-paren">(</span><em>index</em>, <em>source</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/basalganglia.html#BasalGanglia.add_scalar_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.BasalGanglia.add_scalar_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a scalar input that will vary over time.</p>
+<p>This is used for the ouput of the <a class="reference internal" href="#nengo.spa.Compare" title="nengo.spa.Compare"><code class="xref py py-obj docutils literal"><span class="pre">Compare</span></code></a> module.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The index of the action.</p>
+</div></blockquote>
+<p><strong>source</strong> : Source</p>
+<blockquote class="last">
+<div><p>The module output to read from.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.Bind">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Bind</code><span class="sig-paren">(</span><em>dimensions</em>, <em>vocab=None</em>, <em>n_neurons=200</em>, <em>invert_a=False</em>, <em>invert_b=False</em>, <em>input_magnitude=1.0</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/bind.html#Bind"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Bind" title="Permalink to this definition">¶</a></dt>
+<dd><p>A module for binding together two inputs.</p>
+<p>Binding is done with circular convolution. For more details on how
+this is computed, see the underlying <code class="xref py py-obj docutils literal"><span class="pre">CircularConvolution</span></code>
+network.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>dimensions</strong> : int</p>
+<blockquote>
+<div><p>Number of dimensions for the two vectors to be compared.</p>
+</div></blockquote>
+<p><strong>vocab</strong> : Vocabulary, optional (Default: None)</p>
+<blockquote>
+<div><p>The vocabulary to use to interpret the vectors. If None,
+the default vocabulary for the given dimensionality is used.</p>
+</div></blockquote>
+<p><strong>n_neurons</strong> : int, optional (Default: 200)</p>
+<blockquote>
+<div><p>Number of neurons to use in each product computation.</p>
+</div></blockquote>
+<p><strong>invert_a, invert_b</strong> : bool, optional (Default: False, False)</p>
+<blockquote>
+<div><p>Whether to reverse the order of elements in either
+the first input (<code class="docutils literal"><span class="pre">invert_a</span></code>) or the second input (<code class="docutils literal"><span class="pre">invert_b</span></code>).
+Flipping the second input will make the network perform circular
+correlation instead of circular convolution.</p>
+</div></blockquote>
+<p><strong>input_magnitude</strong> : float, optional (Default: 1.0)</p>
+<blockquote>
+<div><p>The expected magnitude of the vectors to be convolved.
+This value is used to determine the radius of the ensembles
+computing the element-wise product.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.Buffer">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Buffer</code><span class="sig-paren">(</span><em>dimensions</em>, <em>subdimensions=16</em>, <em>neurons_per_dimension=50</em>, <em>vocab=None</em>, <em>direct=False</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/buffer.html#Buffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A module capable of representing a single vector, with no memory.</p>
+<p>This is a minimal SPA module, useful for passing data along
+(for example, visual input).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Deprecated in Nengo 2.1.0. Use <a class="reference internal" href="#nengo.spa.State" title="nengo.spa.State"><code class="xref py py-obj docutils literal"><span class="pre">spa.State</span></code></a> instead.</p>
+</div>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>dimensions</strong> : int</p>
+<blockquote>
+<div><p>Number of dimensions for the vector.</p>
+</div></blockquote>
+<p><strong>subdimensions</strong> : int, optional (Default: 16)</p>
+<blockquote>
+<div><p>Size of the individual ensembles making up the vector.
+Must divide <code class="docutils literal"><span class="pre">dimensions</span></code> evenly.</p>
+</div></blockquote>
+<p><strong>neurons_per_dimensions</strong> : int, optional (Default: 50)</p>
+<blockquote>
+<div><p>Number of neurons in an ensemble will be
+<code class="docutils literal"><span class="pre">neurons_per_dimensions</span> <span class="pre">*</span> <span class="pre">subdimensions</span></code>.</p>
+</div></blockquote>
+<p><strong>vocab</strong> : Vocabulary, optional (Default: None)</p>
+<blockquote>
+<div><p>The vocabulary to use to interpret the vector. If None,
+the default vocabulary for the given dimensionality is used.</p>
+</div></blockquote>
+<p><strong>direct</strong> : bool, optional (Default: False)</p>
+<blockquote>
+<div><p>Whether or not to use direct mode for the neurons.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.Compare">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Compare</code><span class="sig-paren">(</span><em>dimensions</em>, <em>vocab=None</em>, <em>neurons_per_multiply=200</em>, <em>input_magnitude=1.0</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/compare.html#Compare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Compare" title="Permalink to this definition">¶</a></dt>
+<dd><p>A module for computing the dot product of two inputs.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>dimensions</strong> : int</p>
+<blockquote>
+<div><p>Number of dimensions for the two vectors to be compared.</p>
+</div></blockquote>
+<p><strong>vocab</strong> : Vocabulary, optional (Default: None)</p>
+<blockquote>
+<div><p>The vocabulary to use to interpret the vector. If None,
+the default vocabulary for the given dimensionality is used.</p>
+</div></blockquote>
+<p><strong>neurons_per_multiply</strong> : int, optional (Default: 200)</p>
+<blockquote>
+<div><p>Number of neurons to use in each product computation.</p>
+</div></blockquote>
+<p><strong>input_magnitude</strong> : float, optional (Default: 1.0)</p>
+<blockquote>
+<div><p>The expected magnitude of the vectors to be multiplied.
+This value is used to determine the radius of the ensembles
+computing the element-wise product.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.Cortical">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Cortical</code><span class="sig-paren">(</span><em>actions</em>, <em>synapse=0.01</em>, <em>neurons_cconv=200</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/cortical.html#Cortical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Cortical" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SPA module for forming connections between other modules.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>actions</strong> : Actions</p>
+<blockquote>
+<div><p>The actions to implement.</p>
+</div></blockquote>
+<p><strong>synapse</strong> : float, optional (Default: 0.01)</p>
+<blockquote>
+<div><p>The synaptic filter to use for the connections.</p>
+</div></blockquote>
+<p><strong>neurons_cconv</strong> : int, optional (Default: 200)</p>
+<blockquote>
+<div><p>Number of neurons per circular convolution dimension.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="method">
+<dt id="nengo.spa.Cortical.add_direct_effect">
+<code class="descname">add_direct_effect</code><span class="sig-paren">(</span><em>target_name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/cortical.html#Cortical.add_direct_effect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Cortical.add_direct_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a fixed constant input to a module.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>target_name</strong> : str</p>
+<blockquote>
+<div><p>The name of the module input to use.</p>
+</div></blockquote>
+<p><strong>value</strong> : str</p>
+<blockquote class="last">
+<div><p>A semantic pointer to be sent to the module input.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Cortical.add_route_effect">
+<code class="descname">add_route_effect</code><span class="sig-paren">(</span><em>target_name</em>, <em>source_name</em>, <em>transform</em>, <em>inverted</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/cortical.html#Cortical.add_route_effect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Cortical.add_route_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect a module output to a module input.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>target_name</strong> : str</p>
+<blockquote>
+<div><p>The name of the module input to effect.</p>
+</div></blockquote>
+<p><strong>source_name</strong> : str</p>
+<blockquote>
+<div><p>The name of the module output to read from. If this output uses
+a different vocabulary than the target, a linear transform
+will be applied to convert from one to the other.</p>
+</div></blockquote>
+<p><strong>transform</strong> : str</p>
+<blockquote>
+<div><p>A semantic pointer to convolve with the source value before
+sending it into the target. This transform takes
+place in the source vocabulary.</p>
+</div></blockquote>
+<p><strong>inverted</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to invert the transform.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Cortical.add_conv_effect">
+<code class="descname">add_conv_effect</code><span class="sig-paren">(</span><em>target_name</em>, <em>effect</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/cortical.html#Cortical.add_conv_effect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Cortical.add_conv_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convolve the output of two modules and send result to target.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>target_name</strong> : str</p>
+<blockquote>
+<div><p>The name of the module input to affect</p>
+</div></blockquote>
+<p><strong>effect</strong> : Convolution</p>
+<blockquote class="last">
+<div><p>The details of the convolution to implement.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.Input">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Input</code><span class="sig-paren">(</span><em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/input.html#Input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Input" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SPA module for providing external inputs to other modules.</p>
+<p>The parameters passed to this module indicate the module input name
+and the function to execute to generate inputs to that module.
+The functions should always return strings, which will then be parsed
+by the relevant vocabulary. For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">input1</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;A&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;0&#39;</span>
+
+<span class="n">spa_net</span><span class="o">.</span><span class="n">input</span> <span class="o">=</span> <span class="n">spa</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">vision</span><span class="o">=</span><span class="n">input1</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>will create two inputs:</p>
+<ol class="arabic simple">
+<li>an input to the <code class="docutils literal"><span class="pre">vision</span></code> module, which for the first 0.1 seconds
+is the value associated with the <code class="docutils literal"><span class="pre">'A'</span></code> semantic pointer and then
+a vector of all zeros, and</li>
+<li>an input to the <code class="docutils literal"><span class="pre">task</span></code> module which is always the value associated
+with the <code class="docutils literal"><span class="pre">'X'</span></code> semantic pointer.</li>
+</ol>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="method">
+<dt id="nengo.spa.Input.on_add">
+<code class="descname">on_add</code><span class="sig-paren">(</span><em>spa</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/input.html#Input.on_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Input.on_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the connections and nodes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.Memory">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Memory</code><span class="sig-paren">(</span><em>dimensions</em>, <em>subdimensions=16</em>, <em>neurons_per_dimension=50</em>, <em>synapse=0.01</em>, <em>vocab=None</em>, <em>tau=None</em>, <em>direct=False</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/memory.html#Memory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Memory" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SPA module capable of storing a vector over time.</p>
+<p>Parameters are the same as <a class="reference internal" href="#nengo.spa.Buffer" title="nengo.spa.Buffer"><code class="xref py py-obj docutils literal"><span class="pre">spa.Buffer</span></code></a>, with the addition of
+<code class="docutils literal"><span class="pre">synapse</span></code> and <code class="docutils literal"><span class="pre">tau</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Deprecated in Nengo 2.1.0. Use <a class="reference internal" href="#nengo.spa.State" title="nengo.spa.State"><code class="xref py py-obj docutils literal"><span class="pre">spa.State</span></code></a> instead.</p>
+</div>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>dimensions</strong> : int</p>
+<blockquote>
+<div><p>Number of dimensions for the vector.</p>
+</div></blockquote>
+<p><strong>subdimensions</strong> : int, optional (Default: 16)</p>
+<blockquote>
+<div><p>Size of the individual ensembles making up the vector.
+Must divide <code class="docutils literal"><span class="pre">dimensions</span></code> evenly.</p>
+</div></blockquote>
+<p><strong>neurons_per_dimensions</strong> : int, optional (Default: 50)</p>
+<blockquote>
+<div><p>Number of neurons in an ensemble will be
+<code class="docutils literal"><span class="pre">neurons_per_dimensions</span> <span class="pre">*</span> <span class="pre">subdimensions</span></code>.</p>
+</div></blockquote>
+<p><strong>synapse</strong> : float, optional (Default: 0.01)</p>
+<blockquote>
+<div><p>Synaptic filter to use on recurrent connection.</p>
+</div></blockquote>
+<p><strong>vocab</strong> : Vocabulary, optional (Default: None)</p>
+<blockquote>
+<div><p>The vocabulary to use to interpret the vector. If None,
+the default vocabulary for the given dimensionality is used.</p>
+</div></blockquote>
+<p><strong>tau</strong> : float or None, optional (Default: None)</p>
+<blockquote>
+<div><p>Effective time constant of the integrator. If None, it should
+have an infinite time constant.</p>
+</div></blockquote>
+<p><strong>direct</strong> : bool, optional (Default: False)</p>
+<blockquote>
+<div><p>Whether or not to use direct mode for the neurons.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.State">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">State</code><span class="sig-paren">(</span><em>dimensions</em>, <em>subdimensions=16</em>, <em>neurons_per_dimension=50</em>, <em>feedback=0.0</em>, <em>feedback_synapse=0.1</em>, <em>vocab=None</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/state.html#State"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.State" title="Permalink to this definition">¶</a></dt>
+<dd><p>A module capable of representing a single vector, with optional memory.</p>
+<p>This is a minimal SPA module, useful for passing data along (for example,
+visual input).</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>dimensions</strong> : int</p>
+<blockquote>
+<div><p>Number of dimensions for the vector.</p>
+</div></blockquote>
+<p><strong>subdimensions</strong> : int, optional (Default: 16)</p>
+<blockquote>
+<div><p>Size of the individual ensembles making up the vector.
+Must divide <code class="docutils literal"><span class="pre">dimensions</span></code> evenly.</p>
+</div></blockquote>
+<p><strong>neurons_per_dimensions</strong> : int, optional (Default: 50)</p>
+<blockquote>
+<div><p>Number of neurons in an ensemble will be
+<code class="docutils literal"><span class="pre">neurons_per_dimensions</span> <span class="pre">*</span> <span class="pre">subdimensions</span></code>.</p>
+</div></blockquote>
+<p><strong>feedback</strong> : float, optional (Default: 0.0)</p>
+<blockquote>
+<div><p>Gain of feedback connection. Set to 1.0 for perfect memory,
+or 0.0 for no memory. Values in between will create a decaying memory.</p>
+</div></blockquote>
+<p><strong>feedback_synapse</strong> : float, optional (Default: 0.1)</p>
+<blockquote>
+<div><p>The synapse on the feedback connection.</p>
+</div></blockquote>
+<p><strong>vocab</strong> : Vocabulary, optional (Default: None)</p>
+<blockquote>
+<div><p>The vocabulary to use to interpret the vector. If None,
+the default vocabulary for the given dimensionality is used.</p>
+</div></blockquote>
+<p><strong>tau</strong> : float or None, optional (Default: None)</p>
+<blockquote>
+<div><p>Effective time constant of the integrator. If None, it should
+have an infinite time constant.</p>
+</div></blockquote>
+<p><strong>direct</strong> : bool, optional (Default: False)</p>
+<blockquote>
+<div><p>Whether or not to use direct mode for the neurons.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="nengo.spa.Thalamus">
+<em class="property">class </em><code class="descclassname">nengo.spa.</code><code class="descname">Thalamus</code><span class="sig-paren">(</span><em>bg</em>, <em>neurons_action=50</em>, <em>threshold_action=0.2</em>, <em>mutual_inhibit=1.0</em>, <em>route_inhibit=3.0</em>, <em>synapse_inhibit=0.008</em>, <em>synapse_bg=0.008</em>, <em>synapse_direct=0.01</em>, <em>neurons_channel_dim=50</em>, <em>subdim_channel=16</em>, <em>synapse_channel=0.01</em>, <em>neurons_cconv=200</em>, <em>neurons_gate=40</em>, <em>threshold_gate=0.3</em>, <em>synapse_to_gate=0.002</em>, <em>label=None</em>, <em>seed=None</em>, <em>add_to_container=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/thalamus.html#Thalamus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Thalamus" title="Permalink to this definition">¶</a></dt>
+<dd><p>A thalamus, implementing the effects for an associated basal ganglia.</p>
+<p>See <a class="reference internal" href="#nengo.spa.BasalGanglia" title="nengo.spa.BasalGanglia"><code class="xref py py-obj docutils literal"><span class="pre">spa.BasalGanglia</span></code></a> for information on the basal ganglia, and
+<a class="reference internal" href="networks.html#nengo.networks.Thalamus" title="nengo.networks.Thalamus"><code class="xref py py-obj docutils literal"><span class="pre">networks.Thalamus</span></code></a> for details on the underlying network.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>bg</strong> : spa.BasalGanglia</p>
+<blockquote>
+<div><p>The associated basal ganglia that defines the action to implement.</p>
+</div></blockquote>
+<p><strong>neurons_action</strong> : int, optional (Default: 50)</p>
+<blockquote>
+<div><p>Number of neurons per action to represent the selection.</p>
+</div></blockquote>
+<p><strong>threshold_action</strong> : float, optional (Default: 0.2)</p>
+<blockquote>
+<div><p>Minimum value for action representation.</p>
+</div></blockquote>
+<p><strong>mutual_inhibit</strong> : float, optional (Default: 1.0)</p>
+<blockquote>
+<div><p>Strength of inhibition between actions.</p>
+</div></blockquote>
+<p><strong>route_inhibit</strong> : float, optional (Default: 3.0)</p>
+<blockquote>
+<div><p>Strength of inhibition for unchosen actions.</p>
+</div></blockquote>
+<p><strong>synapse_inhibit</strong> : float, optional (Default: 0.008)</p>
+<blockquote>
+<div><p>Synaptic filter to apply for inhibition between actions.</p>
+</div></blockquote>
+<p><strong>synapse_bg</strong> : float, optional (Default: 0.008)</p>
+<blockquote>
+<div><p>Synaptic filter for connection between basal ganglia and thalamus.</p>
+</div></blockquote>
+<p><strong>synapse_direct</strong> : float, optional (Default: 0.01)</p>
+<blockquote>
+<div><p>Synaptic filter for direct outputs.</p>
+</div></blockquote>
+<p><strong>neurons_channel_dim</strong> : int, optional (Default: 50)</p>
+<blockquote>
+<div><p>Number of neurons per routing channel dimension.</p>
+</div></blockquote>
+<p><strong>subdim_channel</strong> : int, optional (Default: 16)</p>
+<blockquote>
+<div><p>Number of subdimensions used in routing channel.</p>
+</div></blockquote>
+<p><strong>synapse_channel</strong> : float, optional (Default: 0.01)</p>
+<blockquote>
+<div><p>Synaptic filter for channel inputs and outputs.</p>
+</div></blockquote>
+<p><strong>neurons_cconv</strong> : int, optional (Default: 200)</p>
+<blockquote>
+<div><p>Number of neurons per circular convolution dimension.</p>
+</div></blockquote>
+<p><strong>neurons_gate</strong> : int, optional (Default: 40)</p>
+<blockquote>
+<div><p>Number of neurons per gate.</p>
+</div></blockquote>
+<p><strong>threshold_gate</strong> : float, optional (Default: 0.3)</p>
+<blockquote>
+<div><p>Minimum value for gating neurons.</p>
+</div></blockquote>
+<p><strong>synapse_to-gate</strong> : float, optional (Default: 0.002)</p>
+<blockquote>
+<div><p>Synaptic filter for controlling a gate.</p>
+</div></blockquote>
+<p><strong>label</strong> : str, optional (Default: None)</p>
+<blockquote>
+<div><p>A name for the ensemble. Used for debugging and visualization.</p>
+</div></blockquote>
+<p><strong>seed</strong> : int, optional (Default: None)</p>
+<blockquote>
+<div><p>The seed used for random number generation.</p>
+</div></blockquote>
+<p><strong>add_to_container</strong> : bool, optional (Default: None)</p>
+<blockquote class="last">
+<div><p>Determines if this Network will be added to the current container.
+If None, will be true if currently within a Network.</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="method">
+<dt id="nengo.spa.Thalamus.add_direct_effect">
+<code class="descname">add_direct_effect</code><span class="sig-paren">(</span><em>index</em>, <em>target_name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/thalamus.html#Thalamus.add_direct_effect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Thalamus.add_direct_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cause an action to drive a particular module input to value.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The action number that causes this effect.</p>
+</div></blockquote>
+<p><strong>target_name</strong> : str</p>
+<blockquote>
+<div><p>The name of the module input to connect to.</p>
+</div></blockquote>
+<p><strong>value</strong> : str</p>
+<blockquote class="last">
+<div><p>A semantic pointer to be sent into the module when this action
+is active.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Thalamus.get_gate">
+<code class="descname">get_gate</code><span class="sig-paren">(</span><em>index</em>, <em>target_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/thalamus.html#Thalamus.get_gate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Thalamus.get_gate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the gate for an action.</p>
+<p>The gate will be created if it does not already exist. The gate
+neurons have no activity when the action is selected, but are
+active when the action is not selected. This makes the gate useful
+for inhibiting ensembles that should only be active when this
+action is active.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Thalamus.add_route_effect">
+<code class="descname">add_route_effect</code><span class="sig-paren">(</span><em>index</em>, <em>target_name</em>, <em>source_name</em>, <em>transform</em>, <em>inverted</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/thalamus.html#Thalamus.add_route_effect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Thalamus.add_route_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set an action to send source to target with the given transform.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The action number that will cause this effect.</p>
+</div></blockquote>
+<p><strong>target_name</strong> : str</p>
+<blockquote>
+<div><p>The name of the module input to affect.</p>
+</div></blockquote>
+<p><strong>source_name</strong> : str</p>
+<blockquote>
+<div><p>The name of the module output to read from. If this output uses
+a different Vocabulary than the target, a linear transform
+will be applied to convert from one to the other.</p>
+</div></blockquote>
+<p><strong>transform</strong> : str</p>
+<blockquote>
+<div><p>A semantic point to convolve with the source value before
+sending it into the target. This transform takes
+place in the source Vocabulary.</p>
+</div></blockquote>
+<p><strong>inverted</strong> : bool</p>
+<blockquote class="last">
+<div><p>Whether to perform inverse convolution on the source.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nengo.spa.Thalamus.add_conv_effect">
+<code class="descname">add_conv_effect</code><span class="sig-paren">(</span><em>index</em>, <em>target_name</em>, <em>effect</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/nengo/spa/thalamus.html#Thalamus.add_conv_effect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nengo.spa.Thalamus.add_conv_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set an action to combine two sources and send to target.</p>
+<dl class="docutils field-list" frame="void" rules="none">
+<dt class="field-name">Parameters</dt><dd class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The action number that will cause this effect.</p>
+</div></blockquote>
+<p><strong>target_name</strong> : str</p>
+<blockquote>
+<div><p>The name of the module input to affect.</p>
+</div></blockquote>
+<p><strong>effect</strong> : Convolution</p>
+<blockquote class="last">
+<div><p>The details of the convolution to implement.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="examples/network_design_advanced.html" title="previous chapter (use the left arrow)">Advanced network design example</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="advanced.html" title="next chapter (use the right arrow)">Advanced topics</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="advanced.html" title="Advanced topics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="examples/network_design_advanced.html" title="Advanced network design example"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Nengo core 2.5.1.dev0 docs</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" >User Guide</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2013-2014, Applied Brain Research. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>
